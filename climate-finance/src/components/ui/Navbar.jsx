@@ -15,10 +15,9 @@ const Navbar = () => {
             className={`${path === '/' ? 'text-primary font-medium' : 'text-gray-600 hover:text-primary'}`}
           >
             Dashboard
-          </Link>
-          <Link 
-            to="#" 
-            className="text-gray-600 hover:text-primary"
+          </Link>          <Link 
+            to="/projects" 
+            className={`${path === '/projects' || path.startsWith('/projects/') ? 'text-primary font-medium' : 'text-gray-600 hover:text-primary'}`}
           >
             Projects
           </Link>
