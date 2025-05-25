@@ -1,10 +1,13 @@
-function App() {
+import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import Routing from '../routing';
 
+function App() {
   return (
-    <>
-      <p>Hello</p>
-    </>
-  )
+    <BrowserRouter>
+      <Routing />
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
