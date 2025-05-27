@@ -165,10 +165,9 @@ const ProjectDetails = () => {
       : 'bg-gray-100 text-gray-700';
 
   return (
-    <PageLayout bgColor="bg-gray-50">
-      <div className="mb-4 flex items-center">
-        <Link to="/projects" className="flex items-center text-primary hover:text-primary-dark">
-          <ArrowLeft size={18} className="mr-2" />
+    <PageLayout bgColor="bg-gray-50">      <div className="mb-4 flex items-center">
+        <Link to="/projects" className="flex items-center text-purple-600 hover:text-purple-700 transition-colors group">
+          <ArrowLeft size={18} className="mr-2 group-hover:-translate-x-1 transition-transform" />
           Back to Projects
         </Link>
       </div>
@@ -185,66 +184,67 @@ const ProjectDetails = () => {
               <h2 className="text-lg font-bold text-gray-900 mb-1">{project.title}</h2>
               <p className="text-xs text-gray-500 mb-3">
                 {project.description}
-              </p>
-              <ul className="space-y-2 text-sm text-gray-700 mb-4">
+              </p>              <ul className="space-y-2 text-sm text-gray-700 mb-4">
                 <li className="flex items-start gap-2">
-                  <Building size={16} className="mt-0.5 text-primary" />
+                  <Building size={16} className="mt-0.5 text-purple-600" />
                   <div>
                     <span className="font-semibold">Implementing Agency</span>
                     <div className="text-xs text-gray-600">{project.implementingAgency}</div>
                   </div>
                 </li>                <li className="flex items-start gap-2">
-                  <Calendar size={16} className="mt-0.5 text-primary" />
+                  <Calendar size={16} className="mt-0.5 text-purple-600" />
                   <div>
                     <span className="font-semibold">Project Timeline</span>
                     <div className="text-xs text-gray-600">{getTimeline(project)}</div>
                   </div>
                 </li>
                 <li className="flex items-start gap-2">
-                  <MapPin size={16} className="mt-0.5 text-primary" />
+                  <MapPin size={16} className="mt-0.5 text-purple-600" />
                   <div>
                     <span className="font-semibold">Locations</span>
                     <div className="text-xs text-gray-600">{getLocation(project)}</div>
                   </div>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Users size={16} className="mt-0.5 text-primary" />
+                  <Users size={16} className="mt-0.5 text-purple-600" />
                   <div>
                     <span className="font-semibold">Beneficiaries</span>
                     <div className="text-xs text-gray-600">{project.beneficiaries.toLocaleString()} People</div>
                   </div>
                 </li>
                 <li className="flex items-start gap-2">
-                  <DollarSign size={16} className="mt-0.5 text-primary" />
+                  <DollarSign size={16} className="mt-0.5 text-purple-600" />
                   <div>
                     <span className="font-semibold">Total Funding</span>
                     <div className="text-xs text-gray-600">{formatCurrency(getTotalBudget(project))}</div>
                   </div>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Clock size={16} className="mt-0.5 text-primary" />
+                  <Clock size={16} className="mt-0.5 text-purple-600" />
                   <div>
                     <span className="font-semibold">SDG alignment</span>
                     <div className="text-xs text-gray-600">{project.sdg}</div>
-                  </div>
-                </li>
-              </ul>              <div className="flex gap-3 mb-2">
+                  </div>                </li>
+              </ul>
+              
+              <div className="flex gap-3 mb-2">
                 <Button 
                   variant="primary" 
                   size="md" 
-                  className="w-40 flex items-center justify-center gap-2"
+                  className="w-40 flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
                   onClick={handleExportReport}
                 >
                   <Download size={16} /> Export Report
                 </Button>
               </div>
-            </div>
-            {/* Right: Progress Bar */}
+            </div>            {/* Right: Progress Bar */}
             <div className="w-full md:w-1/2 flex flex-col justify-center mt-6 md:mt-0">
               <div className="bg-gray-50 rounded-md p-4">
-                <div className="text-xs text-gray-700 font-semibold mb-1">Project Progress</div>                <div className="text-xs text-gray-500 mb-1">
+                <div className="text-xs text-gray-700 font-semibold mb-1">Project Progress</div>
+                <div className="text-xs text-gray-500 mb-1">
                   Disbursed: {formatCurrency(project.disbursed)} of {formatCurrency(project.progressBarMax || getTotalBudget(project))}
-                </div><div className="w-full bg-gray-200 rounded-full h-3 mb-1">
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3 mb-1">
                   <div
                     className="bg-purple-500 h-3 rounded-full transition-all duration-500"
                     style={{ width: `${project.progress}%` }}
@@ -254,17 +254,15 @@ const ProjectDetails = () => {
               </div>
             </div>
           </div>
-        </Card>
-
-        {/* Tabs */}
+        </Card>        {/* Tabs */}
         <div className="border-b border-gray-200 mb-2 flex gap-6 text-sm">
           {TABS.map((tab) => (
             <button
               key={tab}
-              className={`py-2 px-1 border-b-2 font-medium transition-colors duration-150 ${
+              className={`py-2 px-1 border-b-2 font-medium transition-all duration-200 hover:scale-105 ${
                 activeTab === tab
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-gray-500 hover:text-primary'
+                  ? 'border-purple-600 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-purple-600'
               }`}
               onClick={() => setActiveTab(tab)}
             >
@@ -278,7 +276,7 @@ const ProjectDetails = () => {
           <>
             <Card className="mb-6">
               <div className="p-4">
-                <div className="font-semibold mb-4">Project Management</div>                {getManagementData(project).map((item, idx) => (
+                <div className="font-semibold mb-4">Project Management</div>                {getManagementData(project).map((item) => (
                   <div key={item.name} className="mb-4">
                     <div className="flex justify-between items-center text-sm">
                       <span>{item.name}</span>
@@ -299,10 +297,9 @@ const ProjectDetails = () => {
             </Card>
             <Card>
               <div className="p-4">                <div className="font-semibold mb-2">Implementing Partners</div>
-                <ul className="divide-y divide-gray-200">
-                  {getPartners(project).map((partner, idx) => (
-                    <li key={partner} className="flex items-center gap-2 py-3">
-                      <Building size={18} className="text-primary" />
+                <ul className="divide-y divide-gray-200">                  {getPartners(project).map((partner) => (
+                    <li key={partner} className="flex items-center gap-2 py-3 hover:bg-purple-50 transition-colors rounded-lg px-2 -mx-2">
+                      <Building size={18} className="text-purple-600" />
                       <span className="text-sm">{partner}</span>
                     </li>
                   ))}

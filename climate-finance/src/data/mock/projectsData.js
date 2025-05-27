@@ -249,5 +249,74 @@ export const projectsList = [
     },
     riskLevel: "Low",
     lastUpdated: "2024-01-01"
+  },
+  {
+    id: 'PRJ-2025-042',
+    title: 'Coastal Climate Resilience Program',
+    description: 'A comprehensive program to enhance climate resilience in coastal communities through infrastructure development, ecosystem restoration, and capacity building.',
+    sector: "Climate Adaptation",
+    status: 'Active',
+    priority: "High",
+    duration: "12 months",
+    startDate: "2024-07-01",
+    endDate: "2025-06-30",
+    implementingAgency: 'Bangladesh Water Development Board',    timeline: "July 1, 2024 - June 30, 2025",
+    location: "Chittagong, Cox's Bazar, Patuakhali",
+    locations: "Chittagong, Cox's Bazar, Patuakhali",
+    beneficiaries: 125000,
+    totalBudget: 12500000,
+    totalFunding: 12500000,    disbursed: 3700000,
+    fundingSources: ["Green Climate Fund", "World Bank"],
+    sdg: "SDGs 11, 13, 14",
+    progress: 30,
+    progressBarMax: 12500000,
+    management: [
+      {
+        name: "Sea Embankment Construction",
+        total: 2500000,
+        disbursed: 1600000,
+      },
+      {
+        name: "Mangrove Restoration",
+        total: 3000000,
+        disbursed: 900000,
+      },
+      {
+        name: "Early Warning Systems",
+        total: 2500000,
+        disbursed: 750000,
+      },
+      {
+        name: "Community Training",
+        total: 3000000,
+        disbursed: 350000,
+      },
+      {
+        name: "Project Management",
+        total: 1500000,
+        disbursed: 100000,
+      },
+    ],
+    partners: [
+      "Ministry of Environment",
+      "UNDP",
+      "Local NGOs",
+    ],
+    milestones: [
+      { name: "Project Initiation", status: "Completed", date: "2024-07-01" },
+      { name: "Environmental Assessment", status: "Completed", date: "2024-08-15" },
+      { name: "Community Engagement", status: "In Progress", date: "2024-10-30" },
+      { name: "Infrastructure Design", status: "In Progress", date: "2024-12-15" },
+      { name: "Construction Phase 1", status: "Planned", date: "2025-03-01" },
+      { name: "Project Completion", status: "Planned", date: "2025-06-30" }
+    ],
+    keyMetrics: {
+      coastlineProtected: 85,
+      communitiesServed: 45,
+      mangroveArea: 1250,
+      earlyWarningStations: 12
+    },
+    riskLevel: "Medium",
+    lastUpdated: "2024-12-15"
   }
 ];
