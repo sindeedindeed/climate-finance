@@ -1,337 +1,318 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  Calendar, 
-  MapPin, 
-  DollarSign, 
-  Users, 
-  Building, 
-  TrendingUp,
-  AlertCircle,
+import {
+  ArrowLeft,
+  Calendar,
+  MapPin,
+  DollarSign,
+  Users,
+  Building,
+  FileText,
   CheckCircle,
   Clock,
-  Target
+  Target,
+  Download,
+  AlignLeft,
 } from 'lucide-react';
 import PageLayout from '../components/layouts/PageLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import BarChartComponent from '../components/charts/BarChartComponent';
 import { formatCurrency } from '../utils/formatters';
-import { CHART_COLORS } from '../utils/constants';
-
-// Import mock data
 import { projectsList } from '../data/mock/projectsData';
+
+// --- MOCK DATA (replace with real data as needed) ---
+const mockProject = {
+  id: 'PRJ-2025-042',
+  status: 'Active',
+  title: 'Coastal Climate Resilience Program',
+  description:
+    'A comprehensive program to enhance climate resilience in coastal communities through infrastructure development, ecosystem restoration, and capacity building.',
+  implementingAgency: 'Bangladesh Water Development Board',
+  timeline: 'July 1, 2024 - June 30, 2025',
+  locations: 'Chittagong, Cox’s Bazar, Patuakhali',
+  beneficiaries: 125000,
+  totalFunding: 12500000,
+  sdg: 'SDGs 11, 13, 14',
+  progress: 30,
+  disbursed: 3700000,
+  progressBarMax: 12500000,
+  management: [
+    {
+      name: 'Sea Embankment Construction',
+      total: 5500000,
+      disbursed: 3200000,
+    },
+    {
+      name: 'Mangrove Restoration',
+      total: 5500000,
+      disbursed: 3200000,
+    },
+    {
+      name: 'Early Warning Systems',
+      total: 5500000,
+      disbursed: 3200000,
+    },
+    {
+      name: 'Community Training',
+      total: 5500000,
+      disbursed: 3200000,
+    },
+    {
+      name: 'Project Management',
+      total: 5500000,
+      disbursed: 3200000,
+    },
+  ],
+  partners: [
+    'Ministry of Environment',
+    'UNDF',
+    'Local NGOs',
+  ],
+};
+
+const TABS = ['Overview', 'Finances', 'Milestones', 'Indicators'];
 
 const ProjectDetails = () => {
   const { projectId } = useParams();
-  const project = projectsList.find(p => p.id === projectId);
+  const [activeTab, setActiveTab] = useState('Overview');
+  
+  // Find project from the projects list or use mock project as fallback
+  const project = projectsList.find(p => p.id === projectId) || mockProject;
 
-  if (!project) {
+  // If no project found and no projectId (accessing without param), show not found
+  if (!projectId && !project) {
     return (
-      <PageLayout>
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Project Not Found</h2>
-          <p className="text-gray-600 mb-6">The project you're looking for doesn't exist.</p>
-          <Link to="/projects">
-            <Button variant="primary">Back to Projects</Button>
-          </Link>
+      <PageLayout bgColor="bg-gray-50">
+        <div className="max-w-2xl mx-auto py-20 text-center">
+          <h2 className="text-2xl font-bold mb-2">Project Not Found</h2>
+          <p className="mb-4 text-gray-500">The project you are looking for does not exist.</p>
+          <Link to="/projects" className="text-primary underline">Back to Projects</Link>
         </div>
       </PageLayout>
     );
   }
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Active': return 'bg-green-100 text-green-800';
-      case 'Completed': return 'bg-blue-100 text-blue-800';
-      case 'Planning': return 'bg-yellow-100 text-yellow-800';
-      case 'On Hold': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  // Helper functions to handle data mapping between mock and real data
+  const getTimeline = (proj) => {
+    return proj.timeline || `${proj.startDate} - ${proj.endDate}`;
   };
 
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'High': return 'bg-red-100 text-red-800';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800';
-      case 'Low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const getLocation = (proj) => {
+    return proj.locations || proj.location;
   };
 
-  const getRiskColor = (risk) => {
-    switch (risk) {
-      case 'High': return 'text-red-600';
-      case 'Medium': return 'text-yellow-600';
-      case 'Low': return 'text-green-600';
-      default: return 'text-gray-600';
-    }
+  const getTotalBudget = (proj) => {
+    return proj.totalFunding || proj.totalBudget;
   };
 
-  const getMilestoneIcon = (status) => {
-    switch (status) {
-      case 'Completed': return <CheckCircle size={16} className="text-green-600" />;
-      case 'In Progress': return <Clock size={16} className="text-blue-600" />;
-      case 'Planned': return <Target size={16} className="text-gray-400" />;
-      default: return <Clock size={16} className="text-gray-400" />;
+  const getManagementData = (proj) => {
+    // If project has management data, use it; otherwise create from milestones
+    if (proj.management) {
+      return proj.management;
     }
+    
+    // Create management data from milestones or default structure
+    const totalBudget = getTotalBudget(proj);
+    const disbursedAmount = proj.disbursed || (totalBudget * (proj.progress / 100));
+    
+    return [
+      { name: 'Infrastructure Development', total: totalBudget * 0.4, disbursed: disbursedAmount * 0.4 },
+      { name: 'Community Programs', total: totalBudget * 0.3, disbursed: disbursedAmount * 0.3 },
+      { name: 'Monitoring & Evaluation', total: totalBudget * 0.2, disbursed: disbursedAmount * 0.2 },
+      { name: 'Project Management', total: totalBudget * 0.1, disbursed: disbursedAmount * 0.1 }
+    ];
   };
 
-  // Prepare budget breakdown data for chart
-  const budgetData = [
-    { category: 'Disbursed', amount: project.disbursed },
-    { category: 'Remaining', amount: project.totalBudget - project.disbursed }
-  ];
+  const getPartners = (proj) => {
+    return proj.partners || proj.fundingSources || ['Government Agency', 'International Partner'];
+  };
+
+  // Handle export functionality
+  const handleExportReport = () => {
+    const reportData = {
+      projectId: project.id,
+      title: project.title,
+      status: project.status,
+      description: project.description,
+      totalBudget: project.totalFunding || project.totalBudget,
+      disbursed: project.disbursed,
+      progress: project.progress,
+      location: project.locations || project.location,
+      implementingAgency: project.implementingAgency,
+      timeline: project.timeline || `${project.startDate} - ${project.endDate}`,
+      beneficiaries: project.beneficiaries,
+      sdg: project.sdg,
+      exportDate: new Date().toISOString().split('T')[0]
+    };
+
+    // Create downloadable JSON file
+    const dataStr = JSON.stringify(reportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${project.id}_report.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Status badge color
+  const statusColor =
+    project.status === 'Active'
+      ? 'bg-green-100 text-green-700'
+      : 'bg-gray-100 text-gray-700';
 
   return (
     <PageLayout bgColor="bg-gray-50">
-      {/* Header */}
-      <div className="flex items-center mb-6">
-        <Link 
-          to="/projects"
-          className="flex items-center text-primary hover:text-primary-dark mr-4"
-        >
-          <ArrowLeft size={20} className="mr-1" />
+      <div className="mb-4 flex items-center">
+        <Link to="/projects" className="flex items-center text-primary hover:text-primary-dark">
+          <ArrowLeft size={18} className="mr-2" />
           Back to Projects
         </Link>
       </div>
-
-      {/* Project Header */}
-      <Card className="mb-6">
-        <div className="p-6">
-          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start">
-            <div className="flex-1">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-800 mb-2">{project.title}</h1>
-                  <p className="text-gray-600 mb-4">{project.description}</p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(project.status)}`}>
-                      {project.status}
-                    </span>
-                    <span className={`px-3 py-1 text-sm font-medium rounded-full ${getPriorityColor(project.priority)}`}>
-                      {project.priority} Priority
-                    </span>
-                    <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full">
-                      {project.sector}
-                    </span>
-                  </div>
-                </div>
+      <div className="max-w-5xl mx-auto">
+        {/* Main Info Card */}
+        <Card className="mb-6 p-0 overflow-visible">
+          <div className="flex flex-col md:flex-row md:items-start md:gap-8 p-6">
+            {/* Left: Details */}
+            <div className="w-full md:w-1/2">
+              <div className="flex items-center gap-2 mb-1">
+                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${statusColor}`}>Active</span>
+                <span className="text-xs text-gray-400">{project.id}</span>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="flex items-center">
-                  <MapPin size={16} className="text-gray-400 mr-2" />
+              <h2 className="text-lg font-bold text-gray-900 mb-1">{project.title}</h2>
+              <p className="text-xs text-gray-500 mb-3">
+                {project.description}
+              </p>
+              <ul className="space-y-2 text-sm text-gray-700 mb-4">
+                <li className="flex items-start gap-2">
+                  <Building size={16} className="mt-0.5 text-primary" />
                   <div>
-                    <p className="text-xs text-gray-500">Location</p>
-                    <p className="text-sm font-medium">{project.location}</p>
+                    <span className="font-semibold">Implementing Agency</span>
+                    <div className="text-xs text-gray-600">{project.implementingAgency}</div>
                   </div>
-                </div>
-                <div className="flex items-center">
-                  <Calendar size={16} className="text-gray-400 mr-2" />
+                </li>                <li className="flex items-start gap-2">
+                  <Calendar size={16} className="mt-0.5 text-primary" />
                   <div>
-                    <p className="text-xs text-gray-500">Duration</p>
-                    <p className="text-sm font-medium">{project.duration}</p>
+                    <span className="font-semibold">Project Timeline</span>
+                    <div className="text-xs text-gray-600">{getTimeline(project)}</div>
                   </div>
-                </div>
-                <div className="flex items-center">
-                  <DollarSign size={16} className="text-gray-400 mr-2" />
+                </li>
+                <li className="flex items-start gap-2">
+                  <MapPin size={16} className="mt-0.5 text-primary" />
                   <div>
-                    <p className="text-xs text-gray-500">Total Budget</p>
-                    <p className="text-sm font-medium">{formatCurrency(project.totalBudget)}</p>
+                    <span className="font-semibold">Locations</span>
+                    <div className="text-xs text-gray-600">{getLocation(project)}</div>
                   </div>
-                </div>
-                <div className="flex items-center">
-                  <Users size={16} className="text-gray-400 mr-2" />
+                </li>
+                <li className="flex items-start gap-2">
+                  <Users size={16} className="mt-0.5 text-primary" />
                   <div>
-                    <p className="text-xs text-gray-500">Beneficiaries</p>
-                    <p className="text-sm font-medium">{project.beneficiaries.toLocaleString()}</p>
+                    <span className="font-semibold">Beneficiaries</span>
+                    <div className="text-xs text-gray-600">{project.beneficiaries.toLocaleString()} People</div>
                   </div>
-                </div>
+                </li>
+                <li className="flex items-start gap-2">
+                  <DollarSign size={16} className="mt-0.5 text-primary" />
+                  <div>
+                    <span className="font-semibold">Total Funding</span>
+                    <div className="text-xs text-gray-600">{formatCurrency(getTotalBudget(project))}</div>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Clock size={16} className="mt-0.5 text-primary" />
+                  <div>
+                    <span className="font-semibold">SDG alignment</span>
+                    <div className="text-xs text-gray-600">{project.sdg}</div>
+                  </div>
+                </li>
+              </ul>              <div className="flex gap-3 mb-2">
+                <Button 
+                  variant="primary" 
+                  size="md" 
+                  className="w-40 flex items-center justify-center gap-2"
+                  onClick={handleExportReport}
+                >
+                  <Download size={16} /> Export Report
+                </Button>
               </div>
             </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Key Information Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Progress Overview */}
-        <Card>
-          <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Project Progress</h3>
-            
-            <div className="mb-4">
-              <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>Overall Progress</span>
-                <span>{project.progress}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
-                <div 
-                  className="bg-primary h-3 rounded-full transition-all duration-300" 
-                  style={{ width: `${project.progress}%` }}
-                ></div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Start Date</span>
-                <span className="text-sm font-medium">{new Date(project.startDate).toLocaleDateString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">End Date</span>
-                <span className="text-sm font-medium">{new Date(project.endDate).toLocaleDateString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Last Updated</span>
-                <span className="text-sm font-medium">{new Date(project.lastUpdated).toLocaleDateString()}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Risk Level</span>
-                <span className={`text-sm font-medium ${getRiskColor(project.riskLevel)}`}>
-                  {project.riskLevel}
-                </span>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Budget Breakdown */}
-        <Card>
-          <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Budget Overview</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-sm text-gray-600 mb-1">
-                  <span>Disbursed</span>
-                  <span>{Math.round((project.disbursed / project.totalBudget) * 100)}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-green-500 h-2 rounded-full" 
-                    style={{ width: `${(project.disbursed / project.totalBudget) * 100}%` }}
+            {/* Right: Progress Bar */}
+            <div className="w-full md:w-1/2 flex flex-col justify-center mt-6 md:mt-0">
+              <div className="bg-gray-50 rounded-md p-4">
+                <div className="text-xs text-gray-700 font-semibold mb-1">Project Progress</div>                <div className="text-xs text-gray-500 mb-1">
+                  Disbursed: {formatCurrency(project.disbursed)} of {formatCurrency(project.progressBarMax || getTotalBudget(project))}
+                </div><div className="w-full bg-gray-200 rounded-full h-3 mb-1">
+                  <div
+                    className="bg-purple-500 h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${project.progress}%` }}
                   ></div>
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Total Budget</span>
-                  <span className="text-sm font-medium">{formatCurrency(project.totalBudget)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Disbursed</span>
-                  <span className="text-sm font-medium text-green-600">{formatCurrency(project.disbursed)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Remaining</span>
-                  <span className="text-sm font-medium text-orange-600">
-                    {formatCurrency(project.totalBudget - project.disbursed)}
-                  </span>
-                </div>
+                <div className="text-xs text-gray-500">{project.progress}% Complete</div>
               </div>
             </div>
           </div>
         </Card>
 
-        {/* Key Metrics */}
-        <Card>
-          <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Key Impact Metrics</h3>
-            
-            <div className="grid grid-cols-2 gap-4">
-              {Object.entries(project.keyMetrics).map(([key, value]) => (
-                <div key={key} className="text-center">
-                  <p className="text-lg font-bold text-primary">{value.toLocaleString()}</p>
-                  <p className="text-xs text-gray-600 capitalize">
-                    {key.replace(/([A-Z])/g, ' $1').trim()}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
-      </div>
+        {/* Tabs */}
+        <div className="border-b border-gray-200 mb-2 flex gap-6 text-sm">
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              className={`py-2 px-1 border-b-2 font-medium transition-colors duration-150 ${
+                activeTab === tab
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-500 hover:text-primary'
+              }`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
 
-      {/* Implementation Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Project Timeline */}
-        <Card>
-          <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Project Milestones</h3>
-            
-            <div className="space-y-4">
-              {project.milestones.map((milestone, index) => (
-                <div key={index} className="flex items-start">
-                  <div className="mr-3 mt-1">
-                    {getMilestoneIcon(milestone.status)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <h4 className="text-sm font-medium text-gray-800">{milestone.name}</h4>
-                      <span className="text-xs text-gray-500">
-                        {new Date(milestone.date).toLocaleDateString()}
-                      </span>
+        {/* Tab Content: Overview (only) */}
+        {activeTab === 'Overview' && (
+          <>
+            <Card className="mb-6">
+              <div className="p-4">
+                <div className="font-semibold mb-4">Project Management</div>                {getManagementData(project).map((item, idx) => (
+                  <div key={item.name} className="mb-4">
+                    <div className="flex justify-between items-center text-sm">
+                      <span>{item.name}</span>
+                      <span className="font-bold">{formatCurrency(item.total)}</span>
+                    </div>                    <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                      <div
+                        className="bg-purple-500 h-2 rounded-full"
+                        style={{ width: `${Math.round((item.disbursed / item.total) * 100)}%` }}
+                      ></div>
                     </div>
-                    <p className="text-xs text-gray-600 mt-1">{milestone.status}</p>
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>{Math.round((item.disbursed / item.total) * 100)}% disbursed</span>
+                      <span>{formatCurrency(item.disbursed)} of {formatCurrency(item.total)}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
-
-        {/* Funding Sources & Implementation */}
-        <Card>
-          <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Implementation Details</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Funding Sources</h4>
-                <div className="flex flex-wrap gap-2">
-                  {project.fundingSources.map((source, index) => (
-                    <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                      {source}
-                    </span>
+                ))}
+              </div>
+            </Card>
+            <Card>
+              <div className="p-4">                <div className="font-semibold mb-2">Implementing Partners</div>
+                <ul className="divide-y divide-gray-200">
+                  {getPartners(project).map((partner, idx) => (
+                    <li key={partner} className="flex items-center gap-2 py-3">
+                      <Building size={18} className="text-primary" />
+                      <span className="text-sm">{partner}</span>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
-              
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Implementing Agency</h4>
-                <div className="flex items-center">
-                  <Building size={16} className="text-gray-400 mr-2" />
-                  <span className="text-sm text-gray-600">{project.implementingAgency}</span>
-                </div>
-              </div>
-              
-              <div className="pt-4 border-t border-gray-100">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Project ID</span>
-                  <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">{project.id}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Card>
+            </Card>
+          </>
+        )}
+        {/* Other tabs can be implemented similarly */}
       </div>
-
-      {/* Budget Visualization */}
-      <Card className="mb-6">
-        <BarChartComponent
-          title="Budget Breakdown"
-          data={budgetData}
-          xAxisKey="category"
-          bars={[
-            { dataKey: 'amount', fill: CHART_COLORS[0], name: 'Amount' }
-          ]}
-          formatYAxis={true}
-        />
-      </Card>
     </PageLayout>
   );
 };
