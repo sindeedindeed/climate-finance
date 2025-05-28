@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import { HashRouter } from 'react-router-dom';
 import { ToastProvider } from '../components/ui/Toast';
 import ErrorBoundary from '../components/ui/ErrorBoundary';
 import Routing from '../routing';
@@ -7,11 +7,11 @@ import Routing from '../routing';
 function App() {
   return (
     <ErrorBoundary>
-      <BrowserRouter>
+      <HashRouter>
         <ToastProvider>
           <Routing />
         </ToastProvider>
-      </BrowserRouter>
+      </HashRouter>
     </ErrorBoundary>
   );
 }
