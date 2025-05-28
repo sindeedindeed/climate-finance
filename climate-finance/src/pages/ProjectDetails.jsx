@@ -165,96 +165,113 @@ const ProjectDetails = () => {
       : 'bg-gray-100 text-gray-700';
 
   return (
-    <PageLayout bgColor="bg-gray-50">      <div className="mb-4 flex items-center">
+    <PageLayout bgColor="bg-gray-50">
+      <div className="mb-4 flex items-center">
         <Link to="/projects" className="flex items-center text-purple-600 hover:text-purple-700 transition-colors group">
           <ArrowLeft size={18} className="mr-2 group-hover:-translate-x-1 transition-transform" />
           Back to Projects
         </Link>
       </div>
       <div className="max-w-5xl mx-auto">
-        {/* Main Info Card */}
+        {/* Main Info Card - Redesigned Layout */}
         <Card className="mb-6 p-0 overflow-visible">
-          <div className="flex flex-col md:flex-row md:items-start md:gap-8 p-6">
-            {/* Left: Details */}
-            <div className="w-full md:w-1/2">
-              <div className="flex items-center gap-2 mb-1">
-                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${statusColor}`}>Active</span>
-                <span className="text-xs text-gray-400">{project.id}</span>
+          <div className="p-6">
+            {/* Project ID and Status - Top Row */}
+            <div className="flex items-center gap-2 mb-1">
+              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${statusColor}`}>Active</span>
+              <span className="text-xs text-gray-400">{project.id}</span>
+            </div>
+            
+            <div className="flex flex-col md:flex-row md:gap-8">
+              {/* Left Side: Title, Description and Progress */}
+              <div className="w-full md:w-3/5">
+                {/* Title and Description */}
+                <h2 className="text-lg font-bold text-gray-900 mb-1">{project.title}</h2>
+                <p className="text-xs text-gray-500 mb-4">
+                  {project.description}
+                </p>
+                
+                {/* Progress Bar - Now below title/description */}
+                <div className="bg-gray-50 rounded-md p-4 mb-4">
+                  <div className="text-xs text-gray-700 font-semibold mb-1">Project Progress</div>
+                  <div className="text-xs text-gray-500 mb-1">
+                    Disbursed: {formatCurrency(project.disbursed)} of {formatCurrency(project.progressBarMax || getTotalBudget(project))}
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3 mb-1">
+                    <div
+                      className="bg-purple-500 h-3 rounded-full transition-all duration-500"
+                      style={{ width: `${project.progress}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-xs text-gray-500">{project.progress}% Complete</div>
+                </div>
+                
+                {/* Export Button */}
+                <div className="flex gap-3 mb-2">
+                  <Button 
+                    variant="primary" 
+                    size="md" 
+                    className="w-40 flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
+                    onClick={handleExportReport}
+                    leftIcon={<Download size={16} />}
+                  >
+                    Export Report
+                  </Button>
+                </div>
               </div>
-              <h2 className="text-lg font-bold text-gray-900 mb-1">{project.title}</h2>
-              <p className="text-xs text-gray-500 mb-3">
-                {project.description}
-              </p>              <ul className="space-y-2 text-sm text-gray-700 mb-4">
-                <li className="flex items-start gap-2">
-                  <Building size={16} className="mt-0.5 text-purple-600" />
-                  <div>
-                    <span className="font-semibold">Implementing Agency</span>
-                    <div className="text-xs text-gray-600">{project.implementingAgency}</div>
-                  </div>
-                </li>                <li className="flex items-start gap-2">
-                  <Calendar size={16} className="mt-0.5 text-purple-600" />
-                  <div>
-                    <span className="font-semibold">Project Timeline</span>
-                    <div className="text-xs text-gray-600">{getTimeline(project)}</div>
-                  </div>
-                </li>
-                <li className="flex items-start gap-2">
-                  <MapPin size={16} className="mt-0.5 text-purple-600" />
-                  <div>
-                    <span className="font-semibold">Locations</span>
-                    <div className="text-xs text-gray-600">{getLocation(project)}</div>
-                  </div>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Users size={16} className="mt-0.5 text-purple-600" />
-                  <div>
-                    <span className="font-semibold">Beneficiaries</span>
-                    <div className="text-xs text-gray-600">{project.beneficiaries.toLocaleString()} People</div>
-                  </div>
-                </li>
-                <li className="flex items-start gap-2">
-                  <DollarSign size={16} className="mt-0.5 text-purple-600" />
-                  <div>
-                    <span className="font-semibold">Total Funding</span>
-                    <div className="text-xs text-gray-600">{formatCurrency(getTotalBudget(project))}</div>
-                  </div>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Clock size={16} className="mt-0.5 text-purple-600" />
-                  <div>
-                    <span className="font-semibold">SDG alignment</span>
-                    <div className="text-xs text-gray-600">{project.sdg}</div>
-                  </div>                </li>
-              </ul>
               
-              <div className="flex gap-3 mb-2">
-                <Button 
-                  variant="primary" 
-                  size="md" 
-                  className="w-40 flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
-                  onClick={handleExportReport}
-                >
-                  <Download size={16} /> Export Report
-                </Button>
-              </div>
-            </div>            {/* Right: Progress Bar */}
-            <div className="w-full md:w-1/2 flex flex-col justify-center mt-6 md:mt-0">
-              <div className="bg-gray-50 rounded-md p-4">
-                <div className="text-xs text-gray-700 font-semibold mb-1">Project Progress</div>
-                <div className="text-xs text-gray-500 mb-1">
-                  Disbursed: {formatCurrency(project.disbursed)} of {formatCurrency(project.progressBarMax || getTotalBudget(project))}
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3 mb-1">
-                  <div
-                    className="bg-purple-500 h-3 rounded-full transition-all duration-500"
-                    style={{ width: `${project.progress}%` }}
-                  ></div>
-                </div>
-                <div className="text-xs text-gray-500">{project.progress}% Complete</div>
+              {/* Right Side: Project Details */}
+              <div className="w-full md:w-2/5 mt-6 md:mt-0">
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start gap-2">
+                    <Building size={16} className="mt-0.5 text-purple-600" />
+                    <div>
+                      <span className="font-semibold">Implementing Agency</span>
+                      <div className="text-xs text-gray-600">{project.implementingAgency}</div>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Calendar size={16} className="mt-0.5 text-purple-600" />
+                    <div>
+                      <span className="font-semibold">Project Timeline</span>
+                      <div className="text-xs text-gray-600">{getTimeline(project)}</div>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <MapPin size={16} className="mt-0.5 text-purple-600" />
+                    <div>
+                      <span className="font-semibold">Locations</span>
+                      <div className="text-xs text-gray-600">{getLocation(project)}</div>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Users size={16} className="mt-0.5 text-purple-600" />
+                    <div>
+                      <span className="font-semibold">Beneficiaries</span>
+                      <div className="text-xs text-gray-600">{project.beneficiaries.toLocaleString()} People</div>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <DollarSign size={16} className="mt-0.5 text-purple-600" />
+                    <div>
+                      <span className="font-semibold">Total Funding</span>
+                      <div className="text-xs text-gray-600">{formatCurrency(getTotalBudget(project))}</div>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Clock size={16} className="mt-0.5 text-purple-600" />
+                    <div>
+                      <span className="font-semibold">SDG alignment</span>
+                      <div className="text-xs text-gray-600">{project.sdg}</div>
+                    </div>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
-        </Card>        {/* Tabs */}
+        </Card>
+        
+        {/* Tabs */}
         <div className="border-b border-gray-200 mb-2 flex gap-6 text-sm">
           {TABS.map((tab) => (
             <button
@@ -276,12 +293,14 @@ const ProjectDetails = () => {
           <>
             <Card className="mb-6">
               <div className="p-4">
-                <div className="font-semibold mb-4">Project Management</div>                {getManagementData(project).map((item) => (
+                <div className="font-semibold mb-4">Project Management</div>
+                {getManagementData(project).map((item) => (
                   <div key={item.name} className="mb-4">
                     <div className="flex justify-between items-center text-sm">
                       <span>{item.name}</span>
                       <span className="font-bold">{formatCurrency(item.total)}</span>
-                    </div>                    <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                       <div
                         className="bg-purple-500 h-2 rounded-full"
                         style={{ width: `${Math.round((item.disbursed / item.total) * 100)}%` }}
@@ -296,8 +315,10 @@ const ProjectDetails = () => {
               </div>
             </Card>
             <Card>
-              <div className="p-4">                <div className="font-semibold mb-2">Implementing Partners</div>
-                <ul className="divide-y divide-gray-200">                  {getPartners(project).map((partner) => (
+              <div className="p-4">
+                <div className="font-semibold mb-2">Implementing Partners</div>
+                <ul className="divide-y divide-gray-200">
+                  {getPartners(project).map((partner) => (
                     <li key={partner} className="flex items-center gap-2 py-3 hover:bg-purple-50 transition-colors rounded-lg px-2 -mx-2">
                       <Building size={18} className="text-purple-600" />
                       <span className="text-sm">{partner}</span>
