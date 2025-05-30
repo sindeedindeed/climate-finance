@@ -171,6 +171,12 @@ export default {
         'xs': '2px',
       },      maxWidth: {
         'desktop': '1120px',
+        'container-sm': '640px',
+        'container-md': '768px', 
+        'container-lg': '1024px',
+        'container-xl': '1120px',
+        'readable': 'min(1120px, 90vw)',
+        'constrained': 'min(1120px, 70vw)',
       },
     },
   },

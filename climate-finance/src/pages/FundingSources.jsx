@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, Download, ExternalLink } from 'lucide-react';
+import { Search, Filter, Download, ExternalLink, Building, Globe, Users, Banknote } from 'lucide-react';
 import PageLayout from '../components/layouts/PageLayout';
 import Card from '../components/ui/Card';
 import StatCard from '../components/ui/StatCard';
@@ -24,6 +24,20 @@ const FundingSources = () => {
     const matchesType = selectedType === 'All' || source.type === selectedType;
     return matchesSearch && matchesType;
   });
+
+  // Get type icon
+  const getTypeIcon = (type) => {
+    switch (type) {
+      case 'Multilateral': return <Globe size={14} />;
+      case 'Bilateral': return <Users size={14} />;
+      case 'Private': return <Building size={14} />;
+      case 'Climate Fund': return <Banknote size={14} />;
+      default: return <Building size={14} />;
+    }
+  };
+
+  // Get unique types for filter
+  const uniqueTypes = ['All', ...new Set(fundingSources.map(source => source.type))];
 
   // Export filtered data
   const handleExport = () => {
@@ -72,9 +86,8 @@ const FundingSources = () => {
             Export Report
           </Button>
         </div>
-      </div>
-        {/* Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      </div>        {/* Overview Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-6 mb-6">
         {overviewStats.map((stat, index) => (
           <div 
             key={index}
@@ -88,9 +101,8 @@ const FundingSources = () => {
             />
           </div>
         ))}
-      </div>
-        {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      </div>        {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:gap-8 mb-6">
         {/* Funding by Type */}
         <div className="animate-fade-in-up" style={{ animationDelay: '400ms' }}>
           <Card hover>
@@ -153,19 +165,23 @@ const FundingSources = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                
-                {/* Type Filter */}
-                <select
-                  className="block w-full sm:w-auto border border-gray-300 rounded-md text-sm py-2 px-3 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                >
-                  <option value="All">All Types</option>
-                  <option value="Multilateral">Multilateral</option>
-                  <option value="Bilateral">Bilateral</option>
-                  <option value="National">National</option>
-                  <option value="Private">Private</option>
-                </select>
+                  {/* Type Filter */}
+                <div className="flex flex-wrap gap-2">
+                  {uniqueTypes.map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => setSelectedType(type)}
+                      className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        selectedType === type
+                          ? 'bg-purple-600 text-white shadow-md'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {type !== 'All' && getTypeIcon(type)}
+                      {type}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -176,13 +192,15 @@ const FundingSources = () => {
               key={source.id} 
               className="p-4 hover:bg-purple-50 transition-all duration-200 group animate-fade-in-up"
               style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <div className="flex flex-col md:flex-row md:items-center">
+            >              <div className="flex flex-col md:flex-row md:items-center">
                 <div className="flex items-center mb-4 md:mb-0 md:mr-4">
                   <img src={source.logo} alt={source.name} className="w-12 h-12 rounded mr-4" />
                   <div>
                     <h4 className="text-md font-medium text-gray-800">{source.name}</h4>
-                    <span className="text-sm text-gray-500">{source.type}</span>
+                    <div className="flex items-center gap-1 text-sm text-gray-500">
+                      {getTypeIcon(source.type)}
+                      <span>{source.type}</span>
+                    </div>
                   </div>
                 </div>
                 

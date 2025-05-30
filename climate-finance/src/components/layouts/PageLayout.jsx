@@ -6,8 +6,8 @@ import ErrorBoundary from '../ui/ErrorBoundary';
 const PageLayout = ({ 
   children, 
   bgColor = "bg-gray-50",
-  maxWidth = "max-w-desktop",
-  padding = "px-4 sm:px-6 xl:px-8" 
+  maxWidth = "layout-container",
+  padding = "px-4 sm:px-6 lg:px-8 xl:px-8" 
 }) => {
   return (
     <ErrorBoundary>
@@ -16,7 +16,7 @@ const PageLayout = ({
           {/* Main content */}
         <main className={`
           flex-grow py-6
-          ${maxWidth} mx-auto w-full ${padding}
+          ${maxWidth} ${padding}
         `}>
           <div className="animate-fade-in-up">
             {children}

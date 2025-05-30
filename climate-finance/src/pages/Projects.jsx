@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Download, ExternalLink, Calendar, MapPin, DollarSign, Users, X } from 'lucide-react';
+import { Search, Download, ExternalLink, Calendar, MapPin, DollarSign, Users, X, Play, CheckCircle, Clock, Pause } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PageLayout from '../components/layouts/PageLayout';
 import Card from '../components/ui/Card';
@@ -89,13 +89,22 @@ const Projects = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-
   const getPriorityColor = (priority) => {
     switch (priority) {
       case 'High': return 'bg-error-100 text-error-800';
       case 'Medium': return 'bg-warning-100 text-warning-800';
       case 'Low': return 'bg-success-100 text-success-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'Active': return <Play size={12} />;
+      case 'Completed': return <CheckCircle size={12} />;
+      case 'Planning': return <Clock size={12} />;
+      case 'On Hold': return <Pause size={12} />;
+      default: return null;
     }
   };
   // Get unique values for filter options
@@ -255,26 +264,27 @@ const Projects = () => {
               </div>
             </div>
           </div>
-        </div>
-        
-        {/* Projects Grid */}
+        </div>        {/* Projects Grid */}
         <div className="p-6">
           {filteredProjects.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredProjects.map((project, index) => (                <div 
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 xl:gap-8">
+              {filteredProjects.map((project, index) => (
+                <div 
                   key={project.id} 
-                  className="group bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-xl hover:shadow-purple-100/50 hover:-translate-y-2 hover:border-purple-200 transition-all duration-300 animate-fade-in-up cursor-pointer"
+                  className="group bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-xl hover:shadow-purple-100/50 hover:-translate-y-2 hover:border-purple-200 transition-all duration-300 animate-fade-in-up cursor-pointer flex flex-col h-full"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   {/* Header */}
-                  <div className="flex justify-between items-start mb-4">                    <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1 min-w-0">
                       <h4 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors">
                         {project.title}
                       </h4>
                       <p className="text-sm text-gray-500 font-mono">{project.id}</p>
                     </div>
                     <div className="flex flex-col gap-2 ml-4">
-                      <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(project.status)}`}>
+                      <span className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${getStatusColor(project.status)}`}>
+                        {getStatusIcon(project.status)}
                         {project.status}
                       </span>
                       <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getPriorityColor(project.priority)}`}>
@@ -283,34 +293,38 @@ const Projects = () => {
                     </div>
                   </div>
                   
-                  {/* Description */}
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-3">{project.description}</p>
+                  {/* Description - Flexible content area */}
+                  <div className="flex-grow">
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-3">{project.description}</p>
+                    
                     {/* Key Info */}
-                  <div className="space-y-3 mb-4">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <MapPin size={14} className="mr-2 text-purple-500 group-hover:text-purple-600 transition-colors" />
-                      <span>{project.location}</span>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Calendar size={14} className="mr-2 text-purple-500 group-hover:text-purple-600 transition-colors" />
-                      <span>{project.duration}</span>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <DollarSign size={14} className="mr-2 text-purple-500 group-hover:text-purple-600 transition-colors" />
-                      <span>{formatCurrency(project.totalBudget)}</span>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Users size={14} className="mr-2 text-purple-500 group-hover:text-purple-600 transition-colors" />
-                      <span>{project.beneficiaries.toLocaleString()} beneficiaries</span>
+                    <div className="space-y-3 mb-4">
+                      <div className="flex items-center text-sm text-gray-600">
+                        <MapPin size={14} className="mr-2 text-purple-500 group-hover:text-purple-600 transition-colors" />
+                        <span>{project.location}</span>
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Calendar size={14} className="mr-2 text-purple-500 group-hover:text-purple-600 transition-colors" />
+                        <span>{project.duration}</span>
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <DollarSign size={14} className="mr-2 text-purple-500 group-hover:text-purple-600 transition-colors" />
+                        <span>{formatCurrency(project.totalBudget)}</span>
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Users size={14} className="mr-2 text-purple-500 group-hover:text-purple-600 transition-colors" />
+                        <span>{project.beneficiaries.toLocaleString()} beneficiaries</span>
+                      </div>
                     </div>
                   </div>
                   
-                  {/* Progress Bar */}
-                  <div className="mb-4">
+                  {/* Progress Bar - Fixed position */}
+                  <div className="mb-4 mt-auto">
                     <div className="flex justify-between text-sm text-gray-600 mb-2">
                       <span className="font-medium">Progress</span>
                       <span className="font-semibold">{project.progress}%</span>
-                    </div>                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
                       <div 
                         className="bg-gradient-to-r from-purple-500 to-purple-600 h-2.5 rounded-full transition-all duration-500 ease-out" 
                         style={{ width: `${project.progress}%` }}
@@ -318,7 +332,7 @@ const Projects = () => {
                     </div>
                   </div>
                   
-                  {/* Footer */}
+                  {/* Footer - Always at bottom */}
                   <div className="flex justify-between items-center">
                     <span className="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
                       {project.sector}

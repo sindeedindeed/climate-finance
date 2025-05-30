@@ -13,6 +13,8 @@ import {
   Target,
   Download,
   AlignLeft,
+  Play,
+  Pause,
 } from 'lucide-react';
 import PageLayout from '../components/layouts/PageLayout';
 import Card from '../components/ui/Card';
@@ -157,12 +159,22 @@ const ProjectDetails = () => {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
-
   // Status badge color
   const statusColor =
     project.status === 'Active'
       ? 'bg-green-100 text-green-700'
       : 'bg-gray-100 text-gray-700';
+
+  // Get status icon
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'Active': return <Play size={12} />;
+      case 'Completed': return <CheckCircle size={12} />;
+      case 'Planning': return <Clock size={12} />;
+      case 'On Hold': return <Pause size={12} />;
+      default: return null;
+    }
+  };
 
   return (
     <PageLayout bgColor="bg-gray-50">
@@ -170,15 +182,16 @@ const ProjectDetails = () => {
         <Link to="/projects" className="flex items-center text-purple-600 hover:text-purple-700 transition-colors group">
           <ArrowLeft size={18} className="mr-2 group-hover:-translate-x-1 transition-transform" />
           Back to Projects
-        </Link>
-      </div>
-      <div className="max-w-5xl mx-auto">
+        </Link>      </div>
+      <div className="layout-container">
         {/* Main Info Card - Redesigned Layout */}
         <Card className="mb-6 p-0 overflow-visible">
-          <div className="p-6">
-            {/* Project ID and Status - Top Row */}
+          <div className="p-6 xl:p-8">{/* Project ID and Status - Top Row */}
             <div className="flex items-center gap-2 mb-1">
-              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${statusColor}`}>Active</span>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 ${statusColor}`}>
+                {getStatusIcon(project.status)}
+                {project.status}
+              </span>
               <span className="text-xs text-gray-400">{project.id}</span>
             </div>
             
@@ -190,20 +203,21 @@ const ProjectDetails = () => {
                 <p className="text-xs text-gray-500 mb-4">
                   {project.description}
                 </p>
-                
-                {/* Progress Bar - Now below title/description */}
-                <div className="bg-gray-50 rounded-md p-4 mb-4">
-                  <div className="text-xs text-gray-700 font-semibold mb-1">Project Progress</div>
-                  <div className="text-xs text-gray-500 mb-1">
+                  {/* Progress Bar - Improved layout */}
+                <div className="bg-gradient-to-r from-gray-50 to-purple-50 rounded-lg p-5 mb-4 border border-gray-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-sm text-gray-700 font-semibold">Project Progress</div>
+                    <div className="text-sm text-purple-600 font-bold">{project.progress}% Complete</div>
+                  </div>
+                  <div className="text-sm text-gray-500 mb-3">
                     Disbursed: {formatCurrency(project.disbursed)} of {formatCurrency(project.progressBarMax || getTotalBudget(project))}
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3 mb-1">
+                  <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
                     <div
-                      className="bg-purple-500 h-3 rounded-full transition-all duration-500"
+                      className="bg-gradient-to-r from-purple-500 to-purple-600 h-4 rounded-full transition-all duration-700 ease-out shadow-sm"
                       style={{ width: `${project.progress}%` }}
                     ></div>
                   </div>
-                  <div className="text-xs text-gray-500">{project.progress}% Complete</div>
                 </div>
                 
                 {/* Export Button */}

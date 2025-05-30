@@ -19,6 +19,38 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
 }
 
+/* Responsive layout constraints for extreme zoom scenarios */
+.layout-container {
+  max-width: min(1120px, 90vw);
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .layout-container {
+    max-width: 95vw;
+  }
+}
+
+/* Prevent excessive stretching at extreme zoom levels */
+@media (min-width: 1536px) {
+  .layout-container {
+    max-width: min(1120px, 70vw);
+  }
+}
+
+@media (min-width: 2048px) {
+  .layout-container {
+    max-width: min(1120px, 60vw);
+  }
+}
+
+@media (min-width: 2560px) {
+  .layout-container {
+    max-width: min(1120px, 50vw);
+  }
+}
+
 /* Custom animations */
 @keyframes fade-in-up {
   from {
@@ -49,6 +81,202 @@ body {
   to {
     opacity: 1;
   }
+}
+
+/* Layout utilities for consistent card heights and responsive grids */
+.card-grid {
+  display: grid;
+  grid-template-rows: auto;
+  align-items: stretch;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.card-header {
+  flex-shrink: 0;
+}
+
+.card-body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+/* Responsive grid system for optimal layout at all zoom levels */
+.grid-responsive {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(1, 1fr);
+}
+
+/* Responsive breakpoints with zoom-aware constraints */
+@media (min-width: 768px) {
+  .grid-responsive {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1120px) {
+  .grid-responsive {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* Prevent excessive stretching on ultra-wide screens */
+@media (min-width: 1536px) {
+  .grid-responsive {
+    max-width: 1120px;
+    margin: 0 auto;
+  }
+}
+
+/* Enhanced responsive grids for better zoom behavior */
+.grid-stats {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 640px) {
+  .grid-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.grid-charts {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 1024px) {
+  .grid-charts {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* Ensure cards maintain readable proportions */
+.card-constrained {
+  max-width: 100%;
+  width: 100%;
+}
+
+@media (min-width: 1536px) {
+  .card-constrained {
+    max-width: 380px;
+  }
+}
+
+/* Responsive text scaling for extreme zoom levels */
+@media (min-width: 2048px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 2560px) {
+  html {
+    font-size: 12px;
+  }
+}
+
+/* Prevent cards from becoming too wide on ultra-wide screens */
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 1.5rem;
+  max-width: 100%;
+}
+
+@media (min-width: 1120px) {
+  .content-grid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .content-grid {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 1120px;
+    margin: 0 auto;
+  }
+}
+
+/* Improved hover effects */
+.hover-lift {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Status badge improvements */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Progress bar improvements */
+.progress-container {
+  background: linear-gradient(to right, #f3f4f6, #e5e7eb);
+  border-radius: 9999px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, #8b5cf6, #a855f7);
+  transition: width 0.7s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 @keyframes slide-in-right {
