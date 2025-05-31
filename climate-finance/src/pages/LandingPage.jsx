@@ -141,13 +141,9 @@ const LandingPage = () => {
               color={stat.color}
             />
           </div>
-        ))}
-      </div>
-
-      {/* Monthly Funding Chart */}
-      <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+        ))}      </div>      {/* Monthly Funding Chart */}      <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
         <Card gradient>
-          <BarChartComponent 
+          <BarChartComponent
             title="Monthly Funding Allocation" 
             data={monthlyFunding} 
             xAxisKey="month"
@@ -158,33 +154,22 @@ const LandingPage = () => {
             formatYAxis={true}
           />
         </Card>
-      </div>
-
-      {/* Pie Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="animate-fade-in-up" style={{ animationDelay: '500ms' }}>
-          <Card hover>
-            <PieChartComponent 
+      </div>      {/* Pie Charts Row */}      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">        <div className="animate-fade-in-up" style={{ animationDelay: '500ms' }}>
+          <Card hover padding={true}>
+            <PieChartComponent
               title="Sector Distribution" 
               data={sectorDistribution} 
             />
-          </Card>
-        </div>
-
-        <div className="animate-fade-in-up" style={{ animationDelay: '600ms' }}>
-          <Card hover>
+          </Card>        </div>        <div className="animate-fade-in-up" style={{ animationDelay: '600ms' }}>
+          <Card hover padding={true}>
             <PieChartComponent 
               title="Funding Sources" 
               data={sourceDistribution} 
             />
           </Card>
-        </div>
-      </div>
-
-      {/* Regional Distribution */}
-      <div className="animate-fade-in-up" style={{ animationDelay: '700ms' }}>
+        </div>      </div>      {/* Regional Distribution */}      <div className="animate-fade-in-up" style={{ animationDelay: '700ms' }}>
         <Card>
-          <BarChartComponent 
+          <BarChartComponent
             title="Regional Distribution" 
             data={regionalDistribution} 
             xAxisKey="region"
@@ -207,12 +192,12 @@ const LandingPage = () => {
             <p className="text-primary-700">
               Explore detailed project tracking and funding source analysis.
             </p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3">
+          </div>          <div className="flex flex-col sm:flex-row gap-3">
             <Button 
-              variant="outline" 
+              variant="secondary" 
               rightIcon={<ArrowRight size={16} />}
               onClick={() => window.location.href = '/projects'}
+              className="bg-white border-2 border-purple-300 text-purple-700 hover:bg-purple-50 hover:border-purple-400 hover:text-purple-800 transition-all duration-200"
             >
               View Projects
             </Button>
@@ -220,6 +205,7 @@ const LandingPage = () => {
               variant="primary"
               rightIcon={<ArrowRight size={16} />}
               onClick={() => window.location.href = '/funding-sources'}
+              className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
             >
               Explore Funding
             </Button>

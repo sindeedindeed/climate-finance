@@ -44,13 +44,13 @@ const Button = ({
       text-gray-700 hover:text-primary-700
       shadow-soft hover:shadow-medium
       focus:ring-primary-200
-    `,
-    outline: `
+    `,    outline: `
       border-2 border-primary-500 bg-transparent
-      hover:bg-primary-500 hover:border-primary-600
+      hover:bg-primary-600 hover:border-primary-700
       text-primary-600 hover:text-white
       focus:ring-primary-200
       shadow-none hover:shadow-medium
+      transition-all duration-200
     `,
     ghost: `
       bg-transparent border-none

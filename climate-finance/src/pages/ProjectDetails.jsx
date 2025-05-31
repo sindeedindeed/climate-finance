@@ -182,11 +182,10 @@ const ProjectDetails = () => {
         <Link to="/projects" className="flex items-center text-purple-600 hover:text-purple-700 transition-colors group">
           <ArrowLeft size={18} className="mr-2 group-hover:-translate-x-1 transition-transform" />
           Back to Projects
-        </Link>      </div>
-      <div className="layout-container">
+        </Link>      </div>      <div className="layout-container">
         {/* Main Info Card - Redesigned Layout */}
-        <Card className="mb-6 p-0 overflow-visible">
-          <div className="p-6 xl:p-8">{/* Project ID and Status - Top Row */}
+        <Card className="mb-6 overflow-visible" padding={true}>
+          <div>{/* Project ID and Status - Top Row */}
             <div className="flex items-center gap-2 mb-1">
               <span className={`text-xs px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 ${statusColor}`}>
                 {getStatusIcon(project.status)}
@@ -300,13 +299,11 @@ const ProjectDetails = () => {
               {tab}
             </button>
           ))}
-        </div>
-
-        {/* Tab Content: Overview (only) */}
+        </div>        {/* Tab Content: Overview (only) */}
         {activeTab === 'Overview' && (
           <>
-            <Card className="mb-6">
-              <div className="p-4">
+            <Card className="mb-6" padding={true}>
+              <div>
                 <div className="font-semibold mb-4">Project Management</div>
                 {getManagementData(project).map((item) => (
                   <div key={item.name} className="mb-4">
@@ -324,12 +321,10 @@ const ProjectDetails = () => {
                       <span>{Math.round((item.disbursed / item.total) * 100)}% disbursed</span>
                       <span>{formatCurrency(item.disbursed)} of {formatCurrency(item.total)}</span>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  </div>                ))}              </div>
             </Card>
-            <Card>
-              <div className="p-4">
+            <Card padding={true}>
+              <div>
                 <div className="font-semibold mb-2">Implementing Partners</div>
                 <ul className="divide-y divide-gray-200">
                   {getPartners(project).map((partner) => (

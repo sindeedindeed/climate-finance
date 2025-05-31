@@ -9,6 +9,7 @@ import BarChartComponent from '../components/charts/BarChartComponent';
 import Button from '../components/ui/Button';
 import { formatCurrency } from '../utils/formatters';
 import { CHART_COLORS } from '../utils/constants';
+import { generateOrganizationLogo } from '../utils/svgPlaceholder';
 
 // Import mock data
 import { fundingSources } from '../data/mock/fundingSources';
@@ -102,10 +103,8 @@ const FundingSources = () => {
           </div>
         ))}
       </div>        {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:gap-8 mb-6">
-        {/* Funding by Type */}
-        <div className="animate-fade-in-up" style={{ animationDelay: '400ms' }}>
-          <Card hover>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:gap-8 mb-6">        {/* Funding by Type */}        <div className="animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+          <Card hover padding={true}>
             <PieChartComponent
               title="Funding by Source Type"
               data={fundingByType}
@@ -114,10 +113,8 @@ const FundingSources = () => {
             />
           </Card>
         </div>
-        
-        {/* Funding Trend */}
-        <div className="animate-fade-in-up" style={{ animationDelay: '500ms' }}>
-          <Card hover>
+          {/* Funding Trend */}        <div className="animate-fade-in-up" style={{ animationDelay: '500ms' }}>
+          <Card hover padding={true}>
             <LineChartComponent
               title="Funding Trend"
               data={fundingTrend}
@@ -127,11 +124,8 @@ const FundingSources = () => {
               lineName="Amount"
             />
           </Card>
-        </div>
-      </div>      
-      {/* Sector Allocation */}
-      <div className="animate-fade-in-up" style={{ animationDelay: '600ms' }}>
-        <Card hover className="mb-6">
+        </div>      </div>        {/* Sector Allocation */}      <div className="animate-fade-in-up" style={{ animationDelay: '600ms' }}>
+        <Card hover className="mb-6" padding={true}>
           <BarChartComponent
             title="Sector Allocation"
             data={sectorAllocation.map(item => ({
@@ -142,16 +136,10 @@ const FundingSources = () => {
             bars={[{ dataKey: 'amount', fill: CHART_COLORS[0], name: 'Amount' }]}
             formatYAxis={true}
           />
-        </Card>
-      </div>
-        {/* Funding Sources List */}
-      <div className="animate-fade-in-up" style={{ animationDelay: '700ms' }}>
-        <Card hover className="mb-6">
-          <div className="p-4 border-b border-gray-100">
+        </Card>      </div>{/* Funding Sources List */}      <div className="animate-fade-in-up" style={{ animationDelay: '700ms' }}>        <Card hover className="mb-6" padding={true}>          <div className="border-b border-gray-100 pb-8 mb-8">
             <div className="flex flex-col md:flex-row md:justify-between md:items-center">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 md:mb-0">Climate Finance Sources</h3>
-              
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 md:mb-0">Climate Finance Sources</h3>              
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 mt-4 md:mt-0">
                 {/* Search */}
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -183,10 +171,9 @@ const FundingSources = () => {
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
+            </div>          </div>
           {/* Sources List */}
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-100 pt-6">
           {filteredSources.map((source, index) => (
             <div 
               key={source.id} 
@@ -194,7 +181,11 @@ const FundingSources = () => {
               style={{ animationDelay: `${index * 50}ms` }}
             >              <div className="flex flex-col md:flex-row md:items-center">
                 <div className="flex items-center mb-4 md:mb-0 md:mr-4">
-                  <img src={source.logo} alt={source.name} className="w-12 h-12 rounded mr-4" />
+                  <img 
+                    src={generateOrganizationLogo(source.name, source.type, 64)} 
+                    alt={source.name} 
+                    className="w-12 h-12 rounded-lg mr-4 border border-gray-100 shadow-sm" 
+                  />
                   <div>
                     <h4 className="text-md font-medium text-gray-800">{source.name}</h4>
                     <div className="flex items-center gap-1 text-sm text-gray-500">

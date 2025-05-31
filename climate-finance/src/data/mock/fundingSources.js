@@ -9,14 +9,13 @@ export const fundingSources = [
     total_committed: 450000000,
     total_disbursed: 175000000,
     active_projects: 12,
-    sectors: ['Energy', 'Adaptation', 'Agriculture', 'Forestry'],
-    allocation_by_year: [
+    sectors: ['Energy', 'Adaptation', 'Agriculture', 'Forestry'],    allocation_by_year: [
       { year: '2021', amount: 25000000 },
       { year: '2022', amount: 45000000 },
       { year: '2023', amount: 65000000 },
       { year: '2024', amount: 40000000 },
     ],
-    logo: '/api/placeholder/64/64',
+    logo: '', // Will be generated dynamically
     description: 'The Green Climate Fund (GCF) is a global fund created to support efforts of developing countries to respond to the challenges of climate change.',
     website: 'https://www.greenclimate.fund',
     contact_email: 'info@gcfund.org'

@@ -50,11 +50,11 @@ class ErrorBoundary extends React.Component {
                 >
                   Try Again
                 </Button>
-                
-                <Button
-                  variant="outline"
+                  <Button
+                  variant="secondary"
                   leftIcon={<Home size={16} />}
                   onClick={() => window.location.href = '/'}
+                  className="bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-800 transition-all duration-200"
                 >
                   Go Home
                 </Button>

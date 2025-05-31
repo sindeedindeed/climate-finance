@@ -11,12 +11,10 @@ const LineChartComponent = ({
   lineColor = '#7C65C1',
   formatYAxis = false,
   lineName = 'Value'
-}) => {
-  return (
-    <div>
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">{title}</h3>
+}) => {  return (
+    <div className="w-full overflow-hidden">      <h3 className="text-lg font-semibold text-gray-800 mb-4">{title}</h3>
       <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+        <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis dataKey={xAxisKey} />
           <YAxis tickFormatter={formatYAxis ? value => formatCurrency(value) : undefined} />

@@ -159,33 +159,24 @@ const Projects = () => {
           </div>
         ))}
       </div>
-      
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="animate-fade-in-up" style={{ animationDelay: '400ms' }}>
-          <Card hover>
+        {/* Charts Row */}      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">        <div className="animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+          <Card hover padding={true}>
             <PieChartComponent
               title="Projects by Status"
               data={projectsByStatus}
               valueKey="value"
               nameKey="name"
             />
-          </Card>
-        </div>
-        
-        <div className="animate-fade-in-up" style={{ animationDelay: '500ms' }}>
-          <Card hover>
+          </Card>        </div>          <div className="animate-fade-in-up" style={{ animationDelay: '500ms' }}>
+          <Card hover padding={true}>
             <PieChartComponent
               title="Projects by Sector"
               data={projectsBySector}
               valueKey="value"
               nameKey="name"
             />
-          </Card>
-        </div>
-        
-        <div className="animate-fade-in-up" style={{ animationDelay: '600ms' }}>
-          <Card hover>
+          </Card>        </div>        <div className="animate-fade-in-up" style={{ animationDelay: '600ms' }}>
+          <Card hover padding={true}>
             <LineChartComponent
               title="Project Growth Trend"
               data={projectsTrend}
@@ -194,13 +185,8 @@ const Projects = () => {
               lineName="Projects"
             />
           </Card>
-        </div>
-      </div>
-      
-      {/* Projects List */}
-      <Card className="mb-6 animate-fade-in-up" style={{ animationDelay: '700ms' }}>
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex flex-col space-y-4">
+        </div>      </div>        {/* Projects List */}      <Card className="mb-6 animate-fade-in-up" style={{ animationDelay: '700ms' }} padding={true}>          <div className="border-b border-gray-100 pb-8 mb-8">
+            <div className="flex flex-col space-y-6">
             <div className="flex flex-col md:flex-row md:justify-between md:items-center">
               <h3 className="text-xl font-semibold text-gray-900">
                 All Projects ({filteredProjects.length})
@@ -219,9 +205,8 @@ const Projects = () => {
                   </Button>
                 </div>
               )}
-            </div>
-              {/* Search and filters */}
-            <div className="flex flex-col lg:flex-row gap-4">
+            </div>              {/* Search and filters */}
+            <div className="flex flex-col lg:flex-row gap-4 mt-6">
               {/* Search */}
               <div className="flex-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -261,11 +246,11 @@ const Projects = () => {
                     </option>
                   ))}
                 </select>
-              </div>
-            </div>
-          </div>
-        </div>        {/* Projects Grid */}
-        <div className="p-6">
+              </div>            </div>          </div>
+        </div>
+        
+        {/* Projects Grid */}
+        <div className="pt-6 px-4 sm:px-6 pb-4 sm:pb-6">
           {filteredProjects.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 xl:gap-8">
               {filteredProjects.map((project, index) => (
@@ -356,8 +341,11 @@ const Projects = () => {
               <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
               <p className="text-gray-500 mb-4">
                 No projects match your search criteria. Try adjusting your filters.
-              </p>
-              <Button variant="outline" onClick={clearFilters}>
+              </p>              <Button 
+                variant="secondary"
+                onClick={clearFilters}
+                className="bg-white border-2 border-purple-300 text-purple-700 hover:bg-purple-50 hover:border-purple-400 hover:text-purple-800 transition-all duration-200"
+              >
                 Clear Filters
               </Button>
             </div>
