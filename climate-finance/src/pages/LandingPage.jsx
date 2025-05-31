@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -29,6 +30,7 @@ import {
 } from '../data/mock/dashboardData';
 
 const LandingPage = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { toast } = useToast();
@@ -196,7 +198,7 @@ const LandingPage = () => {
             <Button 
               variant="secondary" 
               rightIcon={<ArrowRight size={16} />}
-              onClick={() => window.location.href = '/projects'}
+              onClick={() => navigate('/projects')}
               className="bg-white border-2 border-purple-300 text-purple-700 hover:bg-purple-50 hover:border-purple-400 hover:text-purple-800 transition-all duration-200"
             >
               View Projects
@@ -204,7 +206,7 @@ const LandingPage = () => {
             <Button 
               variant="primary"
               rightIcon={<ArrowRight size={16} />}
-              onClick={() => window.location.href = '/funding-sources'}
+              onClick={() => navigate('/funding-sources')}
               className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
             >
               Explore Funding
