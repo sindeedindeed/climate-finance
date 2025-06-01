@@ -22,7 +22,8 @@ const Button = ({
     select-none
   `;
   
-  const variantStyles = {    primary: `
+  const variantStyles = {    
+    primary: `
       bg-gradient-to-r from-primary-600 to-primary-700
       hover:from-primary-700 hover:to-primary-800
       text-white shadow-medium hover:shadow-large
@@ -44,10 +45,11 @@ const Button = ({
       text-gray-700 hover:text-primary-700
       shadow-soft hover:shadow-medium
       focus:ring-primary-200
-    `,    outline: `
+    `,    
+    outline: `
       border-2 border-primary-500 bg-transparent
-      hover:bg-primary-600 hover:border-primary-700
-      text-primary-600 hover:text-white
+      hover:bg-primary-50 hover:border-primary-600
+      text-primary-600 hover:text-primary-700
       focus:ring-primary-200
       shadow-none hover:shadow-medium
       transition-all duration-200

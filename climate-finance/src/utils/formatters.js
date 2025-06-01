@@ -12,3 +12,25 @@ export const formatCurrency = (amount) => {
   }
   return `$${(amount / 1000).toFixed(1)}K`;
 };
+
+/**
+ * Format date string to readable format
+ * @param {string|Date} date - Date to format
+ * @returns {string} Formatted date string
+ */
+export const formatDate = (date) => {
+  if (!date) return 'N/A';
+  
+  try {
+    const dateObj = new Date(date);
+    if (isNaN(dateObj.getTime())) return 'Invalid Date';
+    
+    return dateObj.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  } catch (error) {
+    return 'Invalid Date';
+  }
+};

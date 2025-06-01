@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Home, FolderOpen, DollarSign, FileText, Info } from 'lucide-react';
+import { Menu, X, Home, FolderOpen, DollarSign, FileText, Info, Shield } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const Navbar = () => {
   const location = useLocation();
   const path = location.pathname;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isAuthenticated, user } = useAuth();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -25,9 +27,19 @@ const Navbar = () => {
       icon: <DollarSign size={16} />,
       isActive: path === '/funding-sources' 
     },
+    { 
+      to: isAuthenticated ? '/admin/dashboard' : '/admin/login', 
+      label: 'Admin', 
+      icon: <Shield size={16} />,
+      isActive: path.startsWith('/admin')
+    },
     { to: null, label: 'Reports', icon: <FileText size={16} />, isDisabled: true },
     { to: null, label: 'About', icon: <Info size={16} />, isDisabled: true }
-  ];  return (
+  ];
+
+  const allNavLinks = navLinks;
+
+  return (
     <header className="bg-white shadow-sm py-4 border-b border-gray-100 sticky top-0 z-50 backdrop-blur-sm bg-white/90">
       <div className="layout-container px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -42,7 +54,7 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            {navLinks.map((link, index) => (
+            {allNavLinks.map((link, index) => (
               link.isDisabled ? (
                 <span 
                   key={index}
@@ -58,12 +70,17 @@ const Navbar = () => {
                   to={link.to} 
                   className={`transition-colors duration-200 flex items-center gap-2 ${
                     link.isActive 
-                      ? 'text-primary font-medium' 
+                      ? 'text-primary font-medium'
                       : 'text-gray-600 hover:text-primary'
                   }`}
                 >
                   {link.icon}
                   {link.label}
+                  {isAuthenticated && link.to.startsWith('/admin') && (
+                    <span className="ml-1 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                      {user?.fullName?.split(' ')[0] || 'Admin'}
+                    </span>
+                  )}
                 </Link>
               )
             ))}
@@ -82,11 +99,13 @@ const Navbar = () => {
             )}
           </button>
         </div>
-      </div>      {/* Mobile Navigation */}
+      </div>
+
+      {/* Mobile Navigation */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 shadow-lg">
           <nav className="max-w-desktop mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
-            {navLinks.map((link, index) => (
+            {allNavLinks.map((link, index) => (
               link.isDisabled ? (
                 <span 
                   key={index}
@@ -102,13 +121,18 @@ const Navbar = () => {
                   to={link.to} 
                   className={`py-2 transition-colors duration-200 flex items-center gap-3 ${
                     link.isActive 
-                      ? 'text-primary font-medium' 
+                      ? 'text-primary font-medium'
                       : 'text-gray-600 hover:text-primary'
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {link.icon}
                   {link.label}
+                  {isAuthenticated && link.to.startsWith('/admin') && (
+                    <span className="ml-auto text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                      {user?.fullName?.split(' ')[0] || 'Admin'}
+                    </span>
+                  )}
                 </Link>
               )
             ))}
@@ -118,4 +142,5 @@ const Navbar = () => {
     </header>
   );
 };
+
 export default Navbar;
