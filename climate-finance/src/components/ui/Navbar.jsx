@@ -40,7 +40,7 @@ const Navbar = () => {
   const allNavLinks = navLinks;
 
   return (
-    <header className="bg-white shadow-sm py-4 border-b border-gray-100 sticky top-0 z-50 backdrop-blur-sm bg-white/90">
+    <header className="shadow-sm py-4 border-b border-gray-100 sticky top-0 z-50 backdrop-blur-sm bg-white/90">
       <div className="layout-container px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -76,11 +76,6 @@ const Navbar = () => {
                 >
                   {link.icon}
                   {link.label}
-                  {isAuthenticated && link.to.startsWith('/admin') && (
-                    <span className="ml-1 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                      {user?.fullName?.split(' ')[0] || 'Admin'}
-                    </span>
-                  )}
                 </Link>
               )
             ))}
@@ -128,11 +123,6 @@ const Navbar = () => {
                 >
                   {link.icon}
                   {link.label}
-                  {isAuthenticated && link.to.startsWith('/admin') && (
-                    <span className="ml-auto text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                      {user?.fullName?.split(' ')[0] || 'Admin'}
-                    </span>
-                  )}
                 </Link>
               )
             ))}

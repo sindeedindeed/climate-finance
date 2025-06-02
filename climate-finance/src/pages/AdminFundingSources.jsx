@@ -5,7 +5,9 @@ import { fundingSources } from '../data/mock/adminData';
 import { formatCurrency } from '../utils/formatters';
 import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
-import { ArrowLeft } from 'lucide-react';
+import Card from '../components/ui/Card';
+import PageLayout from '../components/layouts/PageLayout';
+import { ArrowLeft, Search, Edit, Trash2, Plus } from 'lucide-react';
 
 const AdminFundingSources = () => {
   const { user, logout } = useAuth();
@@ -125,146 +127,151 @@ const AdminFundingSources = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <Link to="/admin/dashboard" className="text-primary-600 hover:text-primary-700 transition-colors duration-200">
-                <ArrowLeft className="w-6 h-6" />
-              </Link>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Funding Sources</h1>
-                <p className="text-sm text-gray-600">Manage funding sources and development partners</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{user?.fullName}</p>
-                <p className="text-xs text-gray-500">{user?.role}</p>
-              </div>
-              <Button onClick={handleLogout} variant="outline" size="sm">
-                Logout
-              </Button>
-            </div>
+    <PageLayout bgColor="bg-gray-50">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
+        <div className="flex items-center space-x-4">
+          <Link to="/admin/dashboard" className="text-purple-600 hover:text-purple-700 transition-colors duration-200">
+            <ArrowLeft className="w-6 h-6" />
+          </Link>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Funding Sources Management</h2>
+            <p className="text-gray-500">Manage funding sources and development partners</p>
           </div>
         </div>
-      </header>
+        
+        <div className="flex items-center space-x-4 mt-4 md:mt-0">
+          <div className="text-right">
+            <p className="text-sm font-medium text-gray-900">{user?.fullName}</p>
+            <p className="text-xs text-gray-500">{user?.role}</p>
+          </div>
+          <Button onClick={handleLogout} variant="outline" size="sm">
+            Logout
+          </Button>
+        </div>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Controls */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-            <div>
+      {/* Controls Card */}
+      <Card hover className="mb-6" padding={true}>
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 md:mb-0">
+            All Funding Sources ({filteredSources.length})
+          </h3>
+          
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+            {/* Search */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search size={16} className="text-gray-400" />
+              </div>
               <input
                 type="text"
+                className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                 placeholder="Search funding sources..."
-                className="w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button onClick={() => openModal()} className="bg-primary-600 hover:bg-primary-700 text-white">
+            
+            <Button 
+              onClick={() => openModal()} 
+              variant="primary"
+              leftIcon={<Plus size={16} />}
+              className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
+            >
               Add Funding Source
             </Button>
           </div>
         </div>
+      </Card>
 
-        {/* Funding Sources Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Funding Source
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Grant Amount
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Loan Amount
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Counterpart Funding
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredSources.map((source) => (
-                  <tr key={source.funding_source_id} className="hover:bg-primary-50">
-                    <td className="px-6 py-4">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {source.name}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {source.dev_partner}
-                        </div>
-                        {source.non_grant_instrument && (
-                          <div className="text-xs text-primary-600">
-                            {source.non_grant_instrument}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
-                        {formatCurrency(source.grant_amount)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
-                        {formatCurrency(source.loan_amount)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
-                        {formatCurrency(source.counterpart_funding)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex space-x-2">
-                        <Button
-                          onClick={() => openModal(source)}
-                          size="sm"
-                          variant="outline"
-                          className="text-primary-600 border-primary-600 hover:bg-primary-50 hover:text-primary-700"
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          onClick={() => handleDelete(source.funding_source_id)}
-                          size="sm"
-                          variant="outline"
-                          className="text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700"
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          {filteredSources.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-gray-500">No funding sources found</div>
+      {/* Funding Sources List */}
+      <Card hover padding={true}>
+        <div className="divide-y divide-gray-100">
+          {filteredSources.map((source, index) => (
+            <div 
+              key={source.funding_source_id} 
+              className="p-4 hover:bg-purple-50 transition-all duration-200 group animate-fade-in-up"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex-1 min-w-0 mb-4 lg:mb-0">
+                  <div className="flex items-start">
+                    <div>
+                      <h4 className="text-lg font-medium text-gray-900 group-hover:text-purple-600 transition-colors">
+                        {source.name}
+                      </h4>
+                      <p className="text-sm text-gray-600 mt-1">{source.dev_partner}</p>
+                      {source.non_grant_instrument && (
+                        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800 mt-2">
+                          {source.non_grant_instrument}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex flex-wrap lg:items-center lg:space-x-8">
+                  <div className="w-1/2 lg:w-auto mb-4 lg:mb-0">
+                    <p className="text-xs text-gray-500">Grant Amount</p>
+                    <p className="text-sm font-medium">{formatCurrency(source.grant_amount)}</p>
+                  </div>
+                  
+                  <div className="w-1/2 lg:w-auto mb-4 lg:mb-0">
+                    <p className="text-xs text-gray-500">Loan Amount</p>
+                    <p className="text-sm font-medium">{formatCurrency(source.loan_amount)}</p>
+                  </div>
+                  
+                  <div className="w-1/2 lg:w-auto mb-4 lg:mb-0">
+                    <p className="text-xs text-gray-500">Counterpart Funding</p>
+                    <p className="text-sm font-medium">{formatCurrency(source.counterpart_funding)}</p>
+                  </div>
+                  
+                  <div className="w-1/2 lg:w-auto">
+                    <div className="flex space-x-2">
+                      <Button
+                        onClick={() => openModal(source)}
+                        size="sm"
+                        variant="outline"
+                        leftIcon={<Edit size={14} />}
+                        className="text-purple-600 border-purple-300 hover:bg-purple-50 hover:border-purple-400 hover:text-purple-700 transition-all duration-200"
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={() => handleDelete(source.funding_source_id)}
+                        size="sm"
+                        variant="outline"
+                        leftIcon={<Trash2 size={14} />}
+                        className="text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400 hover:text-red-700 transition-all duration-200"
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
+          ))}
         </div>
-      </div>
+        
+        {filteredSources.length === 0 && (
+          <div className="text-center py-12">
+            <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <Search size={32} className="text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No funding sources found</h3>
+            <p className="text-gray-500 mb-4">
+              No funding sources match your search criteria.
+            </p>
+          </div>
+        )}
+      </Card>
 
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+          <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-xl bg-white">
             <div className="mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
                 {editingSource ? 'Edit Funding Source' : 'Add New Funding Source'}
@@ -279,7 +286,7 @@ const AdminFundingSources = () => {
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                       required
                     />
                   </div>
@@ -291,7 +298,7 @@ const AdminFundingSources = () => {
                       name="dev_partner"
                       value={formData.dev_partner}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                       required
                     />
                   </div>
@@ -303,7 +310,7 @@ const AdminFundingSources = () => {
                       name="grant_amount"
                       value={formData.grant_amount}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                       step="0.01"
                       min="0"
                     />
@@ -316,7 +323,7 @@ const AdminFundingSources = () => {
                       name="loan_amount"
                       value={formData.loan_amount}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                       step="0.01"
                       min="0"
                     />
@@ -329,7 +336,7 @@ const AdminFundingSources = () => {
                       name="counterpart_funding"
                       value={formData.counterpart_funding}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                       step="0.01"
                       min="0"
                     />
@@ -342,7 +349,7 @@ const AdminFundingSources = () => {
                       name="non_grant_instrument"
                       value={formData.non_grant_instrument}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                       placeholder="e.g., Concessional Loan, Technical Assistance"
                     />
                   </div>
@@ -360,7 +367,7 @@ const AdminFundingSources = () => {
                   </Button>
                   <Button
                     type="submit"
-                    className="bg-primary-600 hover:bg-primary-700 text-white"
+                    className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
                     disabled={isLoading}
                   >
                     {isLoading ? <Loading size="sm" /> : (editingSource ? 'Update Source' : 'Create Source')}
@@ -371,7 +378,7 @@ const AdminFundingSources = () => {
           </div>
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 };
 
