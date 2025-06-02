@@ -13,6 +13,9 @@ import AdminProjectAdd from "./pages/AdminProjectAdd.jsx";
 import AdminProjectEdit from "./pages/AdminProjectEdit.jsx";
 import AdminUserAdd from "./pages/AdminUserAdd.jsx";
 import AdminUserEdit from "./pages/AdminUserEdit.jsx";
+import AdminAgencies from "./pages/AdminAgencies.jsx";
+import AdminAgencyAdd from "./pages/AdminAgencyAdd.jsx";
+import AdminAgencyEdit from "./pages/AdminAgencyEdit.jsx";
 import { Route, Routes, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 
@@ -150,6 +153,32 @@ const Routing = () => {
                     element={
                         <ProtectedRoute>
                             <AdminFundingSourceEdit />
+                        </ProtectedRoute>
+                    } 
+                />
+                
+                {/* Agency Management Routes */}
+                <Route 
+                    path={'/admin/agencies'} 
+                    element={
+                        <ProtectedRoute>
+                            <AdminAgencies />
+                        </ProtectedRoute>
+                    } 
+                />
+                <Route 
+                    path={'/admin/agencies/add'} 
+                    element={
+                        <ProtectedRoute>
+                            <AdminAgencyAdd />
+                        </ProtectedRoute>
+                    } 
+                />
+                <Route 
+                    path={'/admin/agencies/edit/:agencyId'} 
+                    element={
+                        <ProtectedRoute>
+                            <AdminAgencyEdit />
                         </ProtectedRoute>
                     } 
                 />

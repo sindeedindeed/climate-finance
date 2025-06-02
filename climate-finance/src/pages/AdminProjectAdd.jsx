@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { adminProjects } from '../data/mock/adminData';
+import { adminProjects, agencies, fundingSources, locations, focalAreas } from '../data/mock/adminData';
 import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
 import Card from '../components/ui/Card';
 import PageLayout from '../components/layouts/PageLayout';
+import ProjectFormSections from '../features/admin/ProjectFormSections';
 import { ArrowLeft } from 'lucide-react';
 
 const AdminProjectAdd = () => {
@@ -25,32 +26,39 @@ const AdminProjectAdd = () => {
     approval_fy: '',
     beneficiaries: '',
     objectives: '',
+    agencies: [],
+    funding_sources: [],
+    locations: [],
+    focal_areas: [],
     wash_component: {
       presence: false,
-      water_supply_percent: '',
-      sanitation_percent: '',
-      public_admin_percent: ''
+      water_supply_percent: 0,
+      sanitation_percent: 0,
+      public_admin_percent: 0
     }
   });
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
-    if (name.startsWith('wash_component.')) {
-      const field = name.split('.')[1];
-      setFormData(prev => ({
-        ...prev,
-        wash_component: {
-          ...prev.wash_component,
-          [field]: type === 'checkbox' ? checked : value
-        }
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: type === 'checkbox' ? checked : value
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleMultiSelectChange = (e, field) => {
+    const selectedValues = Array.isArray(e.target.value) ? e.target.value : [e.target.value];
+    setFormData(prev => ({
+      ...prev,
+      [field]: selectedValues
+    }));
+  };
+
+  const handleWashComponentChange = (washData) => {
+    setFormData(prev => ({
+      ...prev,
+      wash_component: typeof washData === 'function' ? washData(prev.wash_component) : washData
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -168,6 +176,18 @@ const AdminProjectAdd = () => {
             </div>
           </div>
 
+          {/* New Form Sections with improved components */}
+          <ProjectFormSections
+            formData={formData}
+            handleInputChange={handleInputChange}
+            handleMultiSelectChange={handleMultiSelectChange}
+            handleWashComponentChange={handleWashComponentChange}
+            agencies={agencies}
+            fundingSources={fundingSources}
+            locations={locations}
+            focalAreas={focalAreas}
+          />
+
           {/* Financial Information */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Financial Information</h3>
@@ -251,71 +271,6 @@ const AdminProjectAdd = () => {
                   max="2030"
                 />
               </div>
-            </div>
-          </div>
-
-          {/* WASH Component */}
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">WASH Component</h3>
-            <div className="border rounded-xl p-4">
-              <div className="flex items-center mb-4">
-                <input
-                  type="checkbox"
-                  name="wash_component.presence"
-                  checked={formData.wash_component.presence}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                />
-                <label className="ml-2 block text-sm font-medium text-gray-700">
-                  Has WASH Component
-                </label>
-              </div>
-
-              {formData.wash_component.presence && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Water Supply %</label>
-                    <input
-                      type="number"
-                      name="wash_component.water_supply_percent"
-                      value={formData.wash_component.water_supply_percent}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                      step="0.01"
-                      min="0"
-                      max="100"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Sanitation %</label>
-                    <input
-                      type="number"
-                      name="wash_component.sanitation_percent"
-                      value={formData.wash_component.sanitation_percent}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                      step="0.01"
-                      min="0"
-                      max="100"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Public Admin %</label>
-                    <input
-                      type="number"
-                      name="wash_component.public_admin_percent"
-                      value={formData.wash_component.public_admin_percent}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                      step="0.01"
-                      min="0"
-                      max="100"
-                    />
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 

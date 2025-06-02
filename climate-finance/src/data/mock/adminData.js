@@ -287,9 +287,9 @@ export const adminDashboardStats = [
     color: "bg-blue-500"
   },
   {
-    title: "Active Admins",
-    value: adminUsers.filter(user => user.isActive).length,
-    change: "No change",
+    title: "Active Agencies",
+    value: agencies.length,
+    change: "+1 this month",
     color: "bg-green-500"
   },
   {
@@ -299,9 +299,9 @@ export const adminDashboardStats = [
     color: "bg-yellow-500"
   },
   {
-    title: "System Uptime",
-    value: "99.9%",
-    change: "Last 30 days",
+    title: "Funding Sources",
+    value: fundingSources.length,
+    change: "No change",
     color: "bg-purple-500"
   }
 ];

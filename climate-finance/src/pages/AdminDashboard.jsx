@@ -100,9 +100,9 @@ const AdminDashboard = () => {
               } group-hover:scale-105 transition-transform duration-200`}>
                 <div className="w-6 h-6 text-white">
                   {index === 0 && <FolderTree size={24} />}
-                  {index === 1 && <Users size={24} />}
+                  {index === 1 && <Building2 size={24} />}
                   {index === 2 && <Banknote size={24} />}
-                  {index === 3 && <Target size={24} />}
+                  {index === 3 && <DollarSign size={24} />}
                 </div>
               </div>
               <div className="ml-5 w-0 flex-1">
