@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
+import Card from '../components/ui/Card';
 import { ArrowLeft, Shield, Eye, EyeOff, Lock, User } from 'lucide-react';
 
 const AdminLogin = () => {
@@ -51,156 +52,52 @@ const AdminLogin = () => {
     }
   };
 
-  const customStyles = {
-    container: {
-      minHeight: '100vh',
-      background: '#F9F8FC',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '3rem 1rem'
-    },
-    backButton: {
-      display: 'flex',
-      alignItems: 'center',
-      color: '#7C65C1',
-      textDecoration: 'none',
-      fontSize: '0.875rem',
-      fontWeight: '500',
-      transition: 'color 0.2s ease'
-    },
-    iconContainer: {
-      width: '4rem',
-      height: '4rem',
-      background: 'linear-gradient(135deg, #AB96E3 0%, #4D318C 100%)',
-      borderRadius: '0.75rem',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      margin: '0 auto',
-      boxShadow: '0 0 20px rgba(124, 101, 193, 0.3)'
-    },
-    formContainer: {
-      background: '#ffffff',
-      borderRadius: '0.5rem',
-      padding: '1.5rem',
-      boxShadow: '0 4px 25px 0 rgba(0, 0, 0, 0.1)',
-      border: '1px solid #F3F4F6'
-    },
-    input: {
-      width: '100%',
-      padding: '0.625rem 0.75rem 0.625rem 2.5rem',
-      border: '1px solid #D1D5DB',
-      borderRadius: '0.5rem',
-      fontSize: '0.875rem',
-      transition: 'all 0.2s ease',
-      outline: 'none'
-    },
-    inputFocus: {
-      borderColor: '#7C65C1',
-      boxShadow: '0 0 0 2px rgba(124, 101, 193, 0.2)'
-    },
-    loginButton: {
-      width: '100%',
-      padding: '0.625rem 1rem',
-      background: 'linear-gradient(135deg, #7C65C1 0%, #4D318C 100%)',
-      color: '#ffffff',
-      border: 'none',
-      borderRadius: '0.5rem',
-      fontSize: '0.875rem',
-      fontWeight: '500',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    },
-    loginButtonHover: {
-      background: 'linear-gradient(135deg, #4D318C 0%, #3F1D85 100%)',
-      transform: 'translateY(-1px)',
-      boxShadow: '0 4px 12px rgba(124, 101, 193, 0.4)'
-    },
-    errorMessage: {
-      background: '#FEF2F2',
-      border: '1px solid #FEE2E2',
-      borderRadius: '0.5rem',
-      padding: '0.75rem',
-      color: '#DC2626',
-      fontSize: '0.875rem',
-      marginTop: '1rem'
-    },
-    demoCredentials: {
-      background: '#ffffff',
-      borderRadius: '0.5rem',
-      padding: '1rem',
-      boxShadow: '0 4px 25px 0 rgba(0, 0, 0, 0.1)',
-      border: '1px solid #F3F4F6'
-    },
-    credentialCode: {
-      background: '#F8F6FF',
-      color: '#4D318C',
-      padding: '0.25rem 0.5rem',
-      borderRadius: '0.25rem',
-      fontSize: '0.75rem',
-      fontFamily: 'monospace',
-      border: '1px solid #E4D8FF'
-    }
-  };
-
   return (
-    <div style={customStyles.container}>
-      <div style={{ maxWidth: '28rem', width: '100%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
         {/* Back Button */}
         <div>
           <Link
             to="/"
-            style={customStyles.backButton}
-            onMouseEnter={(e) => e.target.style.color = '#4D318C'}
-            onMouseLeave={(e) => e.target.style.color = '#7C65C1'}
-            title="Back to Main Site"
+            className="flex items-center text-purple-600 hover:text-purple-700 transition-colors duration-200 text-sm font-medium"
           >
-            <ArrowLeft size={18} style={{ color: 'inherit', marginRight: '0.5rem' }} />
+            <ArrowLeft size={18} className="mr-2" />
             <span>Back to Main Site</span>
           </Link>
         </div>
 
         {/* Header */}
-        <div style={{ textAlign: 'center' }}>
-          <div style={customStyles.iconContainer}>
-            <Shield size={32} style={{ color: '#ffffff' }} />
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-200">
+            <Shield size={32} className="text-white" />
           </div>
-          <h2 style={{ marginTop: '1.5rem', fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
             Admin Portal
           </h2>
-          <p style={{ color: '#6B7280', fontSize: '0.875rem' }}>
+          <p className="text-gray-600 text-sm">
             Sign in to your administrator account
           </p>
         </div>
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit}>
-          <div style={customStyles.formContainer}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <Card padding={true} className="shadow-lg">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
               {/* Username Field */}
               <div>
-                <label htmlFor="username" style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
                   Username
                 </label>
-                <div style={{ position: 'relative' }}>
-                  <div style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                    <User size={20} style={{ color: '#9CA3AF' }} />
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User size={20} className="text-gray-400" />
                   </div>
                   <input
                     id="username"
                     name="username"
                     type="text"
                     required
-                    style={customStyles.input}
-                    onFocus={(e) => Object.assign(e.target.style, customStyles.inputFocus)}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#D1D5DB';
-                      e.target.style.boxShadow = 'none';
-                    }}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                     placeholder="Enter your username"
                     value={formData.username}
                     onChange={handleChange}
@@ -211,24 +108,19 @@ const AdminLogin = () => {
 
               {/* Password Field */}
               <div>
-                <label htmlFor="password" style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                   Password
                 </label>
-                <div style={{ position: 'relative' }}>
-                  <div style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                    <Lock size={20} style={{ color: '#9CA3AF' }} />
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock size={20} className="text-gray-400" />
                   </div>
                   <input
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
                     required
-                    style={{ ...customStyles.input, paddingRight: '2.5rem' }}
-                    onFocus={(e) => Object.assign(e.target.style, customStyles.inputFocus)}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#D1D5DB';
-                      e.target.style.boxShadow = 'none';
-                    }}
+                    className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={handleChange}
@@ -236,13 +128,13 @@ const AdminLogin = () => {
                   />
                   <button
                     type="button"
-                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff size={20} style={{ color: '#9CA3AF' }} />
+                      <EyeOff size={20} className="text-gray-400 hover:text-gray-600 transition-colors" />
                     ) : (
-                      <Eye size={20} style={{ color: '#9CA3AF' }} />
+                      <Eye size={20} className="text-gray-400 hover:text-gray-600 transition-colors" />
                     )}
                   </button>
                 </div>
@@ -251,57 +143,55 @@ const AdminLogin = () => {
 
             {/* Error Message */}
             {error && (
-              <div style={customStyles.errorMessage}>
-                {error}
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-red-600 text-sm">{error}</p>
               </div>
             )}
 
             {/* Login Button */}
-            <div style={{ marginTop: '1.5rem' }}>
-              <button
-                type="submit"
-                style={customStyles.loginButton}
-                onMouseEnter={(e) => Object.assign(e.target.style, customStyles.loginButtonHover)}
-                onMouseLeave={(e) => {
-                  e.target.style.background = 'linear-gradient(135deg, #7C65C1 0%, #4D318C 100%)';
-                  e.target.style.transform = 'none';
-                  e.target.style.boxShadow = 'none';
-                }}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <Loading size="sm" />
-                    <span style={{ marginLeft: '0.5rem' }}>Signing in...</span>
-                  </div>
-                ) : (
-                  'Sign In'
-                )}
-              </button>
-            </div>
-          </div>
-        </form>
+            <Button
+              type="submit"
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200 py-3"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <Loading size="sm" />
+                  <span className="ml-2">Signing in...</span>
+                </div>
+              ) : (
+                'Sign In'
+              )}
+            </Button>
+          </form>
+        </Card>
 
         {/* Demo Credentials */}
-        <div style={{ textAlign: 'center' }}>
-          <div style={customStyles.demoCredentials}>
-            <h3 style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.75rem' }}>Demo Credentials:</h3>
-            <div style={{ fontSize: '0.75rem', color: '#6B7280', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span><strong>Super Admin:</strong></span>
-                <code style={customStyles.credentialCode}>admin / admin123</code>
+        <Card padding={true} className="bg-white border border-gray-200">
+          <div className="text-center">
+            <h3 className="text-sm font-medium text-gray-700 mb-4">Demo Credentials:</h3>
+            <div className="space-y-3 text-xs text-gray-600">
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Super Admin:</span>
+                <code className="bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-200 font-mono">
+                  admin / admin123
+                </code>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span><strong>Project Manager:</strong></span>
-                <code style={customStyles.credentialCode}>project.manager / pm123</code>
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Project Manager:</span>
+                <code className="bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-200 font-mono">
+                  project.manager / pm123
+                </code>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span><strong>Finance Admin:</strong></span>
-                <code style={customStyles.credentialCode}>finance.admin / finance123</code>
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Finance Admin:</span>
+                <code className="bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-200 font-mono">
+                  finance.admin / finance123
+                </code>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

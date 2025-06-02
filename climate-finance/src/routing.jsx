@@ -7,6 +7,12 @@ import AdminDashboard from "./pages/AdminDashboard.jsx";
 import AdminProjects from "./pages/AdminProjects.jsx";
 import AdminUsers from "./pages/AdminUsers.jsx";
 import AdminFundingSources from "./pages/AdminFundingSources.jsx";
+import AdminFundingSourceAdd from "./pages/AdminFundingSourceAdd.jsx";
+import AdminFundingSourceEdit from "./pages/AdminFundingSourceEdit.jsx";
+import AdminProjectAdd from "./pages/AdminProjectAdd.jsx";
+import AdminProjectEdit from "./pages/AdminProjectEdit.jsx";
+import AdminUserAdd from "./pages/AdminUserAdd.jsx";
+import AdminUserEdit from "./pages/AdminUserEdit.jsx";
 import { Route, Routes, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 
@@ -69,6 +75,8 @@ const Routing = () => {
                         </ProtectedRoute>
                     } 
                 />
+                
+                {/* Project Management Routes */}
                 <Route 
                     path={'/admin/projects'} 
                     element={
@@ -78,6 +86,24 @@ const Routing = () => {
                     } 
                 />
                 <Route 
+                    path={'/admin/projects/add'} 
+                    element={
+                        <ProtectedRoute>
+                            <AdminProjectAdd />
+                        </ProtectedRoute>
+                    } 
+                />
+                <Route 
+                    path={'/admin/projects/edit/:projectId'} 
+                    element={
+                        <ProtectedRoute>
+                            <AdminProjectEdit />
+                        </ProtectedRoute>
+                    } 
+                />
+                
+                {/* User Management Routes */}
+                <Route 
                     path={'/admin/users'} 
                     element={
                         <ProtectedRoute>
@@ -86,10 +112,44 @@ const Routing = () => {
                     } 
                 />
                 <Route 
+                    path={'/admin/users/add'} 
+                    element={
+                        <ProtectedRoute>
+                            <AdminUserAdd />
+                        </ProtectedRoute>
+                    } 
+                />
+                <Route 
+                    path={'/admin/users/edit/:userId'} 
+                    element={
+                        <ProtectedRoute>
+                            <AdminUserEdit />
+                        </ProtectedRoute>
+                    } 
+                />
+                
+                {/* Funding Sources Management Routes */}
+                <Route 
                     path={'/admin/funding-sources'} 
                     element={
                         <ProtectedRoute>
                             <AdminFundingSources />
+                        </ProtectedRoute>
+                    } 
+                />
+                <Route 
+                    path={'/admin/funding-sources/add'} 
+                    element={
+                        <ProtectedRoute>
+                            <AdminFundingSourceAdd />
+                        </ProtectedRoute>
+                    } 
+                />
+                <Route 
+                    path={'/admin/funding-sources/edit/:sourceId'} 
+                    element={
+                        <ProtectedRoute>
+                            <AdminFundingSourceEdit />
                         </ProtectedRoute>
                     } 
                 />

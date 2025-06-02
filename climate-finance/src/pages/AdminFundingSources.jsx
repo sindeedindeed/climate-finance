@@ -4,7 +4,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { fundingSources } from '../data/mock/adminData';
 import { formatCurrency } from '../utils/formatters';
 import Button from '../components/ui/Button';
-import Loading from '../components/ui/Loading';
 import Card from '../components/ui/Card';
 import PageLayout from '../components/layouts/PageLayout';
 import { ArrowLeft, Search, Edit, Trash2, Plus } from 'lucide-react';
@@ -13,98 +12,12 @@ const AdminFundingSources = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [sources, setSources] = useState(fundingSources);
-  const [showModal, setShowModal] = useState(false);
-  const [editingSource, setEditingSource] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-
-  const [formData, setFormData] = useState({
-    name: '',
-    dev_partner: '',
-    grant_amount: '',
-    loan_amount: '',
-    counterpart_funding: '',
-    non_grant_instrument: ''
-  });
 
   const handleLogout = () => {
     logout();
     navigate('/admin/login');
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      dev_partner: '',
-      grant_amount: '',
-      loan_amount: '',
-      counterpart_funding: '',
-      non_grant_instrument: ''
-    });
-    setEditingSource(null);
-  };
-
-  const openModal = (source = null) => {
-    if (source) {
-      setEditingSource(source);
-      setFormData({
-        name: source.name,
-        dev_partner: source.dev_partner,
-        grant_amount: source.grant_amount || '',
-        loan_amount: source.loan_amount || '',
-        counterpart_funding: source.counterpart_funding || '',
-        non_grant_instrument: source.non_grant_instrument || ''
-      });
-    } else {
-      resetForm();
-    }
-    setShowModal(true);
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-    resetForm();
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const sourceData = {
-        ...formData,
-        grant_amount: parseFloat(formData.grant_amount) || 0,
-        loan_amount: parseFloat(formData.loan_amount) || 0,
-        counterpart_funding: parseFloat(formData.counterpart_funding) || 0,
-        non_grant_instrument: formData.non_grant_instrument || null
-      };
-
-      if (editingSource) {
-        sourceData.funding_source_id = editingSource.funding_source_id;
-        setSources(prev => prev.map(s => 
-          s.funding_source_id === editingSource.funding_source_id ? sourceData : s
-        ));
-      } else {
-        sourceData.funding_source_id = Math.max(...sources.map(s => s.funding_source_id)) + 1;
-        setSources(prev => [...prev, sourceData]);
-      }
-
-      closeModal();
-    } catch (error) {
-      console.error('Error saving funding source:', error);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const handleDelete = async (sourceId) => {
@@ -174,7 +87,7 @@ const AdminFundingSources = () => {
             </div>
             
             <Button 
-              onClick={() => openModal()} 
+              onClick={() => navigate('/admin/funding-sources/add')} 
               variant="primary"
               leftIcon={<Plus size={16} />}
               className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
@@ -230,7 +143,7 @@ const AdminFundingSources = () => {
                   <div className="w-1/2 lg:w-auto">
                     <div className="flex space-x-2">
                       <Button
-                        onClick={() => openModal(source)}
+                        onClick={() => navigate(`/admin/funding-sources/edit/${source.funding_source_id}`)}
                         size="sm"
                         variant="outline"
                         leftIcon={<Edit size={14} />}
@@ -267,117 +180,6 @@ const AdminFundingSources = () => {
           </div>
         )}
       </Card>
-
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-xl bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                {editingSource ? 'Edit Funding Source' : 'Add New Funding Source'}
-              </h3>
-              
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Development Partner</label>
-                    <input
-                      type="text"
-                      name="dev_partner"
-                      value={formData.dev_partner}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Grant Amount (USD)</label>
-                    <input
-                      type="number"
-                      name="grant_amount"
-                      value={formData.grant_amount}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                      step="0.01"
-                      min="0"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Loan Amount (USD)</label>
-                    <input
-                      type="number"
-                      name="loan_amount"
-                      value={formData.loan_amount}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                      step="0.01"
-                      min="0"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Counterpart Funding (USD)</label>
-                    <input
-                      type="number"
-                      name="counterpart_funding"
-                      value={formData.counterpart_funding}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                      step="0.01"
-                      min="0"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Non-Grant Instrument</label>
-                    <input
-                      type="text"
-                      name="non_grant_instrument"
-                      value={formData.non_grant_instrument}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                      placeholder="e.g., Concessional Loan, Technical Assistance"
-                    />
-                  </div>
-                </div>
-
-                {/* Form Actions */}
-                <div className="flex justify-end space-x-3 pt-6 border-t">
-                  <Button
-                    type="button"
-                    onClick={closeModal}
-                    variant="outline"
-                    disabled={isLoading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? <Loading size="sm" /> : (editingSource ? 'Update Source' : 'Create Source')}
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
     </PageLayout>
   );
 };
