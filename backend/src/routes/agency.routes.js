@@ -4,6 +4,9 @@ const controller = require('../controllers/agency.controller');
 
 router.post('/add-agency', controller.addAgency);
 router.get('/all', controller.getAllAgencies);
+router.put('/update/:id', controller.updateAgency);
+router.delete('/delete/:id', controller.deleteAgency);
+
 
 
 module.exports = router;

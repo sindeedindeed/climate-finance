@@ -13,5 +13,17 @@ Location.getAllLocations = async () => {
     return rows;
 };
 
+Location.updateLocation = async (id, { name, region }) => {
+    const { rows } = await pool.query(
+        'UPDATE Location SET name = $1, region = $2 WHERE location_id = $3 RETURNING *',
+        [name, region, id]
+    );
+    return rows[0];
+};
+
+Location.deleteLocation = async (id) => {
+    await pool.query('DELETE FROM Location WHERE location_id = $1', [id]);
+};
+
 
 module.exports = Location;

@@ -17,3 +17,21 @@ exports.getAllLocations = async (req, res) => {
         res.status(500).json({ status: false, message: `Error: ${e.message}` });
     }
 };
+
+exports.updateLocation = async (req, res) => {
+    try {
+        const result = await Location.updateLocation(req.params.id, req.body);
+        res.status(200).json({ status: true, message: 'Location updated', data: result });
+    } catch (e) {
+        res.status(500).json({ status: false, message: `Error: ${e.message}` });
+    }
+};
+
+exports.deleteLocation = async (req, res) => {
+    try {
+        await Location.deleteLocation(req.params.id);
+        res.status(200).json({ status: true, message: 'Location deleted' });
+    } catch (e) {
+        res.status(500).json({ status: false, message: `Error: ${e.message}` });
+    }
+};

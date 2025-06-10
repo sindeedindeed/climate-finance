@@ -17,3 +17,21 @@ exports.getAllAgencies = async (req, res) => {
         res.status(500).json({ status: false, message: `Error: ${e.message}` });
     }
 };
+
+exports.updateAgency = async (req, res) => {
+    try {
+        const result = await Agency.updateAgency(req.params.id, req.body);
+        res.status(200).json({ status: true, message: 'Agency updated', data: result });
+    } catch (e) {
+        res.status(500).json({ status: false, message: `Error: ${e.message}` });
+    }
+};
+
+exports.deleteAgency = async (req, res) => {
+    try {
+        await Agency.deleteAgency(req.params.id);
+        res.status(200).json({ status: true, message: 'Agency deleted' });
+    } catch (e) {
+        res.status(500).json({ status: false, message: `Error: ${e.message}` });
+    }
+};

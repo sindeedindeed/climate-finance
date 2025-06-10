@@ -13,5 +13,18 @@ Agency.getAllAgencies = async () => {
     return rows;
 };
 
+Agency.updateAgency = async (id, { name, type }) => {
+    const { rows } = await pool.query(
+        'UPDATE Agency SET name = $1, type = $2 WHERE agency_id = $3 RETURNING *',
+        [name, type, id]
+    );
+    return rows[0];
+};
+
+Agency.deleteAgency = async (id) => {
+    await pool.query('DELETE FROM Agency WHERE agency_id = $1', [id]);
+};
+
+
 
 module.exports = Agency;

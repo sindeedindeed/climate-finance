@@ -110,5 +110,20 @@ Project.getAllProjects = async () => {
     return rows;
 };
 
+Project.updateProject = async (id, data) => {
+    const fields = Object.keys(data);
+    const values = Object.values(data);
+    const setClause = fields.map((f, i) => `${f} = $${i + 1}`).join(', ');
+
+    const query = `UPDATE Project SET ${setClause} WHERE project_id = $${fields.length + 1} RETURNING *`;
+    const result = await pool.query(query, [...values, id]);
+    return result.rows[0];
+};
+
+Project.deleteProject = async (id) => {
+    await pool.query('DELETE FROM Project WHERE project_id = $1', [id]);
+};
+
+
 
 module.exports = Project;
