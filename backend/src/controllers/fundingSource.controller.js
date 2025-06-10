@@ -8,3 +8,12 @@ exports.addFundingSource = async (req, res) => {
         res.status(500).json({ status: false, message: `Error: ${e.message}` });
     }
 };
+
+exports.getAllFundingSources = async (req, res) => {
+    try {
+        const result = await FundingSource.getAllFundingSources();
+        res.status(200).json({ status: true, data: result });
+    } catch (e) {
+        res.status(500).json({ status: false, message: `Error: ${e.message}` });
+    }
+};

@@ -8,3 +8,12 @@ exports.addAgency = async (req, res) => {
         res.status(500).json({ status: false, message: `Error: ${e.message}` });
     }
 };
+
+exports.getAllAgencies = async (req, res) => {
+    try {
+        const result = await Agency.getAllAgencies();
+        res.status(200).json({ status: true, data: result });
+    } catch (e) {
+        res.status(500).json({ status: false, message: `Error: ${e.message}` });
+    }
+};

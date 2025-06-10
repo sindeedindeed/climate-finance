@@ -21,4 +21,10 @@ FundingSource.addFundingSource = async (data) => {
     return rows[0];
 };
 
+FundingSource.getAllFundingSources = async () => {
+    const { rows } = await pool.query('SELECT * FROM FundingSource');
+    return rows;
+};
+
+
 module.exports = FundingSource;

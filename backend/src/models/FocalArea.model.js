@@ -7,4 +7,10 @@ FocalArea.addFocalArea = async ({ name }) => {
     return rows[0];
 };
 
+FocalArea.getAllFocalAreas = async () => {
+    const { rows } = await pool.query('SELECT * FROM FocalArea');
+    return rows;
+};
+
+
 module.exports = FocalArea;

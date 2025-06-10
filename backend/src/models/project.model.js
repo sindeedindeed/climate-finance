@@ -100,4 +100,15 @@ Project.addProjectWithRelations = async (data) => {
     }
 };
 
+Project.getAllProjects = async () => {
+    const query = `
+                SELECT p.*, wc.* 
+                FROM Project p
+                INNER JOIN WASHComponent wc ON p.project_id = wc.project_id
+                `
+    const { rows } = await pool.query(query);
+    return rows;
+};
+
+
 module.exports = Project;

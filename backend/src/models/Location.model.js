@@ -8,4 +8,10 @@ Location.addLocation = async ({ name, region }) => {
     return rows[0];
 };
 
+Location.getAllLocations = async () => {
+    const { rows } = await pool.query('SELECT * FROM Location');
+    return rows;
+};
+
+
 module.exports = Location;

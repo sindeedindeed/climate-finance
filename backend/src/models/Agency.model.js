@@ -8,4 +8,10 @@ Agency.addAgency = async ({ name, type }) => {
     return rows[0];
 };
 
+Agency.getAllAgencies = async () => {
+    const { rows } = await pool.query('SELECT * FROM Agency');
+    return rows;
+};
+
+
 module.exports = Agency;
