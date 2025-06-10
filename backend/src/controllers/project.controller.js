@@ -56,3 +56,30 @@ exports.getProjectsOverviewStats = async (req, res)=> {
         res.status(500).json({status: false, message: `Server Error: ${e.message}`});
     }
 };
+
+exports.getProjectByStatus = async (req, res)=> {
+    try {
+        const response = await Project.getProjectByStatus()
+        res.status(200).json({ status: true, data: response });
+    } catch (e) {
+        res.status(500).json({status: false, message: `Server Error: ${e.message}`});
+    }
+};
+
+exports.getProjectBySector = async (req, res)=> {
+    try {
+        const response = await Project.getProjectBySector()
+        res.status(200).json({ status: true, data: response });
+    } catch (e) {
+        res.status(500).json({status: false, message: `Server Error: ${e.message}`});
+    }
+};
+
+exports.getProjectTrend = async (req, res)=> {
+    try {
+        const response = await Project.getProjectTrend()
+        res.status(200).json({ status: true, data: response });
+    } catch (e) {
+        res.status(500).json({status: false, message: `Server Error: ${e.message}`});
+    }
+};
