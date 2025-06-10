@@ -135,6 +135,83 @@ Project.getProjectById = async (id) => {
     return rows[0];
 };
 
+Project.getProjectsOverviewStats = async () => {
+    const client = await pool.connect();
+    try {
+        const query = `
+            SELECT 
+                (SELECT COUNT(*) FROM Project) AS total_projects,
+                (SELECT COUNT(*) FROM Project WHERE now() BETWEEN beginning AND closing) AS active_projects,
+                (SELECT COUNT(*) FROM Project WHERE status IN('Implementated')) AS completed_projects,
+                (SELECT COALESCE(SUM(total_cost_usd), 0) FROM Project) AS total_investment
+        `;
+
+        const trendQuery = `
+            SELECT
+                COUNT(*) AS total_projects,
+                COUNT(*) FILTER (WHERE now() BETWEEN beginning AND closing) AS active_projects,
+                    COUNT(*) FILTER (WHERE status IN ('Implementated')) AS completed_projects,
+                    COALESCE(SUM(total_cost_usd), 0) AS total_investment
+            FROM Project
+            WHERE approval_fy = EXTRACT(YEAR FROM CURRENT_DATE)
+        `;
+
+        const result = await client.query(query);
+        const trendResult = await client.query(trendQuery);
+
+        return {
+            ...result.rows[0],
+            current_year: trendResult.rows
+        };
+    } catch (err) {
+        throw err;
+    } finally {
+        client.release();
+    }
+};
+
+Project.getProjectByStatus = async () => {
+    const query = `
+        SELECT status, COUNT(*) AS value
+        FROM Project
+        GROUP BY status
+    `;
+    const { rows } = await pool.query(query);
+    return rows.map(row => ({
+        name: row.status,
+        value: parseInt(row.value)
+    }));
+};
+
+Project.getProjectBySector = async () => {
+    const query = `
+        SELECT type, COUNT(*) AS value
+        FROM Project
+        GROUP BY "type"
+    `;
+    const { rows } = await pool.query(query);
+    return rows.map(row => ({
+        name: row.type,
+        value: parseInt(row.value)
+    }));
+};
+
+Project.getProjectTrend = async () => {
+    const query = `
+        SELECT 
+            approval_fy AS year,
+            COUNT(*) AS total_projects
+        FROM Project
+        GROUP BY approval_fy
+        ORDER BY approval_fy
+    `;
+    const { rows } = await pool.query(query);
+    return rows.map(row => ({
+        year: row.year.toString(),
+        projects: parseInt(row.total_projects)
+    }));
+};
+
 
 
 module.exports = Project;
