@@ -1,3 +1,15 @@
+-- Table: User
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
+    role VARCHAR(50) NOT NULL DEFAULT 'Viewer' CHECK (role IN ('Viewer', 'Super Admin', 'Project Manager', 'Finance Admin', 'Data Manager')),
+    department VARCHAR(100) NOT NULL,
+    active BOOLEAN NOT NULL,
+    last_login TIMESTAMP DEFAULT NULL
+);
+
 -- Table: Project
 CREATE TABLE IF NOT EXISTS  Project (
                          project_id VARCHAR(50) PRIMARY KEY,
