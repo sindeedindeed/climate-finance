@@ -47,3 +47,12 @@ exports.getProjectById = async (req, res) => {
         res.status(500).json({ status: false, message: `Error: ${e.message}` });
     }
 };
+
+exports.getProjectsOverviewStats = async (req, res)=> {
+    try {
+        const response = await Project.getProjectsOverviewStats()
+        res.status(200).json({ status: true, data: response });
+    } catch (e) {
+        res.status(500).json({status: false, message: `Server Error: ${e.message}`});
+    }
+};

@@ -6,9 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="755182ac-94ac-44aa-a7ac-cf7ec7bfb7d3" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/controllers/auth.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/auth.controller.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/models/user.model.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/models/user.model.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/auth.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/auth.routes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/controllers/project.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/project.controller.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/models/project.model.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/models/project.model.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/project.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/project.routes.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,7 +52,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "database.data.extractors.current.export.id": "Comma-separated (CSV)_id",
-    "git-widget-placeholder": "backend/user",
+    "git-widget-placeholder": "backend/projects-dashboard",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/shahabuddin akhon hr/Desktop/climate/backend",
     "node.js.detected.package.eslint": "true",
@@ -142,7 +142,7 @@
       <workItem from="1748977154174" duration="1410000" />
       <workItem from="1749490666585" duration="2295000" />
       <workItem from="1749525100392" duration="51000" />
-      <workItem from="1749525306087" duration="14649000" />
+      <workItem from="1749525306087" duration="20241000" />
     </task>
     <servers />
   </component>
