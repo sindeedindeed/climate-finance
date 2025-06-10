@@ -25,6 +25,11 @@ Agency.deleteAgency = async (id) => {
     await pool.query('DELETE FROM Agency WHERE agency_id = $1', [id]);
 };
 
+Agency.getAgencyById = async (id) => {
+    const { rows } = await pool.query('SELECT * FROM Agency WHERE agency_id = $1', [id]);
+    return rows[0];
+};
+
 
 
 module.exports = Agency;

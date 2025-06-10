@@ -39,6 +39,11 @@ FundingSource.deleteFundingSource = async (id) => {
     await pool.query('DELETE FROM FundingSource WHERE funding_source_id = $1', [id]);
 };
 
+FundingSource.getFundingSourceById = async (id) => {
+    const { rows } = await pool.query('SELECT * FROM FundingSource WHERE funding_source_id = $1', [id]);
+    return rows[0];
+};
+
 
 
 module.exports = FundingSource;

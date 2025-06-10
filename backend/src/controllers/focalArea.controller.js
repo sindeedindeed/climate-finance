@@ -36,3 +36,13 @@ exports.deleteFocalArea = async (req, res) => {
         res.status(500).json({ status: false, message: `Error: ${e.message}` });
     }
 };
+
+exports.getFocalAreaById = async (req, res) => {
+    try {
+        const result = await FocalArea.getFocalAreaById(req.params.id);
+        if (!result) return res.status(404).json({ status: false, message: 'Focal Area not found' });
+        res.status(200).json({ status: true, data: result });
+    } catch (e) {
+        res.status(500).json({ status: false, message: `Error: ${e.message}` });
+    }
+};

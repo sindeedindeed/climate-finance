@@ -25,5 +25,10 @@ Location.deleteLocation = async (id) => {
     await pool.query('DELETE FROM Location WHERE location_id = $1', [id]);
 };
 
+Location.getLocationById = async (id) => {
+    const { rows } = await pool.query('SELECT * FROM Location WHERE location_id = $1', [id]);
+    return rows[0];
+};
+
 
 module.exports = Location;

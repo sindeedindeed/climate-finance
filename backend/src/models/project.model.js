@@ -124,6 +124,17 @@ Project.deleteProject = async (id) => {
     await pool.query('DELETE FROM Project WHERE project_id = $1', [id]);
 };
 
+Project.getProjectById = async (id) => {
+    const query = `
+            SELECT p.*, wc.*  
+            FROM Project p
+            INNER JOIN WASHComponent wc ON p.project_id = wc.project_id 
+            WHERE p.project_id = $1
+        `
+    const { rows } = await pool.query(query, [id]);
+    return rows[0];
+};
+
 
 
 module.exports = Project;
