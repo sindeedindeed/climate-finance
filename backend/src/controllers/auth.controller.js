@@ -40,3 +40,38 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: 'Login failed', error });
   }
 };
+
+exports.getAllUser = async (req, res)=>{
+  try {
+    const response = await User.getAllUser();
+    res.status(200).json({status: true, message:response})
+  }
+  catch (e) {
+    res.status(500).json({ message: 'Server Error', e });
+  }
+}
+
+exports.updateUser = async (req, res) => {
+  const id = req.params.id;
+  const updates = req.body;
+
+  try {
+    const updatedUser = await User.updateUserById(id, updates);
+    if (!updatedUser) return res.status(404).json({ message: 'User not found' });
+    res.status(200).json({ message: 'User updated', user: updatedUser });
+  } catch (error) {
+    res.status(500).json({ message: 'Update failed', error });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const deletedUser = await User.deleteUserById(id);
+    if (!deletedUser) return res.status(404).json({ message: 'User not found' });
+    res.json({ message: 'User deleted', user: deletedUser });
+  } catch (error) {
+    res.status(500).json({ message: 'Delete failed', error });
+  }
+};
