@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="755182ac-94ac-44aa-a7ac-cf7ec7bfb7d3" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../climate-finance/src/routing.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../climate-finance/src/routing.jsx" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="JavaScript File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="KubernetesApiProvider">{
+  &quot;contexts&quot;: [
+    {
+      &quot;name&quot;: &quot;backend-birx&quot;
+    }
+  ],
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="KubernetesSettings">
+    <option name="contextName" value="backend-birx" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="2vJR7wqItnx5H0CWxHARDvBIioD" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "database.data.extractors.current.export.id": "Comma-separated (CSV)_id",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/shahabuddin akhon hr/Desktop/climate/backend",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "npm.start.executor": "Run",
+    "settings.editor.selected.configurable": "database.query.execution",
+    "ts.external.directory.path": "C:\\Program Files\\JetBrains\\IntelliJ IDEA 2023.3.3\\plugins\\javascript-impl\\jsLanguageServicesImpl\\external",
+    "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "redis",
+      "postgresql"
+    ],
+    "com.intellij.ide.scratch.LRUPopupBuilder$1/": [
+      "PostgreSQL"
+    ]
+  }
+}]]></component>
+  <component name="RunManager">
+    <configuration name="start" type="js.build_tools.npm" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="start" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="755182ac-94ac-44aa-a7ac-cf7ec7bfb7d3" name="Changes" comment="" />
+      <created>1743861026615</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1743861026615</updated>
+      <workItem from="1743861027709" duration="263000" />
+      <workItem from="1743861462817" duration="1647000" />
+      <workItem from="1744004748565" duration="1547000" />
+      <workItem from="1744094640020" duration="1747000" />
+      <workItem from="1745450750951" duration="9791000" />
+      <workItem from="1745799316143" duration="7522000" />
+      <workItem from="1745846452771" duration="25174000" />
+      <workItem from="1745909881225" duration="3483000" />
+      <workItem from="1745937312981" duration="6981000" />
+      <workItem from="1745988140961" duration="4040000" />
+      <workItem from="1746023317292" duration="8252000" />
+      <workItem from="1746121579406" duration="8665000" />
+      <workItem from="1746166050250" duration="2737000" />
+      <workItem from="1746206256190" duration="7053000" />
+      <workItem from="1746221897025" duration="227000" />
+      <workItem from="1746222138352" duration="3432000" />
+      <workItem from="1746277380167" duration="4445000" />
+      <workItem from="1746292794357" duration="621000" />
+      <workItem from="1746338994813" duration="3786000" />
+      <workItem from="1746430610112" duration="4039000" />
+      <workItem from="1746461748923" duration="7724000" />
+      <workItem from="1746524437074" duration="3648000" />
+      <workItem from="1746558995049" duration="6373000" />
+      <workItem from="1746829153793" duration="8797000" />
+      <workItem from="1747018535308" duration="17101000" />
+      <workItem from="1747085674768" duration="12799000" />
+      <workItem from="1747117748871" duration="435000" />
+      <workItem from="1747134029026" duration="3113000" />
+      <workItem from="1747203963493" duration="12864000" />
+      <workItem from="1747369097734" duration="1410000" />
+      <workItem from="1747417672378" duration="9205000" />
+      <workItem from="1747483044549" duration="1379000" />
+      <workItem from="1747486438810" duration="600000" />
+      <workItem from="1747488623740" duration="2213000" />
+      <workItem from="1747496281719" duration="4590000" />
+      <workItem from="1747575852724" duration="1258000" />
+      <workItem from="1747736122007" duration="1966000" />
+      <workItem from="1747807145941" duration="7353000" />
+      <workItem from="1748768143324" duration="2229000" />
+      <workItem from="1748774458333" duration="18061000" />
+      <workItem from="1748849594932" duration="190000" />
+      <workItem from="1748853936669" duration="681000" />
+      <workItem from="1748854640230" duration="149000" />
+      <workItem from="1748860918608" duration="948000" />
+      <workItem from="1748977154174" duration="1410000" />
+      <workItem from="1749490666585" duration="2295000" />
+      <workItem from="1749525100392" duration="51000" />
+      <workItem from="1749525306087" duration="959000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
