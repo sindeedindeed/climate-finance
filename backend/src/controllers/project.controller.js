@@ -17,3 +17,33 @@ exports.getAllProjects = async (req, res) => {
         res.status(500).json({ status: false, message: `Error: ${e.message}` });
     }
 };
+
+exports.updateProject = async (req, res) => {
+    try {
+        const result = await Project.updateProject(req.params.id, req.body);
+        res.status(200).json({ status: true, message: 'Project updated', data: result });
+    } catch (e) {
+        res.status(500).json({ status: false, message: `Error: ${e.message}` });
+    }
+};
+
+exports.deleteProject = async (req, res) => {
+    try {
+        await Project.deleteProject(req.params.id);
+        res.status(200).json({ status: true, message: 'Project deleted' });
+    } catch (e) {
+        res.status(500).json({ status: false, message: `Error: ${e.message}` });
+    }
+};
+
+exports.getProjectById = async (req, res) => {
+    try {
+        const result = await Project.getProjectById(req.params.id);
+        if (!result) {
+            return res.status(404).json({ status: false, message: 'Project not found' });
+        }
+        res.status(200).json({ status: true, data: result });
+    } catch (e) {
+        res.status(500).json({ status: false, message: `Error: ${e.message}` });
+    }
+};

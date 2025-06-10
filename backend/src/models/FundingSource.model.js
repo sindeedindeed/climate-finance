@@ -26,5 +26,24 @@ FundingSource.getAllFundingSources = async () => {
     return rows;
 };
 
+FundingSource.updateFundingSource = async (id, data) => {
+    const fields = Object.keys(data);
+    const values = Object.values(data);
+    const setClause = fields.map((f, i) => `${f} = $${i + 1}`).join(', ');
+    const query = `UPDATE FundingSource SET ${setClause} WHERE funding_source_id = $${fields.length + 1} RETURNING *`;
+    const { rows } = await pool.query(query, [...values, id]);
+    return rows[0];
+};
+
+FundingSource.deleteFundingSource = async (id) => {
+    await pool.query('DELETE FROM FundingSource WHERE funding_source_id = $1', [id]);
+};
+
+FundingSource.getFundingSourceById = async (id) => {
+    const { rows } = await pool.query('SELECT * FROM FundingSource WHERE funding_source_id = $1', [id]);
+    return rows[0];
+};
+
+
 
 module.exports = FundingSource;
