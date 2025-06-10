@@ -1,523 +1,236 @@
-import React, { useState } from "react";
+import React from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
+import { adminDashboardStats } from "../data/mock/adminData";
+import { formatCurrency } from "../utils/formatters";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import PageLayout from "../components/layouts/PageLayout";
 import {
-  Settings,
+  ArrowLeft,
+  FolderTree,
   Users,
-  Database,
-  FileText,
-  TrendingUp,
-  AlertTriangle,
+  DollarSign,
+  Building2,
+  MapPin,
+  Target,
   Plus,
-  Edit3,
-  Trash2,
-  Eye,
-  Download,
-  Upload,
-  Search,
-  Filter,
-  MoreVertical,
-  CheckCircle,
-  XCircle,
-  Clock,
+  User,
+  Banknote,
 } from "lucide-react";
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState("overview");
-  const [searchTerm, setSearchTerm] = useState("");
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-  // Mock data for demonstration
-  const stats = {
-    totalProjects: 247,
-    totalFunding: 1250000000,
-    activeUsers: 156,
-    pendingApprovals: 12,
+  const handleLogout = () => {
+    logout();
+    navigate("/admin/login");
   };
 
-  const recentActivities = [
+  const menuItems = [
     {
-      id: 1,
-      action: "New project submitted",
-      user: "Dr. Rahman",
-      time: "2 hours ago",
-      status: "pending",
+      title: "Project Management",
+      description: "Add, edit, and manage climate projects",
+      icon: <FolderTree size={20} className="text-white" />,
+      path: "/admin/projects",
+      color: "bg-purple-500",
     },
     {
-      id: 2,
-      action: "Data export completed",
-      user: "Admin User",
-      time: "4 hours ago",
-      status: "completed",
+      title: "User Management",
+      description: "Manage admin users and permissions",
+      icon: <Users size={20} className="text-white" />,
+      path: "/admin/users",
+      color: "bg-purple-600",
     },
     {
-      id: 3,
-      action: "User registration",
-      user: "Sarah Ahmed",
-      time: "6 hours ago",
-      status: "approved",
+      title: "Funding Sources",
+      description: "Manage funding sources and partners",
+      icon: <DollarSign size={20} className="text-white" />,
+      path: "/admin/funding-sources",
+      color: "bg-purple-700",
     },
     {
-      id: 4,
-      action: "Project data updated",
-      user: "M. Hasan",
-      time: "8 hours ago",
-      status: "completed",
-    },
-  ];
-
-  const projects = [
-    {
-      id: 1,
-      name: "Solar Energy Initiative",
-      amount: 50000000,
-      status: "Active",
-      lastUpdated: "2024-05-28",
+      title: "Agencies",
+      description: "Manage implementing agencies",
+      icon: <Building2 size={20} className="text-white" />,
+      path: "/admin/agencies",
+      color: "bg-purple-400",
     },
     {
-      id: 2,
-      name: "Flood Management System",
-      amount: 75000000,
-      status: "Pending",
-      lastUpdated: "2024-05-27",
+      title: "Locations",
+      description: "Manage project locations",
+      icon: <MapPin size={20} className="text-white" />,
+      path: "/admin/locations",
+      color: "bg-purple-500",
     },
     {
-      id: 3,
-      name: "Green Transportation",
-      amount: 30000000,
-      status: "Completed",
-      lastUpdated: "2024-05-25",
-    },
-    {
-      id: 4,
-      name: "Coastal Protection",
-      amount: 120000000,
-      status: "Active",
-      lastUpdated: "2024-05-24",
+      title: "Focal Areas",
+      description: "Manage project focal areas",
+      icon: <Target size={20} className="text-white" />,
+      path: "/admin/focal-areas",
+      color: "bg-purple-600",
     },
   ];
 
-  const users = [
-    {
-      id: 1,
-      name: "Dr. Abdul Rahman",
-      email: "rahman@gov.bd",
-      role: "Policy Maker",
-      status: "Active",
-      lastLogin: "2024-05-28",
-    },
-    {
-      id: 2,
-      name: "Sarah Ahmed",
-      email: "sarah@ngo.org",
-      role: "NGO Representative",
-      status: "Pending",
-      lastLogin: "Never",
-    },
-    {
-      id: 3,
-      name: "Mohammad Hasan",
-      email: "hasan@activist.org",
-      role: "Activist",
-      status: "Active",
-      lastLogin: "2024-05-27",
-    },
-    {
-      id: 4,
-      name: "Fatima Khan",
-      email: "fatima@ministry.gov.bd",
-      role: "Government Official",
-      status: "Active",
-      lastLogin: "2024-05-28",
-    },
-  ];
-
-  const StatusBadge = ({ status }) => {
-    const colors = {
-      Active: "bg-green-100 text-green-800",
-      Pending: "bg-yellow-100 text-yellow-800",
-      Completed: "bg-blue-100 text-blue-800",
-      approved: "bg-green-100 text-green-800",
-      pending: "bg-yellow-100 text-yellow-800",
-      completed: "bg-blue-100 text-blue-800",
-    };
-
-    return (
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center">
-                <h1 className="text-xl font-semibold text-gray-900">
-                  Climate Finance Admin
-                </h1>
-              </div>
-              <div className="flex items-center space-x-4">
-                <button className="p-2 text-gray-400 hover:text-gray-500">
-                  <Settings className="h-5 w-5" />
-                </button>
-                <div className="h-8 w-8 bg-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">A</span>
-                </div>
-              </div>
-            </div>
+  return (
+    <PageLayout bgColor="bg-gray-50">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
+        <div className="flex items-center space-x-4">
+          <Link
+            to="/"
+            className="text-purple-600 hover:text-purple-700 transition-colors duration-200"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </Link>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">
+              Climate Finance Admin Portal
+            </h2>
+            <p className="text-gray-500">Welcome back, {user?.fullName}</p>
           </div>
-        </header>
+        </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Navigation Tabs */}
-          <div className="border-b border-gray-200 mb-8">
-            <nav className="-mb-px flex space-x-8">
-              {[
-                { id: "overview", label: "Overview", icon: TrendingUp },
-                { id: "projects", label: "Projects", icon: FileText },
-                { id: "users", label: "Users", icon: Users },
-                { id: "data", label: "Data Management", icon: Database },
-              ].map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => setActiveTab(id)}
-                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                    activeTab === id
-                      ? "border-purple-500 text-purple-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{label}</span>
-                </button>
-              ))}
-            </nav>
+        <div className="flex items-center space-x-4 mt-4 md:mt-0">
+          <div className="text-right">
+            <p className="text-sm font-medium text-gray-900">
+              {user?.fullName}
+            </p>
+            <p className="text-xs text-gray-500">{user?.role}</p>
           </div>
-
-          {/* Overview Tab */}
-          {activeTab === "overview" && (
-            <div className="space-y-8">
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">Total Projects</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {stats.totalProjects}
-                      </p>
-                    </div>
-                    <FileText className="h-8 w-8 text-purple-500" />
-                  </div>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">Total Funding</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        ${(stats.totalFunding / 1000000).toFixed(0)}M
-                      </p>
-                    </div>
-                    <TrendingUp className="h-8 w-8 text-green-500" />
-                  </div>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">Active Users</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {stats.activeUsers}
-                      </p>
-                    </div>
-                    <Users className="h-8 w-8 text-blue-500" />
-                  </div>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">Pending Approvals</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {stats.pendingApprovals}
-                      </p>
-                    </div>
-                    <AlertTriangle className="h-8 w-8 text-yellow-500" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Recent Activities */}
-              <div className="bg-white rounded-lg shadow-sm">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    Recent Activities
-                  </h3>
-                </div>
-                <div className="divide-y divide-gray-200">
-                  {recentActivities.map((activity) => (
-                    <div
-                      key={activity.id}
-                      className="px-6 py-4 flex items-center justify-between"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="flex-shrink-0">
-                          {activity.status === "completed" && (
-                            <CheckCircle className="h-5 w-5 text-green-500" />
-                          )}
-                          {activity.status === "pending" && (
-                            <Clock className="h-5 w-5 text-yellow-500" />
-                          )}
-                          {activity.status === "approved" && (
-                            <CheckCircle className="h-5 w-5 text-green-500" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {activity.action}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            by {activity.user}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <StatusBadge status={activity.status} />
-                        <span className="text-sm text-gray-500">
-                          {activity.time}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Projects Tab */}
-          {activeTab === "projects" && (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Project Management
-                </h2>
-                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <input
-                      type="text"
-                      placeholder="Search projects..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                  <button className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                    <Plus className="h-4 w-4" />
-                    <span>Add Project</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Project
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Amount
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Last Updated
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {projects.map((project) => (
-                        <tr key={project.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
-                              {project.name}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            ${(project.amount / 1000000).toFixed(1)}M
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <StatusBadge status={project.status} />
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {project.lastUpdated}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex items-center space-x-2">
-                              <button className="text-purple-600 hover:text-purple-900">
-                                <Eye className="h-4 w-4" />
-                              </button>
-                              <button className="text-blue-600 hover:text-blue-900">
-                                <Edit3 className="h-4 w-4" />
-                              </button>
-                              <button className="text-red-600 hover:text-red-900">
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Users Tab */}
-          {activeTab === "users" && (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  User Management
-                </h2>
-                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <input
-                      type="text"
-                      placeholder="Search users..."
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                  <button className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                    <Plus className="h-4 w-4" />
-                    <span>Invite User</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          User
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Role
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Last Login
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {users.map((user) => (
-                        <tr key={user.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="h-8 w-8 bg-purple-500 rounded-full flex items-center justify-center">
-                                <span className="text-white text-sm font-medium">
-                                  {user.name.charAt(0)}
-                                </span>
-                              </div>
-                              <div className="ml-3">
-                                <div className="text-sm font-medium text-gray-900">
-                                  {user.name}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  {user.email}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {user.role}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <StatusBadge status={user.status} />
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {user.lastLogin}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button className="text-purple-600 hover:text-purple-900">
-                              <MoreVertical className="h-4 w-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Data Management Tab */}
-          {activeTab === "data" && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900">
-                Data Management
-              </h2>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">
-                    Data Import/Export
-                  </h3>
-                  <div className="space-y-4">
-                    <button className="w-full flex items-center justify-center space-x-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50">
-                      <Upload className="h-5 w-5 text-gray-400" />
-                      <span className="text-gray-600">Upload Data Files</span>
-                    </button>
-                    <button className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                      <Download className="h-5 w-5" />
-                      <span>Export All Data</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">
-                    System Health
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">
-                        Database Status
-                      </span>
-                      <span className="flex items-center text-green-600">
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Healthy
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Last Backup</span>
-                      <span className="text-sm text-gray-900">2 hours ago</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">
-                        Storage Used
-                      </span>
-                      <span className="text-sm text-gray-900">
-                        2.4 GB / 10 GB
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          <Button onClick={handleLogout} variant="outline" size="sm">
+            Logout
+          </Button>
         </div>
       </div>
-    );
-  };
+
+      {/* Dashboard Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {adminDashboardStats.map((stat, index) => (
+          <Card key={index} hover padding={true} className="group">
+            <div className="flex items-center">
+              <div
+                className={`p-3 rounded-xl ${
+                  index === 0
+                    ? "bg-purple-500"
+                    : index === 1
+                    ? "bg-purple-600"
+                    : index === 2
+                    ? "bg-purple-700"
+                    : "bg-purple-400"
+                } group-hover:scale-105 transition-transform duration-200`}
+              >
+                <div className="w-6 h-6 text-white">
+                  {index === 0 && <FolderTree size={24} />}
+                  {index === 1 && <Building2 size={24} />}
+                  {index === 2 && <Banknote size={24} />}
+                  {index === 3 && <DollarSign size={24} />}
+                </div>
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    {stat.title}
+                  </dt>
+                  <dd className="text-lg font-medium text-gray-900 group-hover:text-purple-600 transition-colors">
+                    {typeof stat.value === "number" &&
+                    stat.title.includes("Budget")
+                      ? formatCurrency(stat.value)
+                      : stat.value}
+                  </dd>
+                  <dd className="text-sm text-gray-500">{stat.change}</dd>
+                </dl>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {/* Quick Actions Menu */}
+      <Card hover className="mb-8" padding={true}>
+        <h2 className="text-lg font-semibold text-gray-800 mb-6">
+          Quick Actions
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {menuItems.map((item, index) => (
+            <Link
+              key={index}
+              to={item.path}
+              className="block p-6 bg-gray-50 rounded-xl border-2 border-transparent hover:border-purple-300 hover:bg-purple-50 hover:shadow-md transition-all duration-200 group"
+            >
+              <div className="flex items-center">
+                <div
+                  className={`p-3 rounded-xl ${item.color} group-hover:scale-105 transition-transform duration-200`}
+                >
+                  {item.icon}
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-medium text-gray-900 group-hover:text-purple-600 transition-colors">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm text-gray-500">{item.description}</p>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </Card>
+
+      {/* Recent Activity */}
+      <Card hover padding={true}>
+        <h2 className="text-lg font-semibold text-gray-800 mb-6">
+          Recent Activity
+        </h2>
+        <div className="space-y-4">
+          <div className="flex items-center p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors duration-200">
+            <div className="p-2 bg-purple-100 rounded-full">
+              <Plus className="w-4 h-4 text-purple-600" />
+            </div>
+            <div className="ml-4 flex-1">
+              <p className="text-sm font-medium text-gray-900">
+                New project added
+              </p>
+              <p className="text-xs text-gray-500">
+                Climate Resilient Coastal Protection Project
+              </p>
+            </div>
+            <div className="text-xs text-gray-500">2 hours ago</div>
+          </div>
+
+          <div className="flex items-center p-4 bg-green-50 rounded-xl hover:bg-green-100 transition-colors duration-200">
+            <div className="p-2 bg-green-100 rounded-full">
+              <User className="w-4 h-4 text-green-600" />
+            </div>
+            <div className="ml-4 flex-1">
+              <p className="text-sm font-medium text-gray-900">
+                Admin user updated
+              </p>
+              <p className="text-xs text-gray-500">
+                Project Manager permissions modified
+              </p>
+            </div>
+            <div className="text-xs text-gray-500">1 day ago</div>
+          </div>
+
+          <div className="flex items-center p-4 bg-yellow-50 rounded-xl hover:bg-yellow-100 transition-colors duration-200">
+            <div className="p-2 bg-yellow-100 rounded-full">
+              <DollarSign className="w-4 h-4 text-yellow-600" />
+            </div>
+            <div className="ml-4 flex-1">
+              <p className="text-sm font-medium text-gray-900">
+                Funding source added
+              </p>
+              <p className="text-xs text-gray-500">
+                New partnership with World Bank
+              </p>
+            </div>
+            <div className="text-xs text-gray-500">3 days ago</div>
+          </div>
+        </div>
+      </Card>
+    </PageLayout>
+  );
 };
+
 export default AdminDashboard;
