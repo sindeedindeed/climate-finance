@@ -1,56 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, Link, useParams } from 'react-router-dom';
-import { agencies } from '../data/mock/adminData';
+import { useNavigate, Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
-import Loading from '../components/ui/Loading';
 import Card from '../components/ui/Card';
 import PageLayout from '../components/layouts/PageLayout';
+import Loading from '../components/ui/Loading';
 import { ArrowLeft, Building2 } from 'lucide-react';
 
-const AdminAgencyEdit = () => {
+const defaultFormData = {
+  agency_id: '',
+  name: '',
+  type: ''
+};
+
+const agencyTypes = ['Implementing', 'Executing', 'Accredited'];
+
+const AgencyFormPage = ({
+  mode = 'add',
+  initialFormData = defaultFormData,
+  isLoading: isLoadingProp = false,
+  onSubmit: onSubmitProp,
+  error,
+  pageTitle,
+  pageSubtitle
+}) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { agencyId } = useParams();
+  const [formData, setFormData] = useState(initialFormData);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDataLoading, setIsDataLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [formData, setFormData] = useState({
-    agency_id: '',
-    name: '',
-    type: ''
-  });
 
-  const agencyTypes = ['Implementing', 'Executing', 'Accredited'];
-
-  // Fetch agency data
   useEffect(() => {
-    const fetchAgency = async () => {
-      setIsDataLoading(true);
-      try {
-        // In a real app, you would fetch from API
-        const agency = agencies.find(a => a.agency_id === parseInt(agencyId));
-        
-        if (!agency) {
-          setError('Agency not found');
-          return;
-        }
-
-        setFormData({
-          agency_id: agency.agency_id,
-          name: agency.name || '',
-          type: agency.type || ''
-        });
-      } catch (err) {
-        setError('Error loading agency data');
-        console.error(err);
-      } finally {
-        setIsDataLoading(false);
-      }
-    };
-
-    fetchAgency();
-  }, [agencyId]);
+    setFormData(initialFormData);
+  }, [initialFormData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -63,35 +44,34 @@ const AdminAgencyEdit = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
+    if (onSubmitProp) {
+      await onSubmitProp(formData, setIsLoading);
+      return;
+    }
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
+      let agencyData = { ...formData };
+      if (mode === 'add') {
+        agencyData.agency_id = Date.now();
+        console.log('New agency data:', agencyData);
+      } else {
+        console.log('Updated agency data:', agencyData);
+      }
       
-      const agencyData = {
-        ...formData
-      };
-
-      console.log('Updated agency data:', agencyData);
-      
-      // Navigate back to agencies list
-      navigate('/admin/agencies');
+      // Check if user came from project form
+      const projectFormData = localStorage.getItem('projectFormData');
+      if (projectFormData) {
+        // Navigate back to project form instead of admin agencies list
+        navigate('/admin/projects/new');
+      } else {
+        navigate('/admin/agencies');
+      }
     } catch (error) {
       console.error('Error saving agency:', error);
     } finally {
       setIsLoading(false);
     }
   };
-
-  if (isDataLoading) {
-    return (
-      <PageLayout bgColor="bg-gray-50">
-        <div className="flex justify-center items-center h-64">
-          <Loading size="lg" />
-        </div>
-      </PageLayout>
-    );
-  }
 
   if (error) {
     return (
@@ -123,11 +103,10 @@ const AdminAgencyEdit = () => {
             <ArrowLeft className="w-6 h-6" />
           </Link>
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">Edit Agency</h2>
-            <p className="text-gray-500">Modify agency information</p>
+            <h2 className="text-2xl font-bold text-gray-800">{pageTitle || (mode === 'add' ? 'Add New Agency' : 'Edit Agency')}</h2>
+            <p className="text-gray-500">{pageSubtitle || (mode === 'add' ? 'Create a new implementing or executing agency' : 'Modify agency information')}</p>
           </div>
         </div>
-        
         <div className="flex items-center space-x-4 mt-4 md:mt-0">
           <div className="text-right">
             <p className="text-sm font-medium text-gray-900">{user?.fullName}</p>
@@ -135,7 +114,6 @@ const AdminAgencyEdit = () => {
           </div>
         </div>
       </div>
-
       {/* Form Card */}
       <Card padding={true}>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -146,28 +124,25 @@ const AdminAgencyEdit = () => {
             </div>
             <div>
               <h3 className="text-lg font-medium text-gray-900">Agency Information</h3>
-              <p className="text-sm text-gray-500">Update the agency details below</p>
+              <p className="text-sm text-gray-500">{mode === 'add' ? 'Enter the basic information for the new agency' : 'Update the agency details below'}</p>
             </div>
           </div>
-
-          {/* Form Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Agency ID (Read-only) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Agency ID
-              </label>
-              <input
-                type="text"
-                value={formData.agency_id}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm bg-gray-50 text-gray-500"
-                disabled
-                readOnly
-              />
-            </div>
-
-            {/* Agency Name */}
-            <div>
+            {mode === 'edit' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Agency ID
+                </label>
+                <input
+                  type="text"
+                  value={formData.agency_id}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm bg-gray-50 text-gray-500"
+                  disabled
+                  readOnly
+                />
+              </div>
+            )}
+            <div className={mode === 'edit' ? '' : 'md:col-span-2'}>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Agency Name <span className="text-red-500">*</span>
               </label>
@@ -181,8 +156,6 @@ const AdminAgencyEdit = () => {
                 required
               />
             </div>
-
-            {/* Agency Type */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Agency Type <span className="text-red-500">*</span>
@@ -201,8 +174,6 @@ const AdminAgencyEdit = () => {
               </select>
             </div>
           </div>
-
-          {/* Type Descriptions */}
           <div className="bg-gray-50 p-4 rounded-xl">
             <h4 className="text-sm font-medium text-gray-900 mb-3">Agency Type Descriptions:</h4>
             <div className="space-y-2 text-sm text-gray-600">
@@ -226,24 +197,25 @@ const AdminAgencyEdit = () => {
               </div>
             </div>
           </div>
-
           {/* Form Actions */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
-            <Button
-              type="submit"
-              variant="primary"
-              loading={isLoading}
-              className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
-            >
-              {isLoading ? 'Updating...' : 'Update Agency'}
-            </Button>
+          <div className="flex justify-end space-x-3 pt-6 border-t">
             <Button
               type="button"
-              variant="outline"
               onClick={() => navigate('/admin/agencies')}
+              variant="outline"
               disabled={isLoading}
             >
               Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
+              disabled={isLoading}
+            >
+              {isLoading 
+                ? (mode === 'add' ? 'Creating...' : 'Updating...') 
+                : (mode === 'add' ? 'Create Agency' : 'Update Agency')
+              }
             </Button>
           </div>
         </form>
@@ -252,4 +224,4 @@ const AdminAgencyEdit = () => {
   );
 };
 
-export default AdminAgencyEdit;
+export default AgencyFormPage;

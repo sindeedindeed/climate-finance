@@ -143,20 +143,7 @@ const LandingPage = () => {
               color={stat.color}
             />
           </div>
-        ))}      </div>      {/* Monthly Funding Chart */}      <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
-        <Card gradient>
-          <BarChartComponent
-            title="Monthly Funding Allocation" 
-            data={monthlyFunding} 
-            xAxisKey="month"
-            bars={[
-              { dataKey: 'adaptation', fill: CHART_COLORS[0], name: 'Adaptation' },
-              { dataKey: 'mitigation', fill: CHART_COLORS[1], name: 'Mitigation' }
-            ]}
-            formatYAxis={true}
-          />
-        </Card>
-      </div>      {/* Pie Charts Row */}      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">        <div className="animate-fade-in-up" style={{ animationDelay: '500ms' }}>
+        ))}      </div> <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">        <div className="animate-fade-in-up" style={{ animationDelay: '500ms' }}>
           <Card hover padding={true}>
             <PieChartComponent
               title="Sector Distribution" 

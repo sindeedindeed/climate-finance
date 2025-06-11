@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import CheckboxGroup from '../../components/ui/CheckboxGroup';
 import RadioWithSliders from '../../components/ui/RadioWithSliders';
 
@@ -12,6 +13,28 @@ const ProjectFormSections = ({
   locations,
   focalAreas
 }) => {
+  const navigate = useNavigate();
+
+  const handleAddAgency = () => {
+    localStorage.setItem('projectFormData', JSON.stringify(formData));
+    navigate('/admin/agencies/new');
+  };
+
+  const handleAddFundingSource = () => {
+    localStorage.setItem('projectFormData', JSON.stringify(formData));
+    navigate('/admin/funding-sources/new');
+  };
+
+  const handleAddLocation = () => {
+    localStorage.setItem('projectFormData', JSON.stringify(formData));
+    navigate('/admin/locations/new');
+  };
+
+  const handleAddFocalArea = () => {
+    localStorage.setItem('projectFormData', JSON.stringify(formData));
+    navigate('/admin/focal-areas/new');
+  };
+
   return (
     <>
       {/* Agencies */}
@@ -25,6 +48,8 @@ const ProjectFormSections = ({
           getOptionId={(agency) => agency.agency_id}
           getOptionLabel={(agency) => agency.name}
           getOptionSubtext={(agency) => `${agency.type}`}
+          onAddNew={handleAddAgency}
+          addButtonText="Add Agency"
         />
       </div>
 
@@ -39,7 +64,22 @@ const ProjectFormSections = ({
           getOptionId={(source) => source.funding_source_id}
           getOptionLabel={(source) => source.name}
           getOptionSubtext={(source) => `Development Partner: ${source.dev_partner}`}
+          onAddNew={handleAddFundingSource}
+          addButtonText="Add Funding Source"
         />
+        
+        {/* Funding Source Details */}
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700">Additional Funding Source Details</label>
+          <textarea
+            name="funding_source_details"
+            value={formData.funding_source_details}
+            onChange={handleInputChange}
+            rows={3}
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+            placeholder="Enter any additional details about the funding sources, terms, conditions, or special arrangements..."
+          />
+        </div>
       </div>
 
       {/* Locations */}
@@ -53,6 +93,8 @@ const ProjectFormSections = ({
           getOptionId={(location) => location.location_id}
           getOptionLabel={(location) => location.name}
           getOptionSubtext={(location) => `Region: ${location.region}`}
+          onAddNew={handleAddLocation}
+          addButtonText="Add Location"
         />
       </div>
 
@@ -66,6 +108,8 @@ const ProjectFormSections = ({
           onChange={(values) => handleMultiSelectChange({ target: { value: values } }, 'focal_areas')}
           getOptionId={(area) => area.focal_area_id}
           getOptionLabel={(area) => area.name}
+          onAddNew={handleAddFocalArea}
+          addButtonText="Add Focal Area"
         />
       </div>
 
