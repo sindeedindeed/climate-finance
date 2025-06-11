@@ -14,7 +14,9 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS  Project (
                          project_id VARCHAR(50) PRIMARY KEY,
                          title VARCHAR(255) NOT NULL,
-                         type VARCHAR(100),
+                         type VARCHAR(100) CHECK (type IN ('Adaptation', 'Mitigation', 'Cross-cutting')),
+                         sector VARCHAR(100) NOT NULL DEFAULT 'Agriculture',
+                         division VARCHAR(100) NOT NULL DEFAULT 'Local Government Division',
                          status VARCHAR(50),
                          approval_fy INTEGER,
                          beginning DATE,
@@ -22,6 +24,7 @@ CREATE TABLE IF NOT EXISTS  Project (
                          total_cost_usd DECIMAL(15,2),
                          gef_grant DECIMAL(15,2),
                          cofinancing DECIMAL(15,2),
+                         disbursement DECIMAL(15,2) NOT NULL DEFAULT 0.00,
                          wash_finance DECIMAL(15,2),
                          wash_finance_percent DECIMAL(5,2),
                          beneficiaries VARCHAR(100),
@@ -40,9 +43,11 @@ CREATE TABLE IF NOT EXISTS FundingSource (
                                funding_source_id SERIAL PRIMARY KEY,
                                name VARCHAR(100) NOT NULL,
                                dev_partner VARCHAR(255),
+                               type VARCHAR(100);
                                grant_amount DECIMAL(15,2),
                                loan_amount DECIMAL(15,2),
                                counterpart_funding DECIMAL(15,2),
+                               disbursement DECIMAL(15,2) NOT NULL DEFAULT 0.00,
                                non_grant_instrument VARCHAR(50)
 );
 
@@ -104,6 +109,9 @@ CREATE TABLE IF NOT EXISTS ProjectFocalArea (
                                   FOREIGN KEY (project_id) REFERENCES Project(project_id) ON DELETE CASCADE,
                                   FOREIGN KEY (focal_area_id) REFERENCES FocalArea(focal_area_id) ON DELETE CASCADE
 );
+
+
+
 
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_project_title ON Project(title);
