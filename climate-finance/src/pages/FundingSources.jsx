@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Search, Filter, Download, ExternalLink, Building, Globe, Users, Banknote } from 'lucide-react';
+import { Search, Filter, Download, ExternalLink, Building, Globe, Users, Banknote, DollarSign, TrendingUp, CheckCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import PageLayout from '../components/layouts/PageLayout';
 import Card from '../components/ui/Card';
 import StatCard from '../components/ui/StatCard';
@@ -89,19 +90,24 @@ const FundingSources = () => {
         </div>
       </div>        {/* Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-6 mb-6">
-        {overviewStats.map((stat, index) => (
-          <div 
-            key={index}
-            className="animate-fade-in-up"
-            style={{ animationDelay: `${index * 100}ms` }}
-          >
-            <StatCard 
-              title={stat.title}
-              value={formatCurrency(stat.value)}
-              change={stat.change}
-            />
-          </div>
-        ))}
+        {overviewStats.map((stat, index) => {
+          const icons = [<DollarSign size={20} />, <Building size={20} />, <TrendingUp size={20} />, <CheckCircle size={20} />];
+          return (
+            <div 
+              key={index}
+              className="animate-fade-in-up h-full"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <StatCard 
+                title={stat.title}
+                value={formatCurrency(stat.value)}
+                change={stat.change}
+                color={index % 2 === 0 ? 'primary' : 'success'}
+                icon={icons[index]}
+              />
+            </div>
+          );
+        })}
       </div>        {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:gap-8 mb-6">        {/* Funding by Type */}        <div className="animate-fade-in-up" style={{ animationDelay: '400ms' }}>
           <Card hover padding={true}>
@@ -179,58 +185,65 @@ const FundingSources = () => {
               key={source.id} 
               className="p-4 hover:bg-purple-50 transition-all duration-200 group animate-fade-in-up"
               style={{ animationDelay: `${index * 50}ms` }}
-            >              <div className="flex flex-col md:flex-row md:items-center">
-                <div className="flex items-center mb-4 md:mb-0 md:mr-4">
-                  <img 
-                    src={generateOrganizationLogo(source.name, source.type, 64)} 
-                    alt={source.name} 
-                    className="w-12 h-12 rounded-lg mr-4 border border-gray-100 shadow-sm" 
-                  />
-                  <div>
-                    <h4 className="text-md font-medium text-gray-800">{source.name}</h4>
-                    <div className="flex items-center gap-1 text-sm text-gray-500">
-                      {getTypeIcon(source.type)}
-                      <span>{source.type}</span>
+            >
+              <div className="flex flex-col">
+                {/* Top row: Logo, Name, Type and View Details */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center flex-1 min-w-0">
+                    <img 
+                      src={generateOrganizationLogo(source.name, source.type, 64)} 
+                      alt={source.name} 
+                      className="w-12 h-12 rounded-lg mr-4 border border-gray-100 shadow-sm flex-shrink-0" 
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-md font-medium text-gray-800 truncate">{source.name}</h4>
+                      <div className="flex items-center gap-1 text-sm text-gray-500">
+                        {getTypeIcon(source.type)}
+                        <span>{source.type}</span>
+                      </div>
                     </div>
                   </div>
+                  <Link 
+                    to={`/funding-sources/${source.id}`}
+                    className="text-purple-600 text-sm flex items-center gap-1 hover:text-purple-700 group-hover:gap-2 transition-all flex-shrink-0 ml-4"
+                  >
+                    View Details
+                    <ExternalLink size={14} className="group-hover:scale-110 transition-transform" />
+                  </Link>
                 </div>
                 
-                <div className="flex flex-wrap md:ml-auto">
-                  <div className="w-1/2 md:w-auto md:mr-8 mb-4 md:mb-0">
+                {/* Statistics grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div>
                     <p className="text-xs text-gray-500">Committed</p>
                     <p className="text-sm font-medium">{formatCurrency(source.total_committed)}</p>
                   </div>
-                  
-                  <div className="w-1/2 md:w-auto md:mr-8 mb-4 md:mb-0">
+                  <div>
                     <p className="text-xs text-gray-500">Disbursed</p>
                     <p className="text-sm font-medium">{formatCurrency(source.total_disbursed)}</p>
                   </div>
-                  
-                  <div className="w-1/2 md:w-auto md:mr-8">
+                  <div>
                     <p className="text-xs text-gray-500">Active Projects</p>
                     <p className="text-sm font-medium">{source.active_projects}</p>
                   </div>
-                  
-                  <div className="w-1/2 md:w-auto">
+                  <div>
                     <p className="text-xs text-gray-500">Sectors</p>
                     <p className="text-sm font-medium">{source.sectors.slice(0, 2).join(', ')}{source.sectors.length > 2 ? '...' : ''}</p>
                   </div>
-                    <a href="#" className="text-purple-600 text-sm flex items-center mt-4 md:mt-0 md:ml-4 hover:text-purple-700 group-hover:gap-2 transition-all">
-                    View Details
-                    <ExternalLink size={14} className="ml-1 group-hover:scale-110 transition-transform" />
-                  </a>
                 </div>
-              </div>
-                <div className="mt-4">
-                <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div 
-                    className="bg-gradient-to-r from-purple-500 to-purple-600 h-1.5 rounded-full transition-all duration-500" 
-                    style={{ width: `${(source.total_disbursed / source.total_committed) * 100}%` }}
-                  ></div>
-                </div>
-                <div className="flex justify-between mt-1">
-                  <p className="text-xs text-gray-500">Disbursement Progress</p>
-                  <p className="text-xs text-gray-500">{Math.round((source.total_disbursed / source.total_committed) * 100)}%</p>
+                
+                {/* Progress bar */}
+                <div>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div 
+                      className="bg-gradient-to-r from-purple-500 to-purple-600 h-1.5 rounded-full transition-all duration-500" 
+                      style={{ width: `${(source.total_disbursed / source.total_committed) * 100}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <p className="text-xs text-gray-500">Disbursement Progress</p>
+                    <p className="text-xs text-gray-500">{Math.round((source.total_disbursed / source.total_committed) * 100)}%</p>
+                  </div>
                 </div>
               </div>
             </div>

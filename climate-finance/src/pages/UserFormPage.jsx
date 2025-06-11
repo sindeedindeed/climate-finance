@@ -1,75 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, Link, useParams } from 'react-router-dom';
-import { adminUsers } from '../data/mock/adminData';
+import { useNavigate, Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
 import Card from '../components/ui/Card';
 import PageLayout from '../components/layouts/PageLayout';
 import { ArrowLeft } from 'lucide-react';
 
-const AdminUserEdit = () => {
+const defaultFormData = {
+  username: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+  fullName: '',
+  role: '',
+  department: '',
+  isActive: true
+};
+
+const roleOptions = [
+  'Super Admin',
+  'Project Manager',
+  'Finance Admin',
+  'Data Manager',
+  'Viewer'
+];
+
+const UserFormPage = ({
+  mode = 'add',
+  initialFormData = defaultFormData,
+  isLoading: isLoadingProp = false,
+  onSubmit: onSubmitProp,
+  error,
+  pageTitle,
+  pageSubtitle
+}) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { userId } = useParams();
+  const [formData, setFormData] = useState(initialFormData);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDataLoading, setIsDataLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    fullName: '',
-    role: '',
-    department: '',
-    isActive: true
-  });
-  
   const [errors, setErrors] = useState({});
-  
-  const roleOptions = [
-    'Super Admin',
-    'Project Manager',
-    'Finance Admin',
-    'Data Manager',
-    'Viewer'
-  ];
 
-  // Fetch user data
   useEffect(() => {
-    const fetchUser = async () => {
-      setIsDataLoading(true);
-      try {
-        // In a real app, you would fetch from API
-        const userIdNum = parseInt(userId);
-        const userData = adminUsers.find(u => u.id === userIdNum);
-        
-        if (!userData) {
-          setError('User not found');
-          return;
-        }
-
-        setFormData({
-          username: userData.username || '',
-          email: userData.email || '',
-          password: '',
-          confirmPassword: '',
-          fullName: userData.fullName || '',
-          role: userData.role || '',
-          department: userData.department || '',
-          isActive: userData.isActive ?? true
-        });
-      } catch (err) {
-        setError('Error loading user data');
-        console.error(err);
-      } finally {
-        setIsDataLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, [userId]);
+    setFormData(initialFormData);
+  }, [initialFormData]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -77,7 +51,6 @@ const AdminUserEdit = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-    
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -85,52 +58,62 @@ const AdminUserEdit = () => {
 
   const validateForm = () => {
     const newErrors = {};
-
+    if (mode === 'add') {
+      if (!formData.username.trim()) {
+        newErrors.username = 'Username is required';
+      } else if (formData.username.length < 3) {
+        newErrors.username = 'Username must be at least 3 characters';
+      }
+    }
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
     }
-
-    // Password validation only if they're trying to change it
-    if (formData.password) {
-      if (formData.password.length < 6) {
+    if (mode === 'add') {
+      if (!formData.password) {
+        newErrors.password = 'Password is required';
+      } else if (formData.password.length < 6) {
         newErrors.password = 'Password must be at least 6 characters';
       }
-
       if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = 'Passwords do not match';
       }
+    } else {
+      if (formData.password) {
+        if (formData.password.length < 6) {
+          newErrors.password = 'Password must be at least 6 characters';
+        }
+        if (formData.password !== formData.confirmPassword) {
+          newErrors.confirmPassword = 'Passwords do not match';
+        }
+      }
     }
-
     if (!formData.fullName.trim()) {
       newErrors.fullName = 'Full name is required';
     }
-
     if (!formData.role) {
       newErrors.role = 'Role is required';
     }
-
     if (!formData.department.trim()) {
       newErrors.department = 'Department is required';
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!validateForm()) {
       return;
     }
-
     setIsLoading(true);
-
+    if (onSubmitProp) {
+      await onSubmitProp(formData, setIsLoading);
+      return;
+    }
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
-
       const userData = {
         username: formData.username,
         email: formData.email,
@@ -139,33 +122,22 @@ const AdminUserEdit = () => {
         department: formData.department,
         isActive: formData.isActive
       };
-
-      // Only include password if it's being changed
       if (formData.password) {
         userData.password = formData.password;
       }
-
-      // In a real app, you would save this to your backend
-      console.log('Updated user data:', userData);
-      
-      // Navigate back to users list
+      if (mode === 'add') {
+        userData.createdAt = new Date().toISOString();
+        console.log('New user data:', userData);
+      } else {
+        console.log('Updated user data:', userData);
+      }
       navigate('/admin/users');
     } catch (error) {
-      console.error('Error updating user:', error);
+      console.error('Error saving user:', error);
     } finally {
       setIsLoading(false);
     }
   };
-  
-  if (isDataLoading) {
-    return (
-      <PageLayout bgColor="bg-gray-50">
-        <div className="flex justify-center items-center h-64">
-          <Loading size="lg" />
-        </div>
-      </PageLayout>
-    );
-  }
 
   if (error) {
     return (
@@ -200,11 +172,10 @@ const AdminUserEdit = () => {
             <ArrowLeft className="w-6 h-6" />
           </Link>
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">Edit User</h2>
-            <p className="text-gray-500">Update account details for {formData.fullName}</p>
+            <h2 className="text-2xl font-bold text-gray-800">{pageTitle || (mode === 'add' ? 'Add New Admin User' : 'Edit User')}</h2>
+            <p className="text-gray-500">{pageSubtitle || (mode === 'add' ? 'Create a new administrator account' : `Update account details${formData.fullName ? ` for ${formData.fullName}` : ''}`)}</p>
           </div>
         </div>
-        
         <div className="flex items-center space-x-4 mt-4 md:mt-0">
           <div className="text-right">
             <p className="text-sm font-medium text-gray-900">{user?.fullName}</p>
@@ -212,7 +183,6 @@ const AdminUserEdit = () => {
           </div>
         </div>
       </div>
-
       {/* Form Card */}
       <Card padding={true}>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -226,12 +196,16 @@ const AdminUserEdit = () => {
                   type="text"
                   name="username"
                   value={formData.username}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm bg-gray-100 cursor-not-allowed"
-                  disabled
+                  onChange={handleInputChange}
+                  className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                    errors.username ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  required
+                  disabled={mode === 'edit'}
                 />
-                <p className="mt-1 text-xs text-gray-500">Username cannot be changed</p>
+                {mode === 'edit' && <p className="mt-1 text-xs text-gray-500">Username cannot be changed</p>}
+                {errors.username && <p className="mt-1 text-sm text-red-600">{errors.username}</p>}
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700">Email</label>
                 <input
@@ -246,9 +220,8 @@ const AdminUserEdit = () => {
                 />
                 {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700">New Password (leave blank to keep current)</label>
+                <label className="block text-sm font-medium text-gray-700">{mode === 'add' ? 'Password' : 'New Password (leave blank to keep current)'}</label>
                 <input
                   type="password"
                   name="password"
@@ -257,12 +230,12 @@ const AdminUserEdit = () => {
                   className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
                     errors.password ? 'border-red-300' : 'border-gray-300'
                   }`}
+                  required={mode === 'add'}
                 />
                 {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700">Confirm New Password</label>
+                <label className="block text-sm font-medium text-gray-700">{mode === 'add' ? 'Confirm Password' : 'Confirm New Password'}</label>
                 <input
                   type="password"
                   name="confirmPassword"
@@ -271,12 +244,12 @@ const AdminUserEdit = () => {
                   className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
                     errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
                   }`}
+                  required={mode === 'add'}
                 />
                 {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
               </div>
             </div>
           </div>
-
           {/* Personal Information */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
@@ -295,7 +268,6 @@ const AdminUserEdit = () => {
                 />
                 {errors.fullName && <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>}
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700">Role</label>
                 <select
@@ -314,7 +286,6 @@ const AdminUserEdit = () => {
                 </select>
                 {errors.role && <p className="mt-1 text-sm text-red-600">{errors.role}</p>}
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700">Department</label>
                 <input
@@ -330,7 +301,6 @@ const AdminUserEdit = () => {
                 />
                 {errors.department && <p className="mt-1 text-sm text-red-600">{errors.department}</p>}
               </div>
-
               <div className="flex items-center h-full">
                 <label className="flex items-center">
                   <input
@@ -342,27 +312,28 @@ const AdminUserEdit = () => {
                   />
                   <span className="ml-2 text-sm text-gray-700">Active User</span>
                 </label>
-                <p className="ml-2 text-xs text-gray-500">Uncheck to disable this account</p>
+                <p className="ml-2 text-xs text-gray-500">{mode === 'add' ? 'Account will be enabled immediately if checked' : 'Uncheck to disable this account'}</p>
               </div>
             </div>
           </div>
-
           {/* Form Actions */}
           <div className="flex justify-end space-x-3 pt-6 border-t">
             <Button
               type="button"
               onClick={() => navigate('/admin/users')}
               variant="outline"
-              disabled={isLoading}
+              disabled={isLoading || isLoadingProp}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
-              disabled={isLoading}
+              disabled={isLoading || isLoadingProp}
             >
-              {isLoading ? <Loading size="sm" /> : 'Update User'}
+              {(isLoading || isLoadingProp)
+                ? (mode === 'add' ? <Loading size="sm" /> : <Loading size="sm" />)
+                : (mode === 'add' ? 'Create User' : 'Update User')}
             </Button>
           </div>
         </form>
@@ -371,4 +342,4 @@ const AdminUserEdit = () => {
   );
 };
 
-export default AdminUserEdit;
+export default UserFormPage;

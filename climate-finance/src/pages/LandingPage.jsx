@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  DollarSign, 
-  TrendingUp, 
-  Activity, 
-  Target,
   ArrowRight,
   Download,
-  RefreshCw
+  RefreshCw,
+  DollarSign,
+  TrendingUp,
+  Target,
+  Activity
 } from 'lucide-react';
 import PageLayout from '../components/layouts/PageLayout';
 import Card from '../components/ui/Card';
@@ -45,7 +45,8 @@ const LandingPage = () => {
 
   // Handle refresh
   const handleRefresh = async () => {
-    setRefreshing(true);    try {
+    setRefreshing(true);    
+    try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       toast.success('Dashboard data updated successfully');
@@ -62,21 +63,15 @@ const LandingPage = () => {
   };
 
   // Add icons to stats
-  const statsWithIcons = dashboardStats.map((stat, index) => {
-    const icons = [
-      <DollarSign size={20} />,
-      <TrendingUp size={20} />,
-      <Target size={20} />,
-      <Activity size={20} />
-    ];
-    
+  const statsData = dashboardStats.map((stat, index) => {
     const colors = ['primary', 'success', 'warning', 'primary'];
+    const icons = [<DollarSign size={20} />, <TrendingUp size={20} />, <Target size={20} />, <Activity size={20} />];
     
     return {
       ...stat,
       value: typeof stat.value === 'number' ? formatCurrency(stat.value) : stat.value,
-      icon: icons[index],
-      color: colors[index]
+      color: colors[index],
+      icon: icons[index]
     };
   });
 
@@ -116,7 +111,8 @@ const LandingPage = () => {
             loading={refreshing}
           >
             {refreshing ? 'Refreshing...' : 'Refresh Data'}
-          </Button>          <Button
+          </Button>          
+          <Button
             variant="primary"
             leftIcon={<Download size={16} />}
             onClick={handleExport}
@@ -129,47 +125,44 @@ const LandingPage = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statsWithIcons.map((stat, index) => (
+        {statsData.map((stat, index) => (
           <div 
             key={index} 
-            className="animate-fade-in-up"
+            className="animate-fade-in-up h-full"
             style={{ animationDelay: `${index * 100}ms` }}
           >
             <StatCard
               title={stat.title}
               value={stat.value}
               change={stat.change}
-              icon={stat.icon}
               color={stat.color}
+              icon={stat.icon}
             />
           </div>
-        ))}      </div>      {/* Monthly Funding Chart */}      <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
-        <Card gradient>
-          <BarChartComponent
-            title="Monthly Funding Allocation" 
-            data={monthlyFunding} 
-            xAxisKey="month"
-            bars={[
-              { dataKey: 'adaptation', fill: CHART_COLORS[0], name: 'Adaptation' },
-              { dataKey: 'mitigation', fill: CHART_COLORS[1], name: 'Mitigation' }
-            ]}
-            formatYAxis={true}
-          />
-        </Card>
-      </div>      {/* Pie Charts Row */}      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">        <div className="animate-fade-in-up" style={{ animationDelay: '500ms' }}>
+        ))}
+      </div> 
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">        
+        <div className="animate-fade-in-up" style={{ animationDelay: '500ms' }}>
           <Card hover padding={true}>
             <PieChartComponent
               title="Sector Distribution" 
               data={sectorDistribution} 
             />
-          </Card>        </div>        <div className="animate-fade-in-up" style={{ animationDelay: '600ms' }}>
+          </Card>        
+        </div>        
+        <div className="animate-fade-in-up" style={{ animationDelay: '600ms' }}>
           <Card hover padding={true}>
             <PieChartComponent 
               title="Funding Sources" 
               data={sourceDistribution} 
             />
           </Card>
-        </div>      </div>      {/* Regional Distribution */}      <div className="animate-fade-in-up" style={{ animationDelay: '700ms' }}>
+        </div>      
+      </div>      
+      
+      {/* Regional Distribution */}      
+      <div className="animate-fade-in-up" style={{ animationDelay: '700ms' }}>
         <Card>
           <BarChartComponent
             title="Regional Distribution" 
@@ -194,7 +187,8 @@ const LandingPage = () => {
             <p className="text-primary-700">
               Explore detailed project tracking and funding source analysis.
             </p>
-          </div>          <div className="flex flex-col sm:flex-row gap-3">
+          </div>          
+          <div className="flex flex-col sm:flex-row gap-3">
             <Button 
               variant="secondary" 
               rightIcon={<ArrowRight size={16} />}

@@ -48,10 +48,16 @@ const AdminListItem = ({
         
         {/* Middle Section: Data Fields */}
         {dataFields && dataFields.length > 0 && (
-          <div className="flex-1 min-w-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-4">
+          <div className="flex-1 min-w-0 flex justify-center xl:justify-center">
+            <div className={`grid gap-x-6 gap-y-4 ${
+              dataFields.length === 1 
+                ? 'grid-cols-1 max-w-xs text-center'
+                : dataFields.length <= 2 
+                ? 'grid-cols-1 sm:grid-cols-2 max-w-md'
+                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+            }`}>
               {dataFields.map((field, idx) => (
-                <div key={idx} className="min-w-0">
+                <div key={idx} className={`min-w-0 ${dataFields.length === 1 ? 'text-center' : 'text-center xl:text-left'}`}>
                   <p className="text-xs text-gray-500 font-medium mb-1.5 tracking-wide">
                     {field.label}
                   </p>
