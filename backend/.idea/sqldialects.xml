@@ -3,5 +3,6 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/src/config/init.sql" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/models/Agency.model.js" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/models/project.model.js" dialect="GenericSQL" />
   </component>
 </project>
