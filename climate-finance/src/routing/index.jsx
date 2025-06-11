@@ -8,6 +8,7 @@ import Projects from '../pages/Projects';
 import ProjectDetails from '../pages/ProjectDetails';
 import ProjectFormPage from '../pages/ProjectFormPage';
 import FundingSources from '../pages/FundingSources';
+import FundingSourceDetails from '../pages/FundingSourceDetails';
 import FundingSourceFormPage from '../pages/FundingSourceFormPage';
 import AdminLogin from '../pages/AdminLogin';
 import AdminDashboard from '../pages/AdminDashboard';
@@ -87,6 +88,7 @@ const Routing = () => {
       
       {/* Funding sources routes */}
       <Route path="/funding-sources" element={<FundingSources />} />
+      <Route path="/funding-sources/:sourceId" element={<FundingSourceDetails />} />
       <Route path="/funding-sources/new" element={
         <ProtectedRoute>
           <FundingSourceFormPage mode="add" />

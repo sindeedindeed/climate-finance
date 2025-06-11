@@ -28,7 +28,7 @@ import { agencies, fundingSources, locations, focalAreas } from '../data/mock/ad
 const TABS = ['Overview', 'Finances', 'Milestones', 'Indicators'];
 
 const ProjectDetails = () => {
-  const { projectId } = useParams();
+  const { id } = useParams(); // Changed from projectId to id
   const [activeTab, setActiveTab] = useState('Overview');
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -39,7 +39,7 @@ const ProjectDetails = () => {
     const fetchProject = () => {
       try {
         // This would be an API call in a real application
-        const foundProject = projectsList.find(p => p.id === projectId);
+        const foundProject = projectsList.find(p => p.id === id); // Changed projectId to id
         
         if (!foundProject) {
           setError('Project not found');
@@ -74,10 +74,10 @@ const ProjectDetails = () => {
     };
 
     fetchProject();
-  }, [projectId]);
+  }, [id]); // Changed projectId to id
 
-  // If no project found and no projectId (accessing without param), show not found
-  if (error || (!projectId && !project)) {
+  // If no project found and no id (accessing without param), show not found
+  if (error || (!id && !project)) {
     return (
       <PageLayout bgColor="bg-gray-50">
         <div className="max-w-2xl mx-auto py-20 text-center">
@@ -224,23 +224,23 @@ const ProjectDetails = () => {
                     ></div>
                   </div>
                 </div>
-                
-                {/* Export Button */}
-                <div className="flex gap-3 mb-2">
+              </div>
+              
+              {/* Right Side: Project Details */}
+              <div className="w-full md:w-2/5 mt-6 md:mt-0">
+                {/* Export Button - Moved to top right */}
+                <div className="flex justify-end mb-4">
                   <Button 
                     variant="primary" 
-                    size="md" 
-                    className="w-40 flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
+                    size="sm" 
+                    className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
                     onClick={handleExportReport}
                     leftIcon={<Download size={16} />}
                   >
                     Export Report
                   </Button>
                 </div>
-              </div>
-              
-              {/* Right Side: Project Details */}
-              <div className="w-full md:w-2/5 mt-6 md:mt-0">
+                
                 <ul className="space-y-2 text-sm text-gray-700">
                   <li className="flex items-start gap-2">
                     <Building size={16} className="mt-0.5 text-purple-600" />

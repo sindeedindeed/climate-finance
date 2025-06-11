@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Download, ExternalLink, Calendar, MapPin, DollarSign, Users, X, Play, CheckCircle, Clock, Pause } from 'lucide-react';
+import { Search, Download, ExternalLink, Calendar, MapPin, DollarSign, Users, X, Play, CheckCircle, Clock, Pause, FolderOpen, TrendingUp, Target, Activity } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PageLayout from '../components/layouts/PageLayout';
 import Card from '../components/ui/Card';
@@ -111,6 +111,18 @@ const Projects = () => {
   const sectors = ['All', ...new Set(projectsList.map(p => p.sector))];
   const statuses = ['All', ...new Set(projectsList.map(p => p.status))];
 
+  // Add icons to stats
+  const statsData = projectsOverviewStats.map((stat, index) => {
+    const colors = ['primary', 'success', 'warning', 'primary'];
+    const icons = [<FolderOpen size={20} />, <Activity size={20} />, <DollarSign size={20} />, <CheckCircle size={20} />];
+    
+    return {
+      ...stat,
+      color: colors[index],
+      icon: icons[index]
+    };
+  });
+
   if (loading) {
     return (
       <PageLayout bgColor="bg-gray-50">
@@ -144,17 +156,18 @@ const Projects = () => {
       
       {/* Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {projectsOverviewStats.map((stat, index) => (
+        {statsData.map((stat, index) => (
           <div 
             key={index}
-            className="animate-fade-in-up"
+            className="animate-fade-in-up h-full"
             style={{ animationDelay: `${index * 100}ms` }}
           >
             <StatCard 
               title={stat.title}
               value={typeof stat.value === 'number' && stat.title.includes('Investment') ? formatCurrency(stat.value) : stat.value}
               change={stat.change}
-              color={index % 2 === 0 ? 'primary' : 'success'}
+              color={stat.color}
+              icon={stat.icon}
             />
           </div>
         ))}
