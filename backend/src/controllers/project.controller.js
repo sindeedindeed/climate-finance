@@ -84,6 +84,15 @@ exports.getProjectByType = async (req, res)=> {
     }
 };
 
+exports.getFundingSourceByType = async (req, res)=> {
+    try {
+        const response = await Project.getFundingSourceByType()
+        res.status(200).json({ status: true, data: response });
+    } catch (e) {
+        res.status(500).json({status: false, message: `Server Error: ${e.message}`});
+    }
+};
+
 exports.getProjectTrend = async (req, res)=> {
     try {
         const response = await Project.getProjectTrend()
@@ -123,6 +132,26 @@ exports.getFundingSourceSectorAllocation = async (req, res)=> {
 exports.getFundingSource = async (req, res)=> {
     try {
         const response = await Project.getFundingSource()
+        res.status(200).json({ status: true, data: response });
+    } catch (e) {
+        res.status(500).json({status: false, message: `Server Error: ${e.message}`});
+    }
+};
+
+//Dashboard
+
+exports.getOverViewStats = async (req, res)=> {
+    try {
+        const response = await Project.getOverviewStats()
+        res.status(200).json({ status: true, data: response });
+    } catch (e) {
+        res.status(500).json({status: false, message: `Server Error: ${e.message}`});
+    }
+};
+
+exports.getRegionalDistribution = async (req, res)=> {
+    try {
+        const response = await Project.getRegionalDistribution()
         res.status(200).json({ status: true, data: response });
     } catch (e) {
         res.status(500).json({status: false, message: `Server Error: ${e.message}`});

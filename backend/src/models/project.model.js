@@ -211,6 +211,8 @@ Project.getProjectByType = async () => {
     }));
 };
 
+
+
 Project.getProjectTrend = async () => {
     const query = `
         SELECT 
@@ -226,6 +228,22 @@ Project.getProjectTrend = async () => {
         projects: parseInt(row.total_projects)
     }));
 };
+
+Project.getFundingSourceByType = async () => {
+    const query = `
+        SELECT fs.type, COUNT(DISTINCT fs.funding_source_id) AS value
+        FROM FundingSource fs
+        INNER JOIN ProjectFundingSource pfs ON fs.funding_source_id = pfs.funding_source_id
+        INNER JOIN Project p ON p.project_id = pfs.project_id
+        GROUP BY fs.type
+    `;
+    const { rows } = await pool.query(query);
+    return rows.map(row => ({
+        name: row.type,
+        value: parseInt(row.value)
+    }));
+};
+
 
 Project.getFundingSourceOverviewStats = async () => {
     const client = await pool.connect();
@@ -324,6 +342,86 @@ Project.getFundingSource = async () => {
     const { rows } = await pool.query(query);
     return rows;
 };
+
+/////////Dashboard
+Project.getOverviewStats = async () => {
+    const client = await pool.connect();
+    try {
+        const query = `
+            SELECT
+                (SELECT SUM(total_cost_usd) FROM Project) AS total_climate_finance,
+                (SELECT SUM(p.gef_grant)
+                 FROM Project p
+                 WHERE p.type = 'Adaptation'
+                ) AS adaptation_finance,
+                (SELECT SUM(p.gef_grant)
+                    FROM Project p
+                    WHERE p.type = 'Mitigation'
+                ) AS mitigation_finance,
+                (SELECT COUNT(*) FROM Project WHERE now() BETWEEN beginning AND closing) AS active_projects
+        `;
+
+        const trendQuery = `
+            SELECT
+                SUM(p.total_cost_usd) AS total_climate_finance,
+
+                (
+                    SELECT COALESCE(SUM(p2.gef_grant), 0)
+                    FROM Project p2
+                    WHERE p2.type = 'Adaptation'
+                      AND p2.approval_fy = EXTRACT(YEAR FROM CURRENT_DATE)
+                ) AS adaptation_finance,
+
+                (
+                    SELECT COALESCE(SUM(p3.gef_grant), 0)
+                    FROM Project p3
+                    WHERE p3.type = 'Mitigation'
+                      AND p3.approval_fy = EXTRACT(YEAR FROM CURRENT_DATE)
+                ) AS mitigation_finance,
+
+                (
+                    SELECT COUNT(*)
+                    FROM Project
+                    WHERE now() BETWEEN beginning AND closing 
+                    AND approval_fy = EXTRACT(YEAR FROM CURRENT_DATE)
+                ) AS active_projects
+
+            FROM Project p
+            WHERE p.approval_fy = EXTRACT(YEAR FROM CURRENT_DATE);
+        `;
+
+        const result = await client.query(query);
+        const trendResult = await client.query(trendQuery);
+
+        return {
+            ...result.rows[0],
+            current_year: trendResult.rows[0]
+        };
+    } catch (err) {
+        throw err;
+    } finally {
+        client.release();
+    }
+};
+
+Project.getRegionalDistribution = async () => {
+    const query = `
+        SELECT 
+            l.name AS location_name,
+            SUM(CASE WHEN p.type = 'Adaptation' THEN p.total_cost_usd ELSE 0 END) AS adaptation_total,
+            SUM(CASE WHEN p.type = 'Mitigation' THEN p.total_cost_usd ELSE 0 END) AS mitigation_total
+        FROM Project p
+            INNER JOIN ProjectLocation pl ON pl.project_id = p.project_id
+            RIGHT JOIN Location l ON pl.location_id = l.location_id
+        GROUP BY l.name
+        ORDER BY l.name;
+    `;
+    const { rows } = await pool.query(query);
+    return rows;
+};
+
+
+
 
 
 module.exports = Project;
