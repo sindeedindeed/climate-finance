@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS FundingSource (
                                funding_source_id SERIAL PRIMARY KEY,
                                name VARCHAR(100) NOT NULL,
                                dev_partner VARCHAR(255),
-                               type VARCHAR(100);
+                               type VARCHAR(100),
                                grant_amount DECIMAL(15,2),
                                loan_amount DECIMAL(15,2),
                                counterpart_funding DECIMAL(15,2),
