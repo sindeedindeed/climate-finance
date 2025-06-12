@@ -59,6 +59,19 @@ const AdminAgencies = () => {
     }
   };
 
+  const getCategoryColor = (category) => {
+    switch (category) {
+      case 'National':
+        return 'bg-emerald-100 text-emerald-800';
+      case 'International':
+        return 'bg-orange-100 text-orange-800';
+      case 'Local Govt. Division':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   const filters = [
     {
       value: filterType,
@@ -97,10 +110,18 @@ const AdminAgencies = () => {
               id={agency.agency_id}
               icon={<Building2 size={20} className="text-purple-600" />}
               title={agency.name}
+              subtitle={agency.category || 'No category'}
               badge={
-                <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getTypeColor(agency.type)}`}>
-                  {agency.type}
-                </span>
+                <div className="flex gap-2">
+                  <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getTypeColor(agency.type)}`}>
+                    {agency.type}
+                  </span>
+                  {agency.category && (
+                    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getCategoryColor(agency.category)}`}>
+                      {agency.category}
+                    </span>
+                  )}
+                </div>
               }
               dataFields={[
                 { label: 'Agency ID', value: agency.agency_id }

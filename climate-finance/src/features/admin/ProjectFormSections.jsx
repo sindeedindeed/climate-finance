@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import CheckboxGroup from '../../components/ui/CheckboxGroup';
 import RadioWithSliders from '../../components/ui/RadioWithSliders';
+import PeopleAffectedDisplay from '../../components/ui/PeopleAffectedDisplay';
 
 const ProjectFormSections = ({
   formData,
@@ -35,6 +36,11 @@ const ProjectFormSections = ({
     navigate('/admin/focal-areas/new');
   };
 
+  // Get selected location objects for people affected calculation
+  const selectedLocationObjects = formData.locations.map(locationId => 
+    locations.find(loc => loc.location_id === locationId)
+  ).filter(Boolean);
+
   return (
     <>
       {/* Agencies */}
@@ -47,7 +53,7 @@ const ProjectFormSections = ({
           onChange={(values) => handleMultiSelectChange({ target: { value: values } }, 'agencies')}
           getOptionId={(agency) => agency.agency_id}
           getOptionLabel={(agency) => agency.name}
-          getOptionSubtext={(agency) => `${agency.type}`}
+          getOptionSubtext={(agency) => `${agency.type}${agency.category ? ` • ${agency.category}` : ''}`}
           onAddNew={handleAddAgency}
           addButtonText="Add Agency"
         />
@@ -96,6 +102,17 @@ const ProjectFormSections = ({
           onAddNew={handleAddLocation}
           addButtonText="Add Location"
         />
+        
+        {/* People Affected Display */}
+        {selectedLocationObjects.length > 0 && (
+          <div className="mt-4">
+            <PeopleAffectedDisplay 
+              locations={selectedLocationObjects}
+              impactPercentage={10}
+              showDetails={true}
+            />
+          </div>
+        )}
       </div>
 
       {/* Focal Areas */}

@@ -136,7 +136,7 @@ const FundingSourceDetails = () => {
               {/* Left Side: Title, Description and Progress */}
               <div className="w-full md:w-3/5">
                 {/* Title and Description */}
-                <div className="flex items-start gap-4 mb-4">
+                <div className="flex items-start gap-4 mb-4 pt-2">
                   <img 
                     src={generateOrganizationLogo(source.name, source.type, 64)} 
                     alt={source.name} 
@@ -150,13 +150,12 @@ const FundingSourceDetails = () => {
                   </div>
                 </div>
 
-                {/* Progress Bar */}
-                <div className="bg-gradient-to-r from-gray-50 to-purple-50 rounded-lg p-5 mb-4 border border-gray-100">
-                  <div className="flex items-center justify-between mb-3">
+                <div className="bg-gradient-to-r from-gray-50 to-purple-50 rounded-lg p-6 mb-6 border border-gray-100">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="text-sm text-gray-700 font-semibold">Disbursement Progress</div>
                     <div className="text-sm text-purple-600 font-bold">{disbursementRate.toFixed(1)}% Disbursed</div>
                   </div>
-                  <div className="text-sm text-gray-500 mb-3">
+                  <div className="text-sm text-gray-500 mb-4">
                     Disbursed: {formatCurrency(source.total_disbursed)} of {formatCurrency(source.total_committed)}
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
@@ -281,7 +280,7 @@ const FundingSourceDetails = () => {
         {/* Other tabs placeholder */}
         {activeTab !== 'Overview' && (
           <Card className="mb-6" padding={true}>
-            <div className="text-center py-12">
+            <div className="text-center py-8">
               <div className="text-gray-500 mb-4">
                 <FileText size={48} className="mx-auto mb-4 text-gray-300" />
               </div>

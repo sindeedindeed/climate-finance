@@ -10,10 +10,12 @@ import { ArrowLeft, Building2 } from 'lucide-react';
 const defaultFormData = {
   agency_id: '',
   name: '',
-  type: ''
+  type: '',
+  category: ''
 };
 
 const agencyTypes = ['Implementing', 'Executing', 'Accredited'];
+const agencyCategories = ['National', 'International', 'Local Govt. Division'];
 
 const AgencyFormPage = ({
   mode = 'add',
@@ -170,6 +172,23 @@ const AgencyFormPage = ({
                 <option value="">Select Type</option>
                 {agencyTypes.map(type => (
                   <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Agency Category <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                required
+              >
+                <option value="">Select Category</option>
+                {agencyCategories.map(category => (
+                  <option key={category} value={category}>{category}</option>
                 ))}
               </select>
             </div>

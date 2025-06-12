@@ -47,27 +47,44 @@ export const agencies = [
   {
     agency_id: 1,
     name: "Department of Environment",
-    type: "Implementing"
+    type: "Implementing",
+    category: "National"
   },
   {
     agency_id: 2,
     name: "Bangladesh Water Development Board",
-    type: "Executing"
+    type: "Executing",
+    category: "National"
   },
   {
     agency_id: 3,
     name: "Sustainable and Renewable Energy Development Authority",
-    type: "Accredited"
+    type: "Accredited",
+    category: "National"
   },
   {
     agency_id: 4,
     name: "Department of Agricultural Extension",
-    type: "Implementing"
+    type: "Implementing",
+    category: "Local Govt. Division"
   },
   {
     agency_id: 5,
     name: "Forest Department, Ministry of Environment",
-    type: "Executing"
+    type: "Executing",
+    category: "National"
+  },
+  {
+    agency_id: 6,
+    name: "World Bank Bangladesh Office",
+    type: "Accredited",
+    category: "International"
+  },
+  {
+    agency_id: 7,
+    name: "UNDP Bangladesh",
+    type: "Implementing",
+    category: "International"
   }
 ];
 
@@ -80,6 +97,7 @@ export const fundingSources = [
     grant_amount: 125000000.00,
     loan_amount: 0.00,
     counterpart_funding: 25000000.00,
+    disbursement: 75000000.00,
     non_grant_instrument: null
   },
   {
@@ -89,6 +107,7 @@ export const fundingSources = [
     grant_amount: 50000000.00,
     loan_amount: 75000000.00,
     counterpart_funding: 15000000.00,
+    disbursement: 95000000.00,
     non_grant_instrument: "Concessional Loan"
   },
   {
@@ -98,6 +117,7 @@ export const fundingSources = [
     grant_amount: 30000000.00,
     loan_amount: 45000000.00,
     counterpart_funding: 10000000.00,
+    disbursement: 55000000.00,
     non_grant_instrument: "Technical Assistance"
   },
   {
@@ -107,7 +127,18 @@ export const fundingSources = [
     grant_amount: 40000000.00,
     loan_amount: 0.00,
     counterpart_funding: 8000000.00,
+    disbursement: 32000000.00,
     non_grant_instrument: null
+  },
+  {
+    funding_source_id: 5,
+    name: "European Union",
+    dev_partner: "European Commission",
+    grant_amount: 35000000.00,
+    loan_amount: 0.00,
+    counterpart_funding: 5000000.00,
+    disbursement: 22000000.00,
+    non_grant_instrument: "Grant Agreement"
   }
 ];
 

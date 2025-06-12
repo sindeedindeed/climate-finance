@@ -52,7 +52,7 @@ const ProjectDetails = () => {
           ...foundProject,
           // Map agency strings to actual agency objects for more detailed display
           projectAgencies: foundProject.fundingSources?.map(fs => {
-            return agencies.find(a => a.name === fs) || { name: fs, type: 'Unknown' };
+            return agencies.find(a => a.name === fs) || { name: fs, type: 'Unknown', category: 'Unknown' };
           }) || [],
           // Map funding sources to actual funding source objects
           projectFundingSources: foundProject.fundingSources?.map(fs => {
@@ -203,18 +203,18 @@ const ProjectDetails = () => {
               {/* Left Side: Title, Description and Progress */}
               <div className="w-full md:w-3/5">
                 {/* Title and Description */}
-                <h2 className="text-lg font-bold text-gray-900 mb-1">{project.title}</h2>
-                <p className="text-xs text-gray-500 mb-4">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{project.title}</h2>
+                <p className="text-sm text-gray-600 mb-6">
                   {project.description}
                 </p>
                 
-                {/* Progress Bar - Improved layout */}
-                <div className="bg-gradient-to-r from-gray-50 to-purple-50 rounded-lg p-5 mb-4 border border-gray-100">
-                  <div className="flex items-center justify-between mb-3">
+                {/* Progress Bar - Enhanced spacing to match funding source details */}
+                <div className="bg-gradient-to-r from-gray-50 to-purple-50 rounded-lg p-6 border border-gray-100">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="text-sm text-gray-700 font-semibold">Project Progress</div>
                     <div className="text-sm text-purple-600 font-bold">{project.progress}% Complete</div>
                   </div>
-                  <div className="text-sm text-gray-500 mb-3">
+                  <div className="text-sm text-gray-500 mb-4">
                     Disbursed: {formatCurrency(project.disbursed)} of {formatCurrency(project.progressBarMax || getTotalBudget(project))}
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
@@ -330,9 +330,9 @@ const ProjectDetails = () => {
                     project.projectAgencies.map((agency, index) => (
                       <div key={index} className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-3">
                         <Building size={18} className="text-purple-600" />
-                        <div>
+                        <div className="flex-1">
                           <div className="font-medium text-sm">{agency.name}</div>
-                          <div className="text-xs text-gray-500">{agency.type}</div>
+                          <div className="text-xs text-gray-500">{agency.type} • {agency.category}</div>
                         </div>
                       </div>
                     ))

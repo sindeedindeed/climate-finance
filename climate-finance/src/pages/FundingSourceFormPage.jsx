@@ -14,6 +14,7 @@ const defaultFormData = {
   grant_amount: '',
   loan_amount: '',
   counterpart_funding: '',
+  disbursement: '',
   non_grant_instrument: ''
 };
 
@@ -62,6 +63,7 @@ const FundingSourceFormPage = ({
         grant_amount: parseFloat(formData.grant_amount) || 0,
         loan_amount: parseFloat(formData.loan_amount) || 0,
         counterpart_funding: parseFloat(formData.counterpart_funding) || 0,
+        disbursement: parseFloat(formData.disbursement) || 0,
         non_grant_instrument: formData.non_grant_instrument || null
       };
       if (mode === 'add') {
@@ -205,6 +207,19 @@ const FundingSourceFormPage = ({
                 type="number"
                 name="counterpart_funding"
                 value={formData.counterpart_funding}
+                onChange={handleInputChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Disbursement (USD)</label>
+              <input
+                type="number"
+                name="disbursement"
+                value={formData.disbursement}
                 onChange={handleInputChange}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                 step="0.01"
