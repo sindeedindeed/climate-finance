@@ -103,7 +103,7 @@ const AdminLocations = () => {
               dataFields={[
                 { label: 'Location ID', value: location.location_id }
               ]}
-              onEdit={(id) => navigate(`/admin/locations/edit/${id}`)}
+              onEdit={(id) => navigate(`/admin/locations/${id}/edit`)}
               onDelete={handleDelete}
               index={index}
             />

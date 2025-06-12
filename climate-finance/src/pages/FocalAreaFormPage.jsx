@@ -15,8 +15,7 @@ const FocalAreaFormPage = ({ mode = 'add' }) => {
   const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
-    name: '',
-    description: ''
+    name: ''
   });
 
   useEffect(() => {
@@ -24,8 +23,7 @@ const FocalAreaFormPage = ({ mode = 'add' }) => {
       const focalArea = focalAreas.find(f => f.focal_area_id.toString() === id);
       if (focalArea) {
         setFormData({
-          name: focalArea.name,
-          description: focalArea.description || ''
+          name: focalArea.name
         });
       }
     }
@@ -108,7 +106,7 @@ const FocalAreaFormPage = ({ mode = 'add' }) => {
           {/* Focal Area Information */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Focal Area Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   Focal Area Name
@@ -128,21 +126,6 @@ const FocalAreaFormPage = ({ mode = 'add' }) => {
                 {errors.name && (
                   <p className="mt-1 text-sm text-red-600">{errors.name}</p>
                 )}
-              </div>
-
-              <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                  Description <span className="text-gray-400">(Optional)</span>
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  rows={3}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Enter a brief description of this focal area..."
-                />
               </div>
             </div>
           </div>

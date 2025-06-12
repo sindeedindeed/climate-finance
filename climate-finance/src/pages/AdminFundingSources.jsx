@@ -79,7 +79,7 @@ const AdminFundingSources = () => {
                 { label: 'Loan Amount', value: formatCurrency(source.loan_amount) },
                 { label: 'Counterpart Funding', value: formatCurrency(source.counterpart_funding) }
               ]}
-              onEdit={(id) => navigate(`/admin/funding-sources/edit/${id}`)}
+              onEdit={(id) => navigate(`/admin/funding-sources/${id}/edit`)}
               onDelete={handleDelete}
               index={index}
             />

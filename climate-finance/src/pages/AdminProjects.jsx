@@ -132,7 +132,7 @@ const AdminProjects = () => {
                 { label: 'Approval FY', value: `FY ${project.approval_fy}` },
                 { label: 'GEF Grant', value: formatCurrency(project.gef_grant) }
               ]}
-              onEdit={(id) => navigate(`/admin/projects/edit/${id}`)}
+              onEdit={(id) => navigate(`/admin/projects/${id}/edit`)}
               onDelete={handleDelete}
               index={index}
             />

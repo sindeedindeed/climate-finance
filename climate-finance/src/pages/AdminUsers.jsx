@@ -180,7 +180,7 @@ const AdminUsers = () => {
                 { label: 'Department', value: userItem.department },
                 { label: 'Last Login', value: userItem.lastLogin ? formatDate(userItem.lastLogin) : 'Never' }
               ]}
-              onEdit={(id) => navigate(`/admin/users/edit/${id}`)}
+              onEdit={(id) => navigate(`/admin/users/${id}/edit`)}
               onDelete={handleDelete}
               customActions={[
                 {

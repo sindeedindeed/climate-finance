@@ -105,7 +105,7 @@ const AdminAgencies = () => {
               dataFields={[
                 { label: 'Agency ID', value: agency.agency_id }
               ]}
-              onEdit={(id) => navigate(`/admin/agencies/edit/${id}`)}
+              onEdit={(id) => navigate(`/admin/agencies/${id}/edit`)}
               onDelete={handleDelete}
               index={index}
             />

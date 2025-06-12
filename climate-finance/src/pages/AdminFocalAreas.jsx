@@ -87,7 +87,7 @@ const AdminFocalAreas = () => {
               dataFields={[
                 { label: 'Focal Area ID', value: focalArea.focal_area_id }
               ]}
-              onEdit={(id) => navigate(`/admin/focal-areas/edit/${id}`)}
+              onEdit={(id) => navigate(`/admin/focal-areas/${id}/edit`)}
               onDelete={handleDelete}
               index={index}
             />
