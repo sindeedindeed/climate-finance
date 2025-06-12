@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS  Project (
                          project_id VARCHAR(50) PRIMARY KEY,
                          title VARCHAR(255) NOT NULL,
-                         type VARCHAR(100) CHECK (type IN ('Adaptation', 'Mitigation', 'Cross-cutting')),
+                         type VARCHAR(100) CHECK (type IN ('Adaptation', 'Mitigation')),
                          sector VARCHAR(100) NOT NULL DEFAULT 'Agriculture',
                          division VARCHAR(100) NOT NULL DEFAULT 'Local Government Division',
                          status VARCHAR(50),
