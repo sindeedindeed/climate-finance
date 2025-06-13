@@ -1,44 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { locations } from '../data/mock/adminData';
-import Button from '../components/ui/Button';
-import Card from '../components/ui/Card';
+import { locationApi } from '../services/api';
 import PageLayout from '../components/layouts/PageLayout';
-import { ArrowLeft } from 'lucide-react';
+import PageHeader from '../components/layouts/PageHeader';
+import Form from '../components/ui/Form';
+import FormSection from '../components/ui/FormSection';
+import Loading from '../components/ui/Loading';
+import ErrorState from '../components/ui/ErrorState';
 
 const LocationFormPage = ({ mode = 'add' }) => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    location_id: '',
     name: '',
     region: ''
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [error, setError] = useState(null);
 
-  const regions = [
-    'Central',
-    'Northeast', 
-    'Northwest',
-    'Southwest',
-    'South',
-    'Southeast'
-  ];
-
+  // Fetch location data for edit mode
   useEffect(() => {
     if (mode === 'edit' && id) {
-      const location = locations.find(l => l.location_id.toString() === id);
-      if (location) {
-        setFormData({
-          name: location.name,
-          region: location.region
-        });
-      }
+      fetchLocation();
     }
   }, [mode, id]);
+
+  const fetchLocation = async () => {
+    try {
+      setIsFetching(true);
+      setError(null);
+      const response = await locationApi.getById(id);
+      if (response.status && response.data) {
+        setFormData({
+          location_id: response.data.location_id || '',
+          name: response.data.name || '',
+          region: response.data.region || ''
+        });
+      } else {
+        throw new Error('Location not found');
+      }
+    } catch (error) {
+      console.error('Error fetching location:', error);
+      setError('Failed to load location data');
+    } finally {
+      setIsFetching(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -51,8 +63,16 @@ const LocationFormPage = ({ mode = 'add' }) => {
   const validateForm = () => {
     const newErrors = {};
 
+    if (!formData.location_id.trim()) {
+      newErrors.location_id = 'Location ID is required';
+    } else if (formData.location_id.length < 2) {
+      newErrors.location_id = 'Location ID must be at least 2 characters';
+    }
+
     if (!formData.name.trim()) {
       newErrors.name = 'Location name is required';
+    } else if (formData.name.length < 2) {
+      newErrors.name = 'Location name must be at least 2 characters';
     }
 
     if (!formData.region) {
@@ -69,131 +89,135 @@ const LocationFormPage = ({ mode = 'add' }) => {
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setError(null);
+    
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log(`${mode === 'add' ? 'Creating' : 'Updating'} location:`, formData);
-      
-      // Check if user came from project form
-      const projectFormData = localStorage.getItem('projectFormData');
-      if (projectFormData) {
-        // Navigate back to project form instead of admin locations list
-        navigate('/admin/projects/new');
+      const locationData = {
+        location_id: formData.location_id.trim(),
+        name: formData.name.trim(),
+        region: formData.region
+      };
+
+      if (mode === 'add') {
+        await locationApi.add(locationData);
       } else {
-        navigate('/admin/locations');
+        await locationApi.update(id, locationData);
       }
+
+      navigate('/admin/locations');
     } catch (error) {
       console.error('Error saving location:', error);
+      setError(error.message || 'Failed to save location. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Form field definitions
+  const basicInfoFields = [
+    {
+      name: 'location_id',
+      label: 'Location ID',
+      type: 'text',
+      placeholder: 'Enter unique location ID',
+      required: true
+    },
+    {
+      name: 'name',
+      label: 'Location Name',
+      type: 'text',
+      placeholder: 'Enter location name',
+      required: true
+    }
+  ];
+
+  const regionFields = [
+    {
+      name: 'region',
+      label: 'Region',
+      type: 'select',
+      required: true,
+      options: [
+        { value: '', label: 'Select region' },
+        { value: 'Central', label: 'Central' },
+        { value: 'Northeast', label: 'Northeast' },
+        { value: 'Northwest', label: 'Northwest' },
+        { value: 'Southwest', label: 'Southwest' },
+        { value: 'Southeast', label: 'Southeast' },
+        { value: 'Chittagong', label: 'Chittagong' }
+      ],
+      fullWidth: true
+    }
+  ];
+
+  if (isFetching) {
+    return (
+      <PageLayout bgColor="bg-gray-50">
+        <div className="flex justify-center items-center min-h-64">
+          <Loading size="lg" />
+        </div>
+      </PageLayout>
+    );
+  }
+
+  if (error && mode === 'edit') {
+    return (
+      <PageLayout bgColor="bg-gray-50">
+        <ErrorState
+          title="Location Not Found"
+          message={error}
+          onBack={() => navigate('/admin/locations')}
+          showBack={true}
+        />
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout bgColor="bg-gray-50">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
-        <div className="flex items-center space-x-4">
-          <Link to="/admin/locations" className="text-purple-600 hover:text-purple-700 transition-colors duration-200">
-            <ArrowLeft className="w-6 h-6" />
-          </Link>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">
-              {mode === 'add' ? 'Add New Location' : 'Edit Location'}
-            </h2>
-            <p className="text-gray-500">
-              {mode === 'add' ? 'Create a new project location' : `Update location information${formData.name ? ` for ${formData.name}` : ''}`}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-4 mt-4 md:mt-0">
-          <div className="text-right">
-            <p className="text-sm font-medium text-gray-900">{user?.fullName}</p>
-            <p className="text-xs text-gray-500">{user?.role}</p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={mode === 'add' ? 'Add New Location' : 'Edit Location'}
+        subtitle={mode === 'add' ? 'Create a new project location' : 'Update location information'}
+        backPath="/admin/locations"
+        showUserInfo={true}
+      />
 
-      {/* Form Card */}
-      <Card padding={true}>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Location Information */}
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Location Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  Location Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
-                    errors.name ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="Enter location name (e.g., Dhaka, Chittagong)"
-                  required
-                />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="region" className="block text-sm font-medium text-gray-700">
-                  Region
-                </label>
-                <select
-                  id="region"
-                  name="region"
-                  value={formData.region}
-                  onChange={handleInputChange}
-                  className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
-                    errors.region ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  required
-                >
-                  <option value="">Select a region</option>
-                  {regions.map(region => (
-                    <option key={region} value={region}>
-                      {region}
-                    </option>
-                  ))}
-                </select>
-                {errors.region && (
-                  <p className="mt-1 text-sm text-red-600">{errors.region}</p>
-                )}
-              </div>
-            </div>
+      {/* Form */}
+      <Form
+        onSubmit={handleSubmit}
+        isLoading={isLoading}
+        submitText={mode === 'add' ? 'Create Location' : 'Update Location'}
+        showBackButton={false}
+        layout="sections"
+      >
+        {/* Global error display */}
+        {error && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl mb-6">
+            <p className="text-red-600 text-sm">{error}</p>
           </div>
+        )}
 
-          {/* Form Actions */}
-          <div className="flex justify-end space-x-3 pt-6 border-t">
-            <Button
-              type="button"
-              onClick={() => navigate('/admin/locations')}
-              variant="outline"
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
-              disabled={isLoading}
-            >
-              {isLoading 
-                ? (mode === 'add' ? 'Creating...' : 'Updating...') 
-                : (mode === 'add' ? 'Create Location' : 'Update Location')
-              }
-            </Button>
-          </div>
-        </form>
-      </Card>
+        {/* Basic Information Section */}
+        <FormSection
+          title="Basic Information"
+          fields={basicInfoFields}
+          formData={formData}
+          onChange={handleInputChange}
+          errors={errors}
+          layout="grid"
+        />
+
+        {/* Region Section */}
+        <FormSection
+          title="Geographic Information"
+          fields={regionFields}
+          formData={formData}
+          onChange={handleInputChange}
+          errors={errors}
+          layout="single"
+        />
+      </Form>
     </PageLayout>
   );
 };

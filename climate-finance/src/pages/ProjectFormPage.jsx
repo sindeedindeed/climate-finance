@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link, useParams } from 'react-router-dom';
-import { adminProjects, agencies, fundingSources, locations, focalAreas } from '../data/mock/adminData';
+import { locationApi, agencyApi, fundingSourceApi, focalAreaApi, projectApi } from '../services/api';
 import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
 import Card from '../components/ui/Card';
@@ -37,20 +37,110 @@ const defaultFormData = {
 
 const ProjectFormPage = ({
   mode = 'add',
-  initialFormData = defaultFormData,
-  onSubmit: onSubmitProp,
-  isLoading: isLoadingProp = false,
   pageTitle,
   pageSubtitle
 }) => {
+  const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState(initialFormData);
+  const [formData, setFormData] = useState(defaultFormData);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+  const [locations, setLocations] = useState([]);
+  const [agencies, setAgencies] = useState([]);
+  const [fundingSources, setFundingSources] = useState([]);
+  const [focalAreas, setFocalAreas] = useState([]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [error, setError] = useState(null);
+  const [errors, setErrors] = useState({});
 
+  // Determine mode based on params if not explicitly provided
+  const actualMode = mode === 'edit' || id ? 'edit' : 'add';
+
+  // Fetch project data for edit mode
   useEffect(() => {
-    setFormData(initialFormData);
-  }, [initialFormData]);
+    if (actualMode === 'edit' && id) {
+      fetchProject();
+    }
+  }, [actualMode, id]);
+
+  // Fetch all required data from APIs
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
+  const fetchProject = async () => {
+    try {
+      setIsFetching(true);
+      setError(null);
+      const response = await projectApi.getById(id);
+      if (response.status && response.data) {
+        const projectData = response.data;
+        setFormData({
+          project_id: projectData.project_id,
+          title: projectData.title,
+          type: projectData.type,
+          status: projectData.status,
+          total_cost_usd: projectData.total_cost_usd,
+          gef_grant: projectData.gef_grant,
+          cofinancing: projectData.cofinancing,
+          beginning: projectData.beginning,
+          closing: projectData.closing,
+          approval_fy: projectData.approval_fy,
+          beneficiaries: projectData.beneficiaries || '',
+          objectives: projectData.objectives || '',
+          agencies: projectData.agencies || [],
+          funding_sources: projectData.funding_sources || [],
+          funding_source_details: projectData.funding_source_details || '',
+          locations: projectData.locations || [],
+          focal_areas: projectData.focal_areas || [],
+          wash_component: projectData.wash_component || {
+            presence: false,
+            water_supply_percent: 0,
+            sanitation_percent: 0,
+            public_admin_percent: 0
+          }
+        });
+      } else {
+        throw new Error('Project not found');
+      }
+    } catch (error) {
+      console.error('Error fetching project:', error);
+      setError('Failed to load project data');
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  const fetchAllData = async () => {
+    try {
+      setIsLoadingData(true);
+      
+      // Fetch all data in parallel
+      const [locationsResponse, agenciesResponse, fundingSourcesResponse, focalAreasResponse] = await Promise.all([
+        locationApi.getAll().catch(err => ({ status: false, data: [] })),
+        agencyApi.getAll().catch(err => ({ status: false, data: [] })),
+        fundingSourceApi.getAll().catch(err => ({ status: false, data: [] })),
+        focalAreaApi.getAll().catch(err => ({ status: false, data: [] }))
+      ]);
+
+      // Set data or fallback to empty arrays if API calls fail
+      setLocations(locationsResponse.status && locationsResponse.data ? locationsResponse.data : []);
+      setAgencies(agenciesResponse.status && agenciesResponse.data ? agenciesResponse.data : []);
+      setFundingSources(fundingSourcesResponse.status && fundingSourcesResponse.data ? fundingSourcesResponse.data : []);
+      setFocalAreas(focalAreasResponse.status && focalAreasResponse.data ? focalAreasResponse.data : []);
+      
+    } catch (error) {
+      console.error('Error fetching form data:', error);
+      // Set empty arrays as fallback
+      setLocations([]);
+      setAgencies([]);
+      setFundingSources([]);
+      setFocalAreas([]);
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -58,6 +148,9 @@ const ProjectFormPage = ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleMultiSelectChange = (e, field) => {
@@ -75,15 +168,34 @@ const ProjectFormPage = ({
     }));
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.title.trim()) {
+      newErrors.title = 'Project title is required';
+    }
+
+    if (!formData.type) {
+      newErrors.type = 'Project type is required';
+    }
+
+    if (!formData.status) {
+      newErrors.status = 'Project status is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     setIsLoading(true);
-    if (onSubmitProp) {
-      await onSubmitProp(formData, setIsLoading);
-      return;
-    }
+    setError(null);
+    
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
       const projectData = {
         ...formData,
         total_cost_usd: parseFloat(formData.total_cost_usd) || 0,
@@ -91,18 +203,52 @@ const ProjectFormPage = ({
         cofinancing: parseFloat(formData.cofinancing) || 0,
         approval_fy: parseInt(formData.approval_fy) || new Date().getFullYear()
       };
-      if (mode === 'add') {
-        console.log('New project data:', projectData);
+
+      if (actualMode === 'add') {
+        await projectApi.add(projectData);
       } else {
-        console.log('Updated project data:', projectData);
+        await projectApi.update(id, projectData);
       }
+
       navigate('/admin/projects');
     } catch (error) {
       console.error('Error saving project:', error);
+      setError(error.message || 'Failed to save project. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (isLoadingData || isFetching) {
+    return (
+      <PageLayout bgColor="bg-gray-50">
+        <div className="flex justify-center items-center min-h-64">
+          <Loading size="lg" />
+        </div>
+      </PageLayout>
+    );
+  }
+
+  if (error && actualMode === 'edit') {
+    return (
+      <PageLayout bgColor="bg-gray-50">
+        <Card padding={true}>
+          <div className="text-center py-8">
+            <div className="text-red-600 mb-4">
+              <FolderTree size={48} className="mx-auto" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{error}</h3>
+            <p className="text-gray-500 mb-4">
+              The project you're looking for could not be found.
+            </p>
+            <Button onClick={() => navigate('/admin/projects')} variant="primary">
+              Back to Projects
+            </Button>
+          </div>
+        </Card>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout bgColor="bg-gray-50">
@@ -113,8 +259,12 @@ const ProjectFormPage = ({
             <ArrowLeft className="w-6 h-6" />
           </Link>
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">{pageTitle || (mode === 'add' ? 'Add New Project' : 'Edit Project')}</h2>
-            <p className="text-gray-500">{pageSubtitle || (mode === 'add' ? 'Create a new climate finance project' : `Update project details${formData.title ? ` for ${formData.title}` : ''}`)}</p>
+            <h2 className="text-2xl font-bold text-gray-800">
+              {pageTitle || (actualMode === 'add' ? 'Add New Project' : 'Edit Project')}
+            </h2>
+            <p className="text-gray-500">
+              {pageSubtitle || (actualMode === 'add' ? 'Create a new climate finance project' : `Update project details${formData.title ? ` for ${formData.title}` : ''}`)}
+            </p>
           </div>
         </div>
         <div className="flex items-center space-x-4 mt-4 md:mt-0">
@@ -124,27 +274,41 @@ const ProjectFormPage = ({
           </div>
         </div>
       </div>
+
       {/* Form Card */}
       <Card padding={true}>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          )}
+
           {/* Basic Information */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
             {/* Title field - full width */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700">Title</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Title <span className="text-red-500">*</span>
+              </label>
               <input
                 type="text"
                 name="title"
                 value={formData.title}
                 onChange={handleInputChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                  errors.title ? 'border-red-300' : 'border-gray-300'
+                }`}
                 required
               />
+              {errors.title && (
+                <p className="mt-1 text-sm text-red-600">{errors.title}</p>
+              )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Project ID: Only show in edit mode */}
-              {mode === 'edit' && (
+              {actualMode === 'edit' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Project ID</label>
                   <input
@@ -159,26 +323,37 @@ const ProjectFormPage = ({
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-gray-700">Type</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Type <span className="text-red-500">*</span>
+                </label>
                 <select
                   name="type"
                   value={formData.type}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                  className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                    errors.type ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   required
                 >
                   <option value="">Select Type</option>
                   <option value="Adaptation">Adaptation</option>
                   <option value="Mitigation">Mitigation</option>
                 </select>
+                {errors.type && (
+                  <p className="mt-1 text-sm text-red-600">{errors.type}</p>
+                )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Status <span className="text-red-500">*</span>
+                </label>
                 <select
                   name="status"
                   value={formData.status}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                  className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                    errors.status ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   required
                 >
                   <option value="">Select Status</option>
@@ -187,9 +362,13 @@ const ProjectFormPage = ({
                   <option value="Completed">Completed</option>
                   <option value="Suspended">Suspended</option>
                 </select>
+                {errors.status && (
+                  <p className="mt-1 text-sm text-red-600">{errors.status}</p>
+                )}
               </div>
             </div>
           </div>
+
           <ProjectFormSections
             formData={formData}
             handleInputChange={handleInputChange}
@@ -200,7 +379,7 @@ const ProjectFormPage = ({
             locations={locations}
             focalAreas={focalAreas}
           />
-          {/* Financial Information */}
+
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Financial Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -242,7 +421,7 @@ const ProjectFormPage = ({
               </div>
             </div>
           </div>
-          {/* Timeline */}
+
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Timeline</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -280,7 +459,7 @@ const ProjectFormPage = ({
               </div>
             </div>
           </div>
-          {/* Objectives and Beneficiaries */}
+
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Objectives & Beneficiaries</h3>
             <div className="grid grid-cols-1 gap-6">
@@ -308,22 +487,26 @@ const ProjectFormPage = ({
               </div>
             </div>
           </div>
+
           {/* Form Actions */}
           <div className="flex justify-end space-x-3 pt-6 border-t">
             <Button
               type="button"
               onClick={() => navigate('/admin/projects')}
               variant="outline"
-              disabled={isLoading || isLoadingProp}
+              disabled={isLoading}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
-              disabled={isLoading || isLoadingProp}
+              disabled={isLoading}
             >
-              {(isLoading || isLoadingProp) ? <Loading size="sm" /> : (mode === 'add' ? 'Create Project' : 'Update Project')}
+              {isLoading 
+                ? (actualMode === 'add' ? 'Creating...' : 'Updating...') 
+                : (actualMode === 'add' ? 'Create Project' : 'Update Project')
+              }
             </Button>
           </div>
         </form>

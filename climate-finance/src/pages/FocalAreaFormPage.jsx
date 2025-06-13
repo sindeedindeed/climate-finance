@@ -1,33 +1,52 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { focalAreas } from '../data/mock/adminData';
-import Button from '../components/ui/Button';
-import Card from '../components/ui/Card';
+import { focalAreaApi } from '../services/api';
 import PageLayout from '../components/layouts/PageLayout';
-import { ArrowLeft } from 'lucide-react';
+import PageHeader from '../components/layouts/PageHeader';
+import Form from '../components/ui/Form';
+import FormSection from '../components/ui/FormSection';
+import Loading from '../components/ui/Loading';
+import ErrorState from '../components/ui/ErrorState';
 
 const FocalAreaFormPage = ({ mode = 'add' }) => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: ''
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [error, setError] = useState(null);
 
+  // Fetch focal area data for edit mode
   useEffect(() => {
     if (mode === 'edit' && id) {
-      const focalArea = focalAreas.find(f => f.focal_area_id.toString() === id);
-      if (focalArea) {
-        setFormData({
-          name: focalArea.name
-        });
-      }
+      fetchFocalArea();
     }
   }, [mode, id]);
+
+  const fetchFocalArea = async () => {
+    try {
+      setIsFetching(true);
+      setError(null);
+      const response = await focalAreaApi.getById(id);
+      if (response.status && response.data) {
+        setFormData({
+          name: response.data.name || ''
+        });
+      } else {
+        throw new Error('Focal area not found');
+      }
+    } catch (error) {
+      console.error('Error fetching focal area:', error);
+      setError('Failed to load focal area data');
+    } finally {
+      setIsFetching(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -42,6 +61,8 @@ const FocalAreaFormPage = ({ mode = 'add' }) => {
 
     if (!formData.name.trim()) {
       newErrors.name = 'Focal area name is required';
+    } else if (formData.name.length < 2) {
+      newErrors.name = 'Focal area name must be at least 2 characters';
     }
 
     setErrors(newErrors);
@@ -54,105 +75,99 @@ const FocalAreaFormPage = ({ mode = 'add' }) => {
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setError(null);
+    
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log(`${mode === 'add' ? 'Creating' : 'Updating'} focal area:`, formData);
-      
-      // Check if user came from project form
-      const projectFormData = localStorage.getItem('projectFormData');
-      if (projectFormData) {
-        // Navigate back to project form instead of admin focal areas list
-        navigate('/admin/projects/new');
+      const focalAreaData = {
+        name: formData.name.trim()
+      };
+
+      if (mode === 'add') {
+        await focalAreaApi.add(focalAreaData);
       } else {
-        navigate('/admin/focal-areas');
+        await focalAreaApi.update(id, focalAreaData);
       }
+
+      navigate('/admin/focal-areas');
     } catch (error) {
       console.error('Error saving focal area:', error);
+      setError(error.message || 'Failed to save focal area. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Form field definitions
+  const basicInfoFields = [
+    {
+      name: 'name',
+      label: 'Focal Area Name',
+      type: 'text',
+      placeholder: 'Enter focal area name (e.g., Renewable Energy, Climate Adaptation)',
+      required: true,
+      fullWidth: true
+    }
+  ];
+
+  if (isFetching) {
+    return (
+      <PageLayout bgColor="bg-gray-50">
+        <div className="flex justify-center items-center min-h-64">
+          <Loading size="lg" />
+        </div>
+      </PageLayout>
+    );
+  }
+
+  if (error && mode === 'edit') {
+    return (
+      <PageLayout bgColor="bg-gray-50">
+        <ErrorState
+          title="Focal Area Not Found"
+          message={error}
+          onBack={() => navigate('/admin/focal-areas')}
+          showBack={true}
+        />
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout bgColor="bg-gray-50">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
-        <div className="flex items-center space-x-4">
-          <Link to="/admin/focal-areas" className="text-purple-600 hover:text-purple-700 transition-colors duration-200">
-            <ArrowLeft className="w-6 h-6" />
-          </Link>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">
-              {mode === 'add' ? 'Add New Focal Area' : 'Edit Focal Area'}
-            </h2>
-            <p className="text-gray-500">
-              {mode === 'add' ? 'Create a new project focal area' : `Update focal area information${formData.name ? ` for ${formData.name}` : ''}`}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-4 mt-4 md:mt-0">
-          <div className="text-right">
-            <p className="text-sm font-medium text-gray-900">{user?.fullName}</p>
-            <p className="text-xs text-gray-500">{user?.role}</p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={mode === 'add' ? 'Add New Focal Area' : 'Edit Focal Area'}
+        subtitle={mode === 'add' ? 'Create a new project focal area' : 'Update focal area information'}
+        backPath="/admin/focal-areas"
+        showUserInfo={true}
+      />
 
-      {/* Form Card */}
-      <Card padding={true}>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Focal Area Information */}
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Focal Area Information</h3>
-            <div className="grid grid-cols-1 gap-6">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  Focal Area Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
-                    errors.name ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="Enter focal area name (e.g., Climate Change Adaptation)"
-                  required
-                />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-                )}
-              </div>
-            </div>
+      {/* Form */}
+      <Form
+        onSubmit={handleSubmit}
+        isLoading={isLoading}
+        submitText={mode === 'add' ? 'Create Focal Area' : 'Update Focal Area'}
+        showBackButton={false}
+        layout="sections"
+      >
+        {/* Global error display */}
+        {error && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl mb-6">
+            <p className="text-red-600 text-sm">{error}</p>
           </div>
+        )}
 
-          {/* Form Actions */}
-          <div className="flex justify-end space-x-3 pt-6 border-t">
-            <Button
-              type="button"
-              onClick={() => navigate('/admin/focal-areas')}
-              variant="outline"
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
-              disabled={isLoading}
-            >
-              {isLoading 
-                ? (mode === 'add' ? 'Creating...' : 'Updating...') 
-                : (mode === 'add' ? 'Create Focal Area' : 'Update Focal Area')
-              }
-            </Button>
-          </div>
-        </form>
-      </Card>
+        {/* Basic Information Section */}
+        <FormSection
+          title="Basic Information"
+          subtitle="Define the focal area for climate projects"
+          fields={basicInfoFields}
+          formData={formData}
+          onChange={handleInputChange}
+          errors={errors}
+          layout="single"
+        />
+      </Form>
     </PageLayout>
   );
 };

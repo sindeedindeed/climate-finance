@@ -1,33 +1,42 @@
 import React from 'react';
-import Card from '../ui/Card';
+import { Plus } from 'lucide-react';
 import Button from '../ui/Button';
-import { Search, Plus } from 'lucide-react';
+import SearchFilter from '../ui/SearchFilter';
 
 const AdminControlsCard = ({
   title,
-  count,
-  searchPlaceholder = "Search...",
-  searchValue,
+  subtitle,
+  searchValue = '',
   onSearchChange,
-  addButtonText,
-  onAddClick,
+  searchPlaceholder = 'Search...',
   filters = [],
+  onAddNew,
+  addButtonText = 'Add New',
+  showAddButton = true,
   children
 }) => {
+  // Transform filters for SearchFilter component
+  const searchFilterProps = filters.map(filter => ({
+    value: filter.value,
+    onChange: filter.onChange,
+    options: filter.options
+  }));
+
   return (
-    <Card hover className="mb-6" padding={true}>
-      <div className="flex flex-col space-y-6">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center">
-          <h3 className="text-lg font-semibold text-gray-800">
-            {title} ({count})
-          </h3>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start">
+          <div>
+            {title && <h3 className="text-lg font-semibold text-gray-800 mb-1">{title}</h3>}
+            {subtitle && <p className="text-gray-500 text-sm">{subtitle}</p>}
+          </div>
           
-          {addButtonText && onAddClick && (
-            <Button 
-              onClick={onAddClick} 
-              variant="primary"
+          {showAddButton && onAddNew && (
+            <Button
+              onClick={onAddNew}
               leftIcon={<Plus size={16} />}
-              className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200 mt-4 md:mt-0"
+              className="mt-3 lg:mt-0 bg-purple-600 hover:bg-purple-700 text-white"
             >
               {addButtonText}
             </Button>
@@ -35,46 +44,17 @@ const AdminControlsCard = ({
         </div>
         
         {/* Search and filters */}
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search */}
-          <div className="flex-1 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={16} className="text-gray-400" />
-            </div>
-            <input
-              type="text"
-              className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-              placeholder={searchPlaceholder}
-              value={searchValue}
-              onChange={(e) => onSearchChange(e.target.value)}
-            />
-          </div>
-          
-          {/* Filters */}
-          {filters.length > 0 && (
-            <div className="flex flex-col sm:flex-row gap-3">
-              {filters.map((filter, index) => (
-                <select
-                  key={index}
-                  className="border border-gray-300 rounded-xl text-sm py-2.5 px-4 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                  value={filter.value}
-                  onChange={(e) => filter.onChange(e.target.value)}
-                >
-                  {filter.options.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              ))}
-            </div>
-          )}
-        </div>
+        <SearchFilter
+          searchValue={searchValue}
+          onSearchChange={onSearchChange}
+          searchPlaceholder={searchPlaceholder}
+          filters={searchFilterProps}
+        />
         
-        {/* Additional custom content */}
+        {/* Additional content */}
         {children}
       </div>
-    </Card>
+    </div>
   );
 };
 

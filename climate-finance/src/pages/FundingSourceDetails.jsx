@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   Calendar,
@@ -23,42 +23,86 @@ import Button from '../components/ui/Button';
 import { formatCurrency } from '../utils/formatters';
 import { fundingSources } from '../data/mock/fundingSources';
 import { generateOrganizationLogo } from '../utils/svgPlaceholder';
-
-const TABS = ['Overview', 'Projects', 'Disbursements', 'Performance'];
+import { fundingSourceApi } from '../services/api';
 
 const FundingSourceDetails = () => {
   const { sourceId } = useParams();
-  const [activeTab, setActiveTab] = useState('Overview');
+  const navigate = useNavigate();
   const [source, setSource] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Find the funding source by ID
-    const foundSource = fundingSources.find(s => s.id.toString() === sourceId);
-    setSource(foundSource);
-    setLoading(false);
+    fetchFundingSource();
   }, [sourceId]);
+
+  const fetchFundingSource = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // First try to fetch from API
+      try {
+        const response = await fundingSourceApi.getById(sourceId);
+        if (response.status && response.data) {
+          setSource(response.data);
+          return;
+        }
+      } catch (apiError) {
+        console.log('API fetch failed, trying mock data:', apiError);
+      }
+
+      // Fallback to mock data
+      const foundSource = fundingSources.find(s => 
+        s.id.toString() === sourceId || 
+        s.funding_source_id?.toString() === sourceId ||
+        s.id === sourceId ||
+        s.funding_source_id === sourceId
+      );
+      
+      if (!foundSource) {
+        setError('Funding source not found');
+        return;
+      }
+
+      setSource(foundSource);
+    } catch (err) {
+      console.error('Error fetching funding source:', err);
+      setError('Error loading funding source data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
       <PageLayout bgColor="bg-gray-50">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="h-64 bg-gray-200 rounded mb-6"></div>
+        <div className="flex justify-center items-center min-h-64">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="h-64 bg-gray-200 rounded mb-6"></div>
+          </div>
         </div>
       </PageLayout>
     );
   }
 
-  if (!source) {
+  if (error || !source) {
     return (
       <PageLayout bgColor="bg-gray-50">
         <div className="text-center py-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Funding Source Not Found</h2>
-          <p className="text-gray-600 mb-6">The funding source you're looking for doesn't exist.</p>
-          <Link to="/funding-sources" className="text-purple-600 hover:text-purple-700">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            {error || 'Funding Source Not Found'}
+          </h2>
+          <p className="text-gray-600 mb-6">
+            The funding source you're looking for doesn't exist or couldn't be loaded.
+          </p>
+          <button
+            onClick={() => navigate('/funding-sources')}
+            className="text-purple-600 hover:text-purple-700 underline"
+          >
             ← Back to Funding Sources
-          </Link>
+          </button>
         </div>
       </PageLayout>
     );
@@ -84,7 +128,11 @@ const FundingSourceDetails = () => {
     }
   };
 
-  const disbursementRate = (source.total_disbursed / source.total_committed) * 100;
+  const disbursementRate = source.total_disbursed && source.total_committed 
+    ? (source.total_disbursed / source.total_committed) * 100 
+    : source.disbursement && source.grant_amount
+    ? (source.disbursement / source.grant_amount) * 100
+    : 0;
 
   const handleExportReport = () => {
     const reportData = {
@@ -208,7 +256,11 @@ const FundingSourceDetails = () => {
                     <MapPin size={16} className="mt-0.5 text-purple-600" />
                     <div>
                       <span className="font-semibold">Focus Sectors</span>
-                      <div className="text-xs text-gray-600">{source.sectors.join(', ')}</div>
+                      <div className="text-xs text-gray-600">
+                        {source.sectors && Array.isArray(source.sectors) 
+                          ? source.sectors.join(', ') 
+                          : 'Not specified'}
+                      </div>
                     </div>
                   </li>
                 </ul>
@@ -217,78 +269,48 @@ const FundingSourceDetails = () => {
           </div>
         </Card>
         
-        {/* Tabs */}
-        <div className="border-b border-gray-200 mb-2 flex gap-6 text-sm">
-          {TABS.map((tab) => (
-            <button
-              key={tab}
-              className={`py-2 px-1 border-b-2 font-medium transition-all duration-200 hover:scale-105 ${
-                activeTab === tab
-                  ? 'border-purple-600 text-purple-600'
-                  : 'border-transparent text-gray-500 hover:text-purple-600'
-              }`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-        
-        {/* Tab Content: Overview (only) */}
-        {activeTab === 'Overview' && (
-          <>
-            {/* Financial Summary */}
-            <Card className="mb-6" padding={true}>
-              <div>
-                <div className="font-semibold mb-4">Financial Summary</div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">{formatCurrency(source.total_committed)}</div>
-                    <div className="text-sm text-gray-600">Total Committed</div>
-                  </div>
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{formatCurrency(source.total_disbursed)}</div>
-                    <div className="text-sm text-gray-600">Total Disbursed</div>
-                  </div>
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <div className="text-2xl font-bold text-orange-600">{formatCurrency(source.total_committed - source.total_disbursed)}</div>
-                    <div className="text-sm text-gray-600">Remaining</div>
-                  </div>
-                </div>
+        {/* Funding Source Overview Content */}
+        {/* Financial Summary */}
+        <Card className="mb-6" padding={true}>
+          <div>
+            <div className="font-semibold mb-4">Financial Summary</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600">{formatCurrency(source.total_committed)}</div>
+                <div className="text-sm text-gray-600">Total Committed</div>
               </div>
-            </Card>
-
-            {/* Sector Distribution */}
-            <Card className="mb-6" padding={true}>
-              <div>
-                <div className="font-semibold mb-4">Sector Focus</div>
-                <div className="flex flex-wrap gap-2">
-                  {source.sectors.map((sector, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-purple-100 text-purple-800 text-sm font-medium rounded-full"
-                    >
-                      {sector}
-                    </span>
-                  ))}
-                </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">{formatCurrency(source.total_disbursed)}</div>
+                <div className="text-sm text-gray-600">Total Disbursed</div>
               </div>
-            </Card>
-          </>
-        )}
-        
-        {/* Other tabs placeholder */}
-        {activeTab !== 'Overview' && (
-          <Card className="mb-6" padding={true}>
-            <div className="text-center py-8">
-              <div className="text-gray-500 mb-4">
-                <FileText size={48} className="mx-auto mb-4 text-gray-300" />
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-orange-600">{formatCurrency(source.total_committed - source.total_disbursed)}</div>
+                <div className="text-sm text-gray-600">Remaining</div>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">{activeTab} Details</h3>
-              <p className="text-gray-500">Detailed {activeTab.toLowerCase()} information will be available soon.</p>
             </div>
-          </Card>
-        )}
+          </div>
+        </Card>
+
+        {/* Sector Distribution */}
+        <Card className="mb-6" padding={true}>
+          <div>
+            <div className="font-semibold mb-4">Sector Focus</div>
+            <div className="flex flex-wrap gap-2">
+              {source.sectors && Array.isArray(source.sectors) && source.sectors.length > 0 ? (
+                source.sectors.map((sector, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-purple-100 text-purple-800 text-sm font-medium rounded-full"
+                  >
+                    {sector}
+                  </span>
+                ))
+              ) : (
+                <span className="text-sm text-gray-500">No sector information available</span>
+              )}
+            </div>
+          </div>
+        </Card>
       </div>
     </PageLayout>
   );
