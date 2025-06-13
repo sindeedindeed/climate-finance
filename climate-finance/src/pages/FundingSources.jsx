@@ -33,7 +33,7 @@ const FundingSources = () => {
   const [fundingTrend, setFundingTrend] = useState([]);
   const [sectorAllocation, setSectorAllocation] = useState([]);
 
-  // Fix: Calculate fundingTypes AFTER fundingSourcesList is populated
+  // Calculate fundingTypes AFTER fundingSourcesList is populated
   const fundingTypes = React.useMemo(() => {
     if (!Array.isArray(fundingSourcesList) || fundingSourcesList.length === 0) {
       return ['All', 'Multilateral', 'Bilateral', 'Private', 'Climate Fund', 'National'];
@@ -41,37 +41,100 @@ const FundingSources = () => {
     return ['All', ...new Set(fundingSourcesList.map(source => source.type).filter(Boolean))];
   }, [fundingSourcesList]);
 
-  // Default stats function
-  const getDefaultStats = () => [
-    { title: "Total Climate Finance", value: 1200000000, change: "+15% from previous year" },
-    { title: "Active Funding Sources", value: 28, change: "Across 4 categories" },
-    { title: "Committed Funds", value: 950000000, change: "79% of total finance" },
-    { title: "Disbursed Funds", value: 525000000, change: "55% of committed funds" }
-  ];
+  // Calculate stats from actual data
+  const getStatsFromData = (sources) => {
+    if (!Array.isArray(sources) || sources.length === 0) {
+      return [
+        { title: "Total Climate Finance", value: 0, change: "No data available" },
+        { title: "Active Funding Sources", value: 0, change: "No sources found" },
+        { title: "Committed Funds", value: 0, change: "No commitments" },
+        { title: "Disbursed Funds", value: 0, change: "No disbursements" }
+      ];
+    }
 
-  // Default chart data functions
-  const getDefaultFundingByType = () => [
-    { name: 'Multilateral', value: 730000000 },
-    { name: 'Bilateral', value: 270000000 },
-    { name: 'National', value: 120000000 },
-    { name: 'Private', value: 80000000 }
-  ];
+    const totalCommitted = sources.reduce((sum, source) => 
+      sum + (parseFloat(source.total_committed) || parseFloat(source.grant_amount) || 0), 0);
+    const totalDisbursed = sources.reduce((sum, source) => 
+      sum + (parseFloat(source.total_disbursed) || parseFloat(source.disbursement) || 0), 0);
+    const activeSources = sources.filter(source => 
+      source.status === 'Active' || !source.status).length;
 
+    return [
+      { 
+        title: "Total Climate Finance", 
+        value: totalCommitted, 
+        change: "+15% from previous year" 
+      },
+      { 
+        title: "Active Funding Sources", 
+        value: activeSources, 
+        change: `Across ${new Set(sources.map(s => s.type).filter(Boolean)).size} categories` 
+      },
+      { 
+        title: "Committed Funds", 
+        value: totalCommitted, 
+        change: `${sources.length} funding sources` 
+      },
+      { 
+        title: "Disbursed Funds", 
+        value: totalDisbursed, 
+        change: totalCommitted > 0 ? `${Math.round((totalDisbursed / totalCommitted) * 100)}% of committed funds` : "No disbursements" 
+      }
+    ];
+  };
+
+  // Calculate chart data from actual sources
+  const getChartDataFromSources = (sources) => {
+    if (!Array.isArray(sources) || sources.length === 0) {
+      return {
+        fundingByType: [],
+        sectorAllocation: []
+      };
+    }
+
+    // Group by type
+    const typeGroups = sources.reduce((acc, source) => {
+      const type = source.type || 'Unknown';
+      const amount = parseFloat(source.total_committed) || parseFloat(source.grant_amount) || 0;
+      acc[type] = (acc[type] || 0) + amount;
+      return acc;
+    }, {});
+
+    const fundingByType = Object.entries(typeGroups).map(([name, value]) => ({
+      name,
+      value
+    }));
+
+    // Group by sectors (if available)
+    const sectorGroups = sources.reduce((acc, source) => {
+      const sectors = source.sectors || [];
+      const amount = (parseFloat(source.total_committed) || parseFloat(source.grant_amount) || 0) / (sectors.length || 1);
+      
+      if (Array.isArray(sectors) && sectors.length > 0) {
+        sectors.forEach(sector => {
+          acc[sector] = (acc[sector] || 0) + amount;
+        });
+      } else {
+        acc['Unspecified'] = (acc['Unspecified'] || 0) + amount;
+      }
+      return acc;
+    }, {});
+
+    const sectorAllocation = Object.entries(sectorGroups).map(([name, value]) => ({
+      name,
+      value
+    }));
+
+    return { fundingByType, sectorAllocation };
+  };
+
+  // Default fallback data
   const getDefaultFundingTrend = () => [
     { year: 2020, amount: 150000000 },
     { year: 2021, amount: 210000000 },
     { year: 2022, amount: 280000000 },
     { year: 2023, amount: 350000000 },
     { year: 2024, amount: 290000000 }
-  ];
-
-  const getDefaultSectorAllocation = () => [
-    { name: 'Energy', value: 380000000 },
-    { name: 'Adaptation', value: 250000000 },
-    { name: 'Agriculture', value: 190000000 },
-    { name: 'Infrastructure', value: 150000000 },
-    { name: 'Water', value: 120000000 },
-    { name: 'Forestry', value: 110000000 }
   ];
 
   // Fetch all funding source data
@@ -84,80 +147,67 @@ const FundingSources = () => {
       setIsLoading(true);
       setError(null);
 
-      // Fetch all funding source data in parallel
-      const [
-        overviewResponse,
-        typeResponse,
-        trendResponse,
-        sectorResponse,
-        fundingSourceResponse
-      ] = await Promise.all([
-        projectApi.getFundingSourceOverview().catch(() => ({ status: false, data: null })),
-        projectApi.getFundingSourceByType().catch(() => ({ status: false, data: [] })),
-        projectApi.getFundingSourceTrend().catch(() => ({ status: false, data: [] })),
-        projectApi.getFundingSourceSectorAllocation().catch(() => ({ status: false, data: [] })),
-        fundingSourceApi.getAll().catch(() => ({ status: false, data: [] })) // Fix: Use fundingSourceApi instead of projectApi
-      ]);
-
-      // Set funding sources list with validation
+      // Fetch funding sources first
+      const fundingSourceResponse = await fundingSourceApi.getAll().catch(() => ({ status: false, data: [] }));
+      
+      let sources = [];
       if (fundingSourceResponse.status && Array.isArray(fundingSourceResponse.data)) {
-        setFundingSourcesList(fundingSourceResponse.data);
+        sources = fundingSourceResponse.data;
       } else {
         console.log('API failed, using mock data');
-        setFundingSourcesList(fundingSources || []); // Fallback to mock data
+        sources = fundingSources || [];
       }
+      
+      setFundingSourcesList(sources);
 
-      // Set overview stats with validation
-      if (overviewResponse.status && Array.isArray(overviewResponse.data) && overviewResponse.data.length > 0) {
-        setOverviewStats(overviewResponse.data);
-      } else {
-        setOverviewStats(getDefaultStats());
-      }
+      // Calculate stats and chart data from actual sources
+      const calculatedStats = getStatsFromData(sources);
+      const chartData = getChartDataFromSources(sources);
+      
+      setOverviewStats(calculatedStats);
+      setFundingByType(chartData.fundingByType);
+      setSectorAllocation(chartData.sectorAllocation);
 
-      // Set funding by type with validation
-      if (typeResponse.status && Array.isArray(typeResponse.data) && typeResponse.data.length > 0) {
-        setFundingByType(typeResponse.data);
-      } else {
-        setFundingByType(getDefaultFundingByType());
-      }
+      // Try to fetch additional chart data from API
+      const [trendResponse] = await Promise.all([
+        projectApi.getFundingSourceTrend().catch(() => ({ status: false, data: [] }))
+      ]);
 
-      // Set funding trend with validation
+      // Set funding trend
       if (trendResponse.status && Array.isArray(trendResponse.data) && trendResponse.data.length > 0) {
         setFundingTrend(trendResponse.data);
       } else {
         setFundingTrend(getDefaultFundingTrend());
       }
 
-      // Set sector allocation with validation
-      if (sectorResponse.status && Array.isArray(sectorResponse.data) && sectorResponse.data.length > 0) {
-        setSectorAllocation(sectorResponse.data);
-      } else {
-        setSectorAllocation(getDefaultSectorAllocation());
-      }
-
     } catch (error) {
       console.error('Error fetching funding source data:', error);
       setError('Failed to load funding source data. Please try again.');
 
-      // Set fallback data for all states
-      setFundingSourcesList(fundingSources || []);
-      setOverviewStats(getDefaultStats());
-      setFundingByType(getDefaultFundingByType());
+      // Set fallback data
+      const fallbackSources = fundingSources || [];
+      setFundingSourcesList(fallbackSources);
+      setOverviewStats(getStatsFromData(fallbackSources));
+      
+      const chartData = getChartDataFromSources(fallbackSources);
+      setFundingByType(chartData.fundingByType);
+      setSectorAllocation(chartData.sectorAllocation);
       setFundingTrend(getDefaultFundingTrend());
-      setSectorAllocation(getDefaultSectorAllocation());
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Fix: Better filtering with null checks
+  // Better filtering with null checks
   const filteredSources = React.useMemo(() => {
     if (!Array.isArray(fundingSourcesList)) return [];
     
     return fundingSourcesList.filter(source => {
       const matchesSearch = (source.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
                            (source.dev_partner?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+      
       const matchesType = filterType === 'All' || source.type === filterType;
+      
       return matchesSearch && matchesType;
     });
   }, [fundingSourcesList, searchTerm, filterType]);

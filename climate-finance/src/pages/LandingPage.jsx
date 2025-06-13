@@ -61,8 +61,8 @@ const LandingPage = () => {
         regionalResponse
       ] = await Promise.all([
         projectApi.getDashboardOverviewStats().catch(() => ({ status: false, data: null })),
-        projectApi.getProjectsByStatus().catch(() => ({ status: false, data: [] })),
-        projectApi.getProjectsBySector().catch(() => ({ status: false, data: [] })),
+        projectApi.getByStatus().catch(() => ({ status: false, data: [] })),
+        projectApi.getBySector().catch(() => ({ status: false, data: [] })),
         projectApi.getRegionalDistribution().catch(() => ({ status: false, data: [] }))
       ]);
 

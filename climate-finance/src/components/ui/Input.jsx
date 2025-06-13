@@ -1,135 +1,209 @@
-import React, { forwardRef } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import React from 'react';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 
-const Input = forwardRef(({
+const Input = ({
   label,
   name,
   type = 'text',
-  value = '',
+  value,
   onChange,
-  onBlur,
   placeholder,
   required = false,
   disabled = false,
   error,
   helpText,
-  leftIcon,
-  rightIcon,
-  className = '',
-  containerClassName = '',
-  showPasswordToggle = false,
-  options = [], // for select type
-  rows = 3, // for textarea
+  options = [],
+  rows = 4,
   step,
   min,
   max,
+  containerClassName = '',
+  className = '',
+  leftIcon,
+  rightIcon,
   ...props
-}, ref) => {
+}) => {
   const [showPassword, setShowPassword] = React.useState(false);
-  
-  const baseClasses = `
-    w-full px-3 py-2 border rounded-xl shadow-sm 
-    focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent 
-    transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed
-  `;
-  
-  const borderClasses = error 
-    ? 'border-red-300 focus:ring-red-500' 
-    : 'border-gray-300';
-    
-  const inputClasses = `${baseClasses} ${borderClasses} ${className}`;
-  
-  const renderInput = () => {
-    const commonProps = {
-      ref,
-      name,
-      value,
-      onChange,
-      onBlur,
-      placeholder,
-      required,
-      disabled,
-      className: inputClasses,
-      ...props
-    };
+  const [isFocused, setIsFocused] = React.useState(false);
 
+  const baseInputClasses = `
+    w-full px-4 py-3 border rounded-lg transition-all duration-200
+    ${error 
+      ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+      : 'border-gray-300 focus:border-purple-500 focus:ring-purple-500'
+    }
+    ${disabled 
+      ? 'bg-gray-100 cursor-not-allowed text-gray-500' 
+      : 'bg-white hover:border-gray-400'
+    }
+    focus:ring-2 focus:ring-opacity-20 focus:outline-none
+    ${leftIcon ? 'pl-11' : ''}
+    ${rightIcon || type === 'password' ? 'pr-11' : ''}
+    ${className}
+  `;
+
+  const handleChange = (e) => {
+    if (onChange) {
+      onChange(e);
+    }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const renderInput = () => {
     switch (type) {
       case 'textarea':
-        return <textarea {...commonProps} rows={rows} />;
-        
+        return (
+          <textarea
+            id={name}
+            name={name}
+            value={value || ''}
+            onChange={handleChange}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            placeholder={placeholder}
+            required={required}
+            disabled={disabled}
+            rows={rows}
+            className={baseInputClasses}
+            {...props}
+          />
+        );
+
       case 'select':
         return (
-          <select {...commonProps}>
-            {options.map(option => (
-              <option key={option.value} value={option.value}>
+          <select
+            id={name}
+            name={name}
+            value={value || ''}
+            onChange={handleChange}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            required={required}
+            disabled={disabled}
+            className={baseInputClasses}
+            {...props}
+          >
+            {options.map((option, index) => (
+              <option key={index} value={option.value}>
                 {option.label}
               </option>
             ))}
           </select>
         );
-        
-      case 'number':
-        return <input {...commonProps} type="number" step={step} min={min} max={max} />;
-        
+
       case 'password':
         return (
-          <input 
-            {...commonProps} 
-            type={showPasswordToggle && showPassword ? 'text' : 'password'} 
+          <div className="relative">
+            <input
+              id={name}
+              name={name}
+              type={showPassword ? 'text' : 'password'}
+              value={value || ''}
+              onChange={handleChange}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              placeholder={placeholder}
+              required={required}
+              disabled={disabled}
+              className={baseInputClasses}
+              {...props}
+            />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+        );
+
+      case 'number':
+        return (
+          <input
+            id={name}
+            name={name}
+            type="number"
+            value={value || ''}
+            onChange={handleChange}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            placeholder={placeholder}
+            required={required}
+            disabled={disabled}
+            step={step}
+            min={min}
+            max={max}
+            className={baseInputClasses}
+            {...props}
           />
         );
-        
+
       default:
-        return <input {...commonProps} type={type} />;
+        return (
+          <div className="relative">
+            {leftIcon && (
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                {leftIcon}
+              </div>
+            )}
+            <input
+              id={name}
+              name={name}
+              type={type}
+              value={value || ''}
+              onChange={handleChange}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              placeholder={placeholder}
+              required={required}
+              disabled={disabled}
+              step={step}
+              min={min}
+              max={max}
+              className={baseInputClasses}
+              {...props}
+            />
+            {rightIcon && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                {rightIcon}
+              </div>
+            )}
+          </div>
+        );
     }
   };
 
   return (
-    <div className={`${containerClassName}`}>
+    <div className={`space-y-2 ${containerClassName}`}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label 
+          htmlFor={name}
+          className="block text-sm font-medium text-gray-700"
+        >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
       
-      <div className="relative">
-        {leftIcon && (
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            {leftIcon}
-          </div>
-        )}
-        
-        <div className={leftIcon ? 'pl-10' : ''}>
-          {renderInput()}
-        </div>
-        
-        {(rightIcon || (type === 'password' && showPasswordToggle)) && (
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-            {type === 'password' && showPasswordToggle ? (
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            ) : rightIcon}
-          </div>
-        )}
-      </div>
+      {renderInput()}
       
       {error && (
-        <p className="mt-1 text-sm text-red-600">{error}</p>
+        <div className="flex items-center space-x-1 text-red-600 text-sm">
+          <AlertCircle size={14} />
+          <span>{error}</span>
+        </div>
       )}
       
       {helpText && !error && (
-        <p className="mt-1 text-sm text-gray-500">{helpText}</p>
+        <p className="text-sm text-gray-500">{helpText}</p>
       )}
     </div>
   );
-});
-
-Input.displayName = 'Input';
+};
 
 export default Input;

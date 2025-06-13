@@ -5,6 +5,7 @@ import PageLayout from "../components/layouts/PageLayout";
 import PageHeader from "../components/layouts/PageHeader";
 import Card from "../components/ui/Card";
 import Loading from "../components/ui/Loading";
+import ErrorState from "../components/ui/ErrorState";
 import { formatCurrency } from '../utils/formatters';
 import { projectApi } from '../services/api';
 import {
@@ -17,6 +18,7 @@ import {
   Plus,
   User,
   Banknote,
+  RefreshCw
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -65,6 +67,8 @@ const AdminDashboard = () => {
             color: "bg-purple-400",
           },
         ]);
+      } else {
+        throw new Error('Invalid response data');
       }
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
@@ -74,25 +78,25 @@ const AdminDashboard = () => {
         {
           title: "Total Projects",
           value: 0,
-          change: "No data",
+          change: "No data available",
           color: "bg-purple-500",
         },
         {
           title: "Active Projects",
           value: 0,
-          change: "No data",
+          change: "No data available",
           color: "bg-purple-600",
         },
         {
           title: "Total Climate Finance",
           value: 0,
-          change: "No data",
+          change: "No data available",
           color: "bg-purple-700",
         },
         {
           title: "Adaptation Finance",
           value: 0,
-          change: "No data",
+          change: "No data available",
           color: "bg-purple-400",
         },
       ]);
@@ -166,7 +170,7 @@ const AdminDashboard = () => {
       {/* Page Header - Using reusable component */}
       <PageHeader
         title="Climate Finance Admin Portal"
-        subtitle={`Welcome back, ${user?.fullName}`}
+        subtitle={`Welcome back, ${user?.fullName || user?.full_name || 'Admin'}`}
         backPath="/"
         backText="Back to Main Site"
         showUserInfo={true}
@@ -175,17 +179,13 @@ const AdminDashboard = () => {
       />
 
       {error && (
-        <Card padding={true} className="mb-6">
-          <div className="text-center py-4">
-            <p className="text-red-600 text-sm">{error}</p>
-            <button
-              onClick={fetchDashboardStats}
-              className="text-purple-600 hover:text-purple-700 underline mt-2"
-            >
-              Try again
-            </button>
-          </div>
-        </Card>
+        <ErrorState
+          title="Dashboard Error"
+          message={error}
+          onRefresh={fetchDashboardStats}
+          showRefresh={true}
+          className="mb-6"
+        />
       )}
 
       {/* Dashboard Stats */}

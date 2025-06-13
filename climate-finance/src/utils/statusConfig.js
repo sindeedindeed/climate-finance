@@ -11,10 +11,20 @@ export const STATUS_CONFIG = {
     color: 'bg-blue-100 text-blue-800',
     iconName: 'CheckCircle'
   },
-  'under-implementation': {
-    label: 'Under Implementation',
+  planning: {
+    label: 'Planning',
     color: 'bg-yellow-100 text-yellow-800',
     iconName: 'Clock'
+  },
+  'under-implementation': {
+    label: 'Under Implementation',
+    color: 'bg-orange-100 text-orange-800',
+    iconName: 'Cog'
+  },
+  'on-hold': {
+    label: 'On Hold',
+    color: 'bg-gray-100 text-gray-800',
+    iconName: 'Pause'
   },
   cancelled: {
     label: 'Cancelled',
@@ -23,8 +33,8 @@ export const STATUS_CONFIG = {
   },
   pending: {
     label: 'Pending',
-    color: 'bg-gray-100 text-gray-800',
-    iconName: 'Pause'
+    color: 'bg-slate-100 text-slate-800',
+    iconName: 'Clock'
   }
 };
 

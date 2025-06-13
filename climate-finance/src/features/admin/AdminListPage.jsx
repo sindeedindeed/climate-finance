@@ -92,7 +92,9 @@ const AdminListPage = ({
   // Handle delete
   const handleDelete = async (item) => {
     try {
-      await apiService.delete(item.id || item[`${entityName}_id`]);
+      // Handle different ID field names for different entities
+      const id = item.id || item[`${entityName}_id`] || item.project_id || item.agency_id || item.location_id || item.focal_area_id || item.funding_source_id;
+      await apiService.delete(id);
       await fetchData();
       setDeleteModal({ isOpen: false, item: null });
     } catch (err) {
@@ -128,7 +130,11 @@ const AdminListPage = ({
       label: 'Edit',
       icon: <Edit size={14} />,
       variant: 'outline',
-      onClick: (row) => navigate(`/admin/${entityName}s/${row.id || row[`${entityName}_id`]}/edit`)
+      onClick: (row) => {
+        // Handle different ID field names for different entities
+        const id = row.id || row[`${entityName}_id`] || row.project_id || row.agency_id || row.location_id || row.focal_area_id || row.funding_source_id;
+        navigate(`/admin/${entityName}s/${id}/edit`);
+      }
     },
     {
       label: 'Delete',
