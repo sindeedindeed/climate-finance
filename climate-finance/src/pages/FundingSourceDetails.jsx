@@ -23,6 +23,7 @@ import PageLayout from '../components/layouts/PageLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
+import ProgressBar from '../components/ui/ProgressBar';
 import { formatCurrency } from '../utils/formatters';
 import { generateOrganizationLogo } from '../utils/svgPlaceholder';
 import { fundingSourceApi } from '../services/api';
@@ -218,21 +219,14 @@ const FundingSourceDetails = () => {
                 </div>
 
                 {disbursementRate > 0 && (
-                  <div className="bg-gradient-to-r from-gray-50 to-purple-50 rounded-lg p-6 mb-6 border border-gray-100">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="text-sm text-gray-700 font-semibold">Disbursement Progress</div>
-                      <div className="text-sm text-purple-600 font-bold">{disbursementRate.toFixed(1)}% Disbursed</div>
-                    </div>
-                    <div className="text-sm text-gray-500 mb-4">
-                      Disbursed: {formatCurrency(source.total_disbursed || source.disbursement || 0)} of {formatCurrency(source.total_committed || source.grant_amount || 0)}
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-                      <div
-                        className="bg-gradient-to-r from-purple-500 to-purple-600 h-4 rounded-full transition-all duration-700 ease-out shadow-sm"
-                        style={{ width: `${disbursementRate}%` }}
-                      ></div>
-                    </div>
-                  </div>
+                  <ProgressBar
+                    label="Disbursement Progress"
+                    percentage={disbursementRate}
+                    current={source.total_disbursed || source.disbursement || 0}
+                    total={source.total_committed || source.grant_amount || 0}
+                    formatValue={formatCurrency}
+                    color="purple"
+                  />
                 )}
               </div>
               

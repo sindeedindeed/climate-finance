@@ -1,62 +1,62 @@
 import React from 'react';
 
-const ProgressBar = ({
-  value = 0,
-  max = 100,
-  label,
-  showPercentage = true,
-  showValue = false,
-  size = 'md', // 'sm' | 'md' | 'lg'
-  color = 'primary', // 'primary' | 'success' | 'warning' | 'error'
-  animated = false,
-  className = ''
+const ProgressBar = ({ 
+  label = "Progress",
+  percentage = 0, 
+  current = 0, 
+  total = 0, 
+  formatValue = (value) => value,
+  color = "purple",
+  showValues = true,
+  className = ""
 }) => {
-  const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
-  
-  const sizeClasses = {
-    sm: 'h-1.5',
-    md: 'h-2',
-    lg: 'h-3'
+  const colorClasses = {
+    purple: {
+      gradient: "from-purple-500 to-purple-600",
+      text: "text-purple-600",
+      bg: "from-gray-50 to-purple-50"
+    },
+    green: {
+      gradient: "from-green-500 to-green-600", 
+      text: "text-green-600",
+      bg: "from-gray-50 to-green-50"
+    },
+    blue: {
+      gradient: "from-blue-500 to-blue-600",
+      text: "text-blue-600", 
+      bg: "from-gray-50 to-blue-50"
+    },
+    orange: {
+      gradient: "from-orange-500 to-orange-600",
+      text: "text-orange-600",
+      bg: "from-gray-50 to-orange-50"
+    }
   };
 
-  const colorClasses = {
-    primary: 'bg-purple-500',
-    success: 'bg-green-500',
-    warning: 'bg-yellow-500',
-    error: 'bg-red-500'
-  };
+  const selectedColor = colorClasses[color] || colorClasses.purple;
 
   return (
-    <div className={`w-full ${className}`}>
-      {/* Label and value display */}
-      {(label || showPercentage || showValue) && (
-        <div className="flex justify-between items-center mb-1">
-          {label && (
-            <span className="text-sm font-medium text-gray-700">{label}</span>
-          )}
-          <div className="text-sm text-gray-600">
-            {showValue && (
-              <span className="mr-2">
-                {typeof value === 'number' ? value.toLocaleString() : value} / {typeof max === 'number' ? max.toLocaleString() : max}
-              </span>
-            )}
-            {showPercentage && (
-              <span>{Math.round(percentage)}%</span>
-            )}
-          </div>
+    <div className={`bg-gradient-to-r ${selectedColor.bg} rounded-lg p-6 border border-gray-100 ${className}`}>
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-sm text-gray-700 font-semibold">
+          {label}
+        </div>
+        <div className={`text-sm ${selectedColor.text} font-bold`}>
+          {percentage.toFixed(1)}%
+        </div>
+      </div>
+      
+      {showValues && (
+        <div className="text-sm text-gray-500 mb-4">
+          {formatValue(current)} of {formatValue(total)}
         </div>
       )}
       
-      {/* Progress bar */}
-      <div className={`w-full bg-gray-200 rounded-full ${sizeClasses[size]}`}>
+      <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
         <div
-          className={`
-            ${colorClasses[color]} ${sizeClasses[size]} rounded-full 
-            transition-all duration-500 ease-out
-            ${animated ? 'animate-pulse' : ''}
-          `}
-          style={{ width: `${percentage}%` }}
-        />
+          className={`bg-gradient-to-r ${selectedColor.gradient} h-4 rounded-full transition-all duration-700 ease-out shadow-sm`}
+          style={{ width: `${Math.min(percentage, 100)}%` }}
+        ></div>
       </div>
     </div>
   );

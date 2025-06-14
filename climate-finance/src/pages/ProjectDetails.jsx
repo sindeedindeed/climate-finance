@@ -25,6 +25,7 @@ import PageLayout from '../components/layouts/PageLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
+import ProgressBar from '../components/ui/ProgressBar';
 import { formatCurrency } from '../utils/formatters';
 import { projectApi } from '../services/api';
 
@@ -208,310 +209,300 @@ const ProjectDetails = () => {
 
   return (
     <PageLayout bgColor="bg-gray-50">
-      <div className="mb-6">
-        <Link
-          to="/projects"
-          className="flex items-center text-purple-600 hover:text-purple-700 transition-colors group"
-        >
-          <ArrowLeft
-            size={18}
-            className="mr-2 group-hover:-translate-x-1 transition-transform"
-          />
-          Back to Projects
-        </Link>
-      </div>
-
-      <Card className="mb-6 overflow-visible" padding={true}>
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span
-              className={`text-xs px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 ${getStatusColor(project.status)}`}
-            >
-              {getStatusIcon(project.status)}
-              {project.status}
-            </span>
-            <span className="text-xs text-gray-400">{project.project_id}</span>
-          </div>
-
-          <div className="flex flex-col md:flex-row md:gap-8">
-            <div className="w-full md:w-3/5">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                {project.title || 'Untitled Project'}
-              </h2>
-              <p className="text-sm text-gray-600 mb-6">
-                {project.objectives || project.description || 'No description available'}
-              </p>
-
-              {getTotalBudget(project) > 0 && (
-                <div className="bg-gradient-to-r from-gray-50 to-purple-50 rounded-lg p-6 border border-gray-100">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="text-sm text-gray-700 font-semibold">
-                      Financial Progress
-                    </div>
-                    <div className="text-sm text-purple-600 font-bold">
-                      {progressPercentage}% Disbursed
-                    </div>
-                  </div>
-                  <div className="text-sm text-gray-500 mb-4">
-                    Disbursed: {formatCurrency(project.disbursement || 0)} of{' '}
-                    {formatCurrency(getTotalBudget(project))}
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-                    <div
-                      className="bg-gradient-to-r from-purple-500 to-purple-600 h-4 rounded-full transition-all duration-700 ease-out shadow-sm"
-                      style={{ width: `${progressPercentage}%` }}
-                    ></div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="w-full md:w-2/5 mt-6 md:mt-0">
-              <div className="flex justify-end mb-4">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
-                  onClick={handleExportReport}
-                  leftIcon={<Download size={16} />}
-                >
-                  Export Report
-                </Button>
-              </div>
-
-              <ul className="space-y-2 text-sm text-gray-700">
-                <li className="flex items-start gap-2">
-                  <Calendar size={16} className="mt-0.5 text-purple-600" />
-                  <div>
-                    <span className="font-semibold">Project Timeline</span>
-                    <div className="text-xs text-gray-600">
-                      {getTimeline(project)}
-                    </div>
-                  </div>
-                </li>
-                <li className="flex items-start gap-2">
-                  <MapPin size={16} className="mt-0.5 text-purple-600" />
-                  <div>
-                    <span className="font-semibold">Locations</span>
-                    <div className="text-xs text-gray-600">
-                      {getLocation(project)}
-                    </div>
-                  </div>
-                </li>
-                <li className="flex items-start gap-2">
-                  <DollarSign size={16} className="mt-0.5 text-purple-600" />
-                  <div>
-                    <span className="font-semibold">Total Budget</span>
-                    <div className="text-xs text-gray-600">
-                      {formatCurrency(getTotalBudget(project))}
-                    </div>
-                  </div>
-                </li>
-                {project.beneficiaries && (
-                  <li className="flex items-start gap-2">
-                    <Users size={16} className="mt-0.5 text-purple-600" />
-                    <div>
-                      <span className="font-semibold">Beneficiaries</span>
-                      <div className="text-xs text-gray-600">
-                        {project.beneficiaries}
-                      </div>
-                    </div>
-                  </li>
-                )}
-                {project.sector && (
-                  <li className="flex items-start gap-2">
-                    <Tag size={16} className="mt-0.5 text-purple-600" />
-                    <div>
-                      <span className="font-semibold">Sector</span>
-                      <div className="text-xs text-gray-600">
-                        {project.sector}
-                      </div>
-                    </div>
-                  </li>
-                )}
-                {project.wash_component?.presence && (
-                  <li className="flex items-start gap-2">
-                    <Droplet size={16} className="mt-0.5 text-purple-600" />
-                    <div>
-                      <span className="font-semibold">WASH Component</span>
-                      <div className="text-xs text-gray-600">
-                        Included in this project
-                      </div>
-                    </div>
-                  </li>
-                )}
-              </ul>
-            </div>
-          </div>
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-6">
+          <Link
+            to="/projects"
+            className="flex items-center text-purple-600 hover:text-purple-700 transition-colors group"
+          >
+            <ArrowLeft
+              size={18}
+              className="mr-2 group-hover:-translate-x-1 transition-transform"
+            />
+            Back to Projects
+          </Link>
         </div>
-      </Card>
 
-      <Card className="mb-6" padding={true}>
-        <div>
-          <div className="font-semibold mb-4">
-            Implementing & Executing Agencies
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Array.isArray(project.projectAgencies) && project.projectAgencies.length > 0 ? (
-              project.projectAgencies.map((agency, index) => (
-                <div
-                  key={index}
-                  className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-3"
-                >
-                  <Building size={18} className="text-purple-600" />
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">
-                      {agency.name}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {agency.type} • {agency.category}
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-sm text-gray-500">
-                No agencies information available
-              </div>
-            )}
-          </div>
-        </div>
-      </Card>
-
-      <Card className="mb-6" padding={true}>
-        <div>
-          <div className="font-semibold mb-4">Funding Sources</div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Array.isArray(project.projectFundingSources) && project.projectFundingSources.length > 0 ? (
-              project.projectFundingSources.map((source, index) => (
-                <div
-                  key={index}
-                  className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-3"
-                >
-                  <DollarSign size={18} className="text-purple-600" />
-                  <div>
-                    <div className="font-medium text-sm">
-                      {source.name}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {source.dev_partner}
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-sm text-gray-500">
-                No funding source information available
-              </div>
-            )}
-          </div>
-        </div>
-      </Card>
-
-      <Card className="mb-6" padding={true}>
-        <div>
-          <div className="font-semibold mb-4">Project Locations</div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {Array.isArray(project.projectLocations) && project.projectLocations.length > 0 ? (
-              project.projectLocations.map((location, index) => (
-                <div
-                  key={index}
-                  className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-3"
-                >
-                  <MapPin size={18} className="text-purple-600" />
-                  <div>
-                    <div className="font-medium text-sm">
-                      {location.name}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {location.region}
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-sm text-gray-500">
-                No location information available
-              </div>
-            )}
-          </div>
-        </div>
-      </Card>
-
-      <Card className="mb-6" padding={true}>
-        <div>
-          <div className="font-semibold mb-4">Focal Areas</div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {Array.isArray(project.projectFocalAreas) && project.projectFocalAreas.length > 0 ? (
-              project.projectFocalAreas.map((area, index) => (
-                <div
-                  key={index}
-                  className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-3"
-                >
-                  <Tag size={18} className="text-purple-600" />
-                  <div>
-                    <div className="font-medium text-sm">{area.name}</div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-sm text-gray-500">
-                No focal area information available
-              </div>
-            )}
-          </div>
-        </div>
-      </Card>
-
-      {project.wash_component?.presence && (
-        <Card className="mb-6" padding={true}>
+        <Card className="mb-6 overflow-visible" padding={true}>
           <div>
-            <div className="font-semibold mb-4">WASH Component Details</div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                <div className="text-sm font-medium mb-1">Water Supply</div>
-                <div className="text-xs text-gray-500">
-                  {project.wash_component.water_supply_percent || 0}%
-                </div>
+            <div className="flex items-center gap-2 mb-1">
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 ${getStatusColor(project.status)}`}
+              >
+                {getStatusIcon(project.status)}
+                {project.status}
+              </span>
+              <span className="text-xs text-gray-400">{project.project_id}</span>
+            </div>
+
+            <div className="flex flex-col md:flex-row md:gap-8">
+              <div className="w-full md:w-3/5">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {project.title || 'Untitled Project'}
+                </h2>
+                <p className="text-sm text-gray-600 mb-6">
+                  {project.objectives || project.description || 'No description available'}
+                </p>
+
+                {getTotalBudget(project) > 0 && (
+                  <ProgressBar
+                    label="Financial Progress"
+                    percentage={progressPercentage}
+                    current={project.disbursement || 0}
+                    total={getTotalBudget(project)}
+                    formatValue={formatCurrency}
+                    color="purple"
+                  />
+                )}
               </div>
-              <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                <div className="text-sm font-medium mb-1">Sanitation</div>
-                <div className="text-xs text-gray-500">
-                  {project.wash_component.sanitation_percent || 0}%
+
+              <div className="w-full md:w-2/5 mt-6 md:mt-0">
+                <div className="flex justify-end mb-4">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
+                    onClick={handleExportReport}
+                    leftIcon={<Download size={16} />}
+                  >
+                    Export Report
+                  </Button>
                 </div>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                <div className="text-sm font-medium mb-1">
-                  Public Administration
-                </div>
-                <div className="text-xs text-gray-500">
-                  {project.wash_component.public_admin_percent || 0}%
-                </div>
+
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start gap-2">
+                    <Calendar size={16} className="mt-0.5 text-purple-600" />
+                    <div>
+                      <span className="font-semibold">Project Timeline</span>
+                      <div className="text-xs text-gray-600">
+                        {getTimeline(project)}
+                      </div>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <MapPin size={16} className="mt-0.5 text-purple-600" />
+                    <div>
+                      <span className="font-semibold">Locations</span>
+                      <div className="text-xs text-gray-600">
+                        {getLocation(project)}
+                      </div>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <DollarSign size={16} className="mt-0.5 text-purple-600" />
+                    <div>
+                      <span className="font-semibold">Total Budget</span>
+                      <div className="text-xs text-gray-600">
+                        {formatCurrency(getTotalBudget(project))}
+                      </div>
+                    </div>
+                  </li>
+                  {project.beneficiaries && (
+                    <li className="flex items-start gap-2">
+                      <Users size={16} className="mt-0.5 text-purple-600" />
+                      <div>
+                        <span className="font-semibold">Beneficiaries</span>
+                        <div className="text-xs text-gray-600">
+                          {project.beneficiaries}
+                        </div>
+                      </div>
+                    </li>
+                  )}
+                  {project.sector && (
+                    <li className="flex items-start gap-2">
+                      <Tag size={16} className="mt-0.5 text-purple-600" />
+                      <div>
+                        <span className="font-semibold">Sector</span>
+                        <div className="text-xs text-gray-600">
+                          {project.sector}
+                        </div>
+                      </div>
+                    </li>
+                  )}
+                  {project.wash_component?.presence && (
+                    <li className="flex items-start gap-2">
+                      <Droplet size={16} className="mt-0.5 text-purple-600" />
+                      <div>
+                        <span className="font-semibold">WASH Component</span>
+                        <div className="text-xs text-gray-600">
+                          Included in this project
+                        </div>
+                      </div>
+                    </li>
+                  )}
+                </ul>
               </div>
             </div>
           </div>
         </Card>
-      )}
 
-      <Card className="mb-6" padding={true}>
-        <div>
-          <div className="font-semibold mb-4">Financial Summary</div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">{formatCurrency(getTotalBudget(project))}</div>
-              <div className="text-sm text-gray-600">Total Cost</div>
+        <Card className="mb-6" padding={true}>
+          <div>
+            <div className="font-semibold mb-4">
+              Implementing & Executing Agencies
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{formatCurrency(project.gef_grant || 0)}</div>
-              <div className="text-sm text-gray-600">GEF Grant</div>
-            </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{formatCurrency(project.cofinancing || 0)}</div>
-              <div className="text-sm text-gray-600">Co-financing</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Array.isArray(project.projectAgencies) && project.projectAgencies.length > 0 ? (
+                project.projectAgencies.map((agency, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-3"
+                  >
+                    <Building size={18} className="text-purple-600" />
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">
+                        {agency.name}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {agency.type} • {agency.category}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-gray-500">
+                  No agencies information available
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+
+        <Card className="mb-6" padding={true}>
+          <div>
+            <div className="font-semibold mb-4">Funding Sources</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Array.isArray(project.projectFundingSources) && project.projectFundingSources.length > 0 ? (
+                project.projectFundingSources.map((source, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-3"
+                  >
+                    <DollarSign size={18} className="text-purple-600" />
+                    <div>
+                      <div className="font-medium text-sm">
+                        {source.name}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {source.dev_partner}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-gray-500">
+                  No funding source information available
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        <Card className="mb-6" padding={true}>
+          <div>
+            <div className="font-semibold mb-4">Project Locations</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {Array.isArray(project.projectLocations) && project.projectLocations.length > 0 ? (
+                project.projectLocations.map((location, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-3"
+                  >
+                    <MapPin size={18} className="text-purple-600" />
+                    <div>
+                      <div className="font-medium text-sm">
+                        {location.name}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {location.region}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-gray-500">
+                  No location information available
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        <Card className="mb-6" padding={true}>
+          <div>
+            <div className="font-semibold mb-4">Focal Areas</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {Array.isArray(project.projectFocalAreas) && project.projectFocalAreas.length > 0 ? (
+                project.projectFocalAreas.map((area, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-3"
+                  >
+                    <Tag size={18} className="text-purple-600" />
+                    <div>
+                      <div className="font-medium text-sm">{area.name}</div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-gray-500">
+                  No focal area information available
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        {project.wash_component?.presence && (
+          <Card className="mb-6" padding={true}>
+            <div>
+              <div className="font-semibold mb-4">WASH Component Details</div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <div className="text-sm font-medium mb-1">Water Supply</div>
+                  <div className="text-xs text-gray-500">
+                    {project.wash_component.water_supply_percent || 0}%
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <div className="text-sm font-medium mb-1">Sanitation</div>
+                  <div className="text-xs text-gray-500">
+                    {project.wash_component.sanitation_percent || 0}%
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <div className="text-sm font-medium mb-1">
+                    Public Administration
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {project.wash_component.public_admin_percent || 0}%
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        <Card className="mb-6" padding={true}>
+          <div>
+            <div className="font-semibold mb-4">Financial Summary</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600">{formatCurrency(getTotalBudget(project))}</div>
+                <div className="text-sm text-gray-600">Total Cost</div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">{formatCurrency(project.gef_grant || 0)}</div>
+                <div className="text-sm text-gray-600">GEF Grant</div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">{formatCurrency(project.cofinancing || 0)}</div>
+                <div className="text-sm text-gray-600">Co-financing</div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
     </PageLayout>
   );
 };

@@ -243,7 +243,7 @@ const LandingPage = () => {
 
       {/* Stats Grid */}
       {statsData.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 max-w-7xl mx-auto">
           {statsData.map((stat, index) => (
             <div 
               key={index} 
@@ -261,7 +261,7 @@ const LandingPage = () => {
           ))}
         </div>
       ) : (
-        <div className="mb-8">
+        <div className="mb-8 max-w-7xl mx-auto">
           <Card padding={true}>
             <div className="text-center py-6">
               <p className="text-gray-500">No overview statistics available</p>
