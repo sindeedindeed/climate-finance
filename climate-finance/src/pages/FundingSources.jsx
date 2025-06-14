@@ -307,7 +307,7 @@ const FundingSources = () => {
               >
                 <StatCard 
                   title={stat.title}
-                  value={formatCurrency(stat.value)}
+                  value={stat.title === 'Active Funding Sources' ? stat.value : formatCurrency(stat.value)}
                   change={stat.change}
                   color={index % 2 === 0 ? 'primary' : 'success'}
                   icon={icons[index]}
@@ -455,11 +455,10 @@ const FundingSources = () => {
                   {/* Logo and Basic Info */}
                   <div className="flex items-start space-x-4 flex-1">
                     <div className="flex-shrink-0">
-                      <div 
-                        className="w-16 h-16 rounded-xl overflow-hidden border-2 border-gray-100 group-hover:border-purple-200 transition-colors"
-                        dangerouslySetInnerHTML={{ 
-                          __html: generateOrganizationLogo(source.name || 'Unknown', 64) 
-                        }}
+                      <img 
+                        src={generateOrganizationLogo(source.name || 'Unknown', source.type || 'Unknown', 64)} 
+                        alt={source.name || 'Unknown Source'} 
+                        className="w-16 h-16 rounded-xl border border-gray-100 shadow-sm flex-shrink-0 group-hover:border-purple-200 transition-colors" 
                       />
                     </div>
                     
