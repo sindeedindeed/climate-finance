@@ -7,12 +7,14 @@ import Loading from '../components/ui/Loading';
 import Card from '../components/ui/Card';
 import PageLayout from '../components/layouts/PageLayout';
 import ProjectFormSections from '../features/admin/ProjectFormSections';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FolderTree } from 'lucide-react';
 
 const defaultFormData = {
   project_id: '',
   title: '',
   type: '',
+  sector: '',
+  division: '',
   status: '',
   total_cost_usd: '',
   gef_grant: '',
@@ -24,7 +26,6 @@ const defaultFormData = {
   objectives: '',
   agencies: [],
   funding_sources: [],
-  funding_source_details: '',
   locations: [],
   focal_areas: [],
   wash_component: {
@@ -33,6 +34,13 @@ const defaultFormData = {
     sanitation_percent: 0,
     public_admin_percent: 0
   }
+};
+
+const formatDateForInput = (dateStr) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d)) return '';
+  return d.toISOString().slice(0, 10);
 };
 
 const ProjectFormPage = ({
@@ -80,6 +88,8 @@ const ProjectFormPage = ({
           project_id: projectData.project_id,
           title: projectData.title,
           type: projectData.type,
+          sector: projectData.sector || '',
+          division: projectData.division || '',
           status: projectData.status,
           total_cost_usd: projectData.total_cost_usd,
           gef_grant: projectData.gef_grant,
@@ -91,7 +101,6 @@ const ProjectFormPage = ({
           objectives: projectData.objectives || '',
           agencies: projectData.agencies || [],
           funding_sources: projectData.funding_sources || [],
-          funding_source_details: projectData.funding_source_details || '',
           locations: projectData.locations || [],
           focal_areas: projectData.focal_areas || [],
           wash_component: projectData.wash_component || {
@@ -179,6 +188,14 @@ const ProjectFormPage = ({
       newErrors.type = 'Project type is required';
     }
 
+    if (!formData.sector) {
+      newErrors.sector = 'Project sector is required';
+    }
+
+    if (!formData.division) {
+      newErrors.division = 'Project division is required';
+    }
+
     if (!formData.status) {
       newErrors.status = 'Project status is required';
     }
@@ -196,12 +213,45 @@ const ProjectFormPage = ({
     setError(null);
     
     try {
+      const totalCost = parseFloat(formData.total_cost_usd) || 0;
+      const gefGrant = parseFloat(formData.gef_grant) || 0;
+      const cofinancing = parseFloat(formData.cofinancing) || 0;
+      
+      // Calculate WASH finance based on WASH component presence and total cost
+      const washFinance = formData.wash_component.presence 
+        ? totalCost * (
+            (formData.wash_component.water_supply_percent || 0) + 
+            (formData.wash_component.sanitation_percent || 0) + 
+            (formData.wash_component.public_admin_percent || 0)
+          ) / 100
+        : 0;
+      
+      // Calculate WASH finance percentage
+      const washFinancePercent = totalCost > 0 ? (washFinance / totalCost) * 100 : 0;
+
+      // Create clean project data object
       const projectData = {
-        ...formData,
-        total_cost_usd: parseFloat(formData.total_cost_usd) || 0,
-        gef_grant: parseFloat(formData.gef_grant) || 0,
-        cofinancing: parseFloat(formData.cofinancing) || 0,
-        approval_fy: parseInt(formData.approval_fy) || new Date().getFullYear()
+        title: formData.title,
+        type: formData.type,
+        sector: formData.sector,
+        division: formData.division,
+        status: formData.status,
+        total_cost_usd: totalCost,
+        gef_grant: gefGrant,
+        cofinancing: cofinancing,
+        beginning: formData.beginning,
+        closing: formData.closing,
+        approval_fy: parseInt(formData.approval_fy) || new Date().getFullYear(),
+        beneficiaries: formData.beneficiaries,
+        objectives: formData.objectives,
+        wash_finance: washFinance,
+        wash_finance_percent: washFinancePercent,
+        wash_component: formData.wash_component,
+        // Transform relationship arrays to match backend expectations
+        agency_ids: formData.agencies || [],
+        location_ids: formData.locations || [],
+        funding_source_ids: formData.funding_sources || [],
+        focal_area_ids: formData.focal_areas || []
       };
 
       if (actualMode === 'add') {
@@ -287,26 +337,27 @@ const ProjectFormPage = ({
           {/* Basic Information */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
-            {/* Title field - full width */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700">
-                Title <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
-                  errors.title ? 'border-red-300' : 'border-gray-300'
-                }`}
-                required
-              />
-              {errors.title && (
-                <p className="mt-1 text-sm text-red-600">{errors.title}</p>
-              )}
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Title field - one column */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                    errors.title ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  required
+                />
+                {errors.title && (
+                  <p className="mt-1 text-sm text-red-600">{errors.title}</p>
+                )}
+              </div>
+              
               {/* Project ID: Only show in edit mode */}
               {actualMode === 'edit' && (
                 <div>
@@ -322,6 +373,7 @@ const ProjectFormPage = ({
                   <p className="mt-1 text-xs text-gray-500">Project ID cannot be changed</p>
                 </div>
               )}
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Type <span className="text-red-500">*</span>
@@ -341,6 +393,58 @@ const ProjectFormPage = ({
                 </select>
                 {errors.type && (
                   <p className="mt-1 text-sm text-red-600">{errors.type}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Sector <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="sector"
+                  value={formData.sector}
+                  onChange={handleInputChange}
+                  className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                    errors.sector ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  required
+                >
+                  <option value="">Select Sector</option>
+                  <option value="Agriculture">Agriculture</option>
+                  <option value="Water">Water</option>
+                  <option value="Energy">Energy</option>
+                  <option value="Transport">Transport</option>
+                  <option value="Urban">Urban</option>
+                  <option value="Forestry">Forestry</option>
+                  <option value="Coastal">Coastal</option>
+                  <option value="Disaster Risk Management">Disaster Risk Management</option>
+                  <option value="Health">Health</option>
+                  <option value="Cross-cutting">Cross-cutting</option>
+                </select>
+                {errors.sector && (
+                  <p className="mt-1 text-sm text-red-600">{errors.sector}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Division <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="division"
+                  value={formData.division}
+                  onChange={handleInputChange}
+                  className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                    errors.division ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  required
+                >
+                  <option value="">Select Division</option>
+                  <option value="Local Government">Local Government</option>
+                  <option value="National Government">National Government</option>
+                  <option value="NGO">NGO</option>
+                  <option value="International">International</option>
+                </select>
+                {errors.division && (
+                  <p className="mt-1 text-sm text-red-600">{errors.division}</p>
                 )}
               </div>
               <div>
@@ -430,7 +534,7 @@ const ProjectFormPage = ({
                 <input
                   type="date"
                   name="beginning"
-                  value={formData.beginning}
+                  value={formatDateForInput(formData.beginning)}
                   onChange={handleInputChange}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                 />
@@ -440,7 +544,7 @@ const ProjectFormPage = ({
                 <input
                   type="date"
                   name="closing"
-                  value={formData.closing}
+                  value={formatDateForInput(formData.closing)}
                   onChange={handleInputChange}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                 />

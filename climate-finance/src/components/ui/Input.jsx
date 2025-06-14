@@ -21,6 +21,7 @@ const Input = ({
   className = '',
   leftIcon,
   rightIcon,
+  showPasswordToggle = true, // Add this prop and set default
   ...props
 }) => {
   const [showPassword, setShowPassword] = React.useState(false);
@@ -111,14 +112,16 @@ const Input = ({
               className={baseInputClasses}
               {...props}
             />
-            <button
-              type="button"
-              onClick={togglePasswordVisibility}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
-              tabIndex={-1}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
+            {showPasswordToggle && (
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            )}
           </div>
         );
 
@@ -141,6 +144,28 @@ const Input = ({
             className={baseInputClasses}
             {...props}
           />
+        );
+
+      case 'checkbox':
+        return (
+          <div className="flex items-center">
+            <input
+              id={name}
+              name={name}
+              type="checkbox"
+              checked={value || false}
+              onChange={handleChange}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              required={required}
+              disabled={disabled}
+              className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+              {...props}
+            />
+            <label htmlFor={name} className="ml-2 block text-sm text-gray-900">
+              {label}
+            </label>
+          </div>
         );
 
       default:

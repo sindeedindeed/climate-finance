@@ -8,11 +8,6 @@ import { getStatusConfig } from '../utils/statusConfig';
 const AdminUsers = () => {
   const columns = [
     {
-      key: 'full_name',
-      header: 'Full Name',
-      searchKey: 'full_name'
-    },
-    {
       key: 'username',
       header: 'Username',
       searchKey: 'username'
@@ -31,9 +26,18 @@ const AdminUsers = () => {
       }
     },
     {
-      key: 'created_at',
-      header: 'Created',
-      type: 'date'
+      key: 'department',
+      header: 'Department',
+      searchKey: 'department'
+    },
+    {
+      key: 'active',
+      header: 'Status',
+      render: (value) => (
+        <Badge variant={value ? 'success' : 'danger'}>
+          {value ? 'Active' : 'Inactive'}
+        </Badge>
+      )
     }
   ];
 

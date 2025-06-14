@@ -47,22 +47,22 @@ Project.addProjectWithRelations = async (data) => {
         ];
         await client.query(insertProjectQuery, values);
 
-        // Optional WASHComponent
-        if (wash_component) {
-            const { presence, water_supply_percent, sanitation_percent, public_admin_percent } = wash_component;
-            const insertWASH = `
-                INSERT INTO WASHComponent (
-                    project_id, presence, water_supply_percent, sanitation_percent, public_admin_percent
-                ) VALUES ($1, $2, $3, $4, $5)
-            `;
-            await client.query(insertWASH, [
-                project_id,
-                presence,
-                water_supply_percent || 0,
-                sanitation_percent || 0,
-                public_admin_percent || 0
-            ]);
-        }
+        // Always update/create WASHComponent record (required for data consistency)
+        const washData = wash_component || { presence: false, water_supply_percent: 0, sanitation_percent: 0, public_admin_percent: 0 };
+        const { presence, water_supply_percent, sanitation_percent, public_admin_percent } = washData;
+        
+        const insertWASH = `
+            INSERT INTO WASHComponent (
+                project_id, presence, water_supply_percent, sanitation_percent, public_admin_percent
+            ) VALUES ($1, $2, $3, $4, $5)
+        `;
+        await client.query(insertWASH, [
+            project_id,
+            presence,
+            water_supply_percent || 0,
+            sanitation_percent || 0,
+            public_admin_percent || 0
+        ]);
 
         for (const agency_id of agency_ids) {
             await client.query(
@@ -104,22 +104,192 @@ Project.addProjectWithRelations = async (data) => {
 
 Project.getAllProjects = async () => {
     const query = `
-                SELECT p.*, wc.* 
-                FROM Project p
-                INNER JOIN WASHComponent wc ON p.project_id = wc.project_id
-                `
+        SELECT 
+            p.project_id,
+            p.title,
+            p.type,
+            p.sector,
+            p.division,
+            p.status,
+            p.approval_fy,
+            p.beginning,
+            p.closing,
+            p.total_cost_usd,
+            p.gef_grant,
+            p.cofinancing,
+            p.disbursement,
+            p.wash_finance,
+            p.wash_finance_percent,
+            p.beneficiaries,
+            p.objectives,
+            wc.presence as wash_presence,
+            wc.water_supply_percent,
+            wc.sanitation_percent,
+            wc.public_admin_percent
+        FROM Project p
+        LEFT JOIN WASHComponent wc ON p.project_id = wc.project_id
+    `;
     const { rows } = await pool.query(query);
-    return rows;
+    
+    // Transform the results to include wash_component as an object
+    return rows.map(row => ({
+        project_id: row.project_id,
+        title: row.title,
+        type: row.type,
+        sector: row.sector,
+        division: row.division,
+        status: row.status,
+        approval_fy: row.approval_fy,
+        beginning: row.beginning,
+        closing: row.closing,
+        total_cost_usd: row.total_cost_usd,
+        gef_grant: row.gef_grant,
+        cofinancing: row.cofinancing,
+        disbursement: row.disbursement,
+        wash_finance: row.wash_finance,
+        wash_finance_percent: row.wash_finance_percent,
+        beneficiaries: row.beneficiaries,
+        objectives: row.objectives,
+        wash_component: {
+            presence: row.wash_presence || false,
+            water_supply_percent: row.water_supply_percent || 0,
+            sanitation_percent: row.sanitation_percent || 0,
+            public_admin_percent: row.public_admin_percent || 0
+        }
+    }));
 };
 
 Project.updateProject = async (id, data) => {
-    const fields = Object.keys(data);
-    const values = Object.values(data);
-    const setClause = fields.map((f, i) => `${f} = $${i + 1}`).join(', ');
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
 
-    const query = `UPDATE Project SET ${setClause} WHERE project_id = $${fields.length + 1} RETURNING *`;
-    const result = await pool.query(query, [...values, id]);
-    return result.rows[0];
+        // Add debugging
+        console.log('Update Project - ID:', id);
+        console.log('Update Project - Data keys:', Object.keys(data));
+        console.log('Update Project - wash_component:', data.wash_component);
+
+        const {
+            title,
+            type,
+            sector,
+            division,
+            status,
+            approval_fy,
+            beginning,
+            closing,
+            total_cost_usd,
+            gef_grant,
+            cofinancing,
+            wash_finance,
+            wash_finance_percent,
+            beneficiaries,
+            objectives,
+            agency_ids = [],
+            location_ids = [],
+            funding_source_ids = [],
+            focal_area_ids = [],
+            wash_component
+        } = data;
+
+        // Update the main project record (no wash_component column here)
+        const updateProjectQuery = `
+            UPDATE Project SET 
+                title = $1, type = $2, sector = $3, division = $4, status = $5, 
+                approval_fy = $6, beginning = $7, closing = $8, total_cost_usd = $9, 
+                gef_grant = $10, cofinancing = $11, wash_finance = $12, 
+                wash_finance_percent = $13, beneficiaries = $14, objectives = $15
+            WHERE project_id = $16
+            RETURNING *
+        `;
+        
+        console.log('Executing project update query...');
+        
+        const values = [
+            title, type, sector, division, status, approval_fy, beginning, closing,
+            total_cost_usd, gef_grant, cofinancing, wash_finance,
+            wash_finance_percent, beneficiaries, objectives, id
+        ];
+        
+        const result = await client.query(updateProjectQuery, values);
+        console.log('Project update query completed');
+
+        // Always update/create WASHComponent record (required for data consistency)
+        const washData = wash_component || { presence: false, water_supply_percent: 0, sanitation_percent: 0, public_admin_percent: 0 };
+        const { presence, water_supply_percent, sanitation_percent, public_admin_percent } = washData;
+        
+        console.log('Executing WASH component update...');
+        
+        const updateWASH = `
+            INSERT INTO WASHComponent (
+                project_id, presence, water_supply_percent, sanitation_percent, public_admin_percent
+            ) VALUES ($1, $2, $3, $4, $5)
+            ON CONFLICT (project_id) 
+            DO UPDATE SET 
+                presence = EXCLUDED.presence,
+                water_supply_percent = EXCLUDED.water_supply_percent,
+                sanitation_percent = EXCLUDED.sanitation_percent,
+                public_admin_percent = EXCLUDED.public_admin_percent
+        `;
+        await client.query(updateWASH, [
+            id,
+            presence,
+            water_supply_percent || 0,
+            sanitation_percent || 0,
+            public_admin_percent || 0
+        ]);
+        
+        console.log('WASH component update completed');
+
+        // Update relationships - delete existing and insert new ones
+        console.log('Updating relationships...');
+        
+        // Delete existing relationships
+        await client.query('DELETE FROM ProjectAgency WHERE project_id = $1', [id]);
+        await client.query('DELETE FROM ProjectLocation WHERE project_id = $1', [id]);
+        await client.query('DELETE FROM ProjectFundingSource WHERE project_id = $1', [id]);
+        await client.query('DELETE FROM ProjectFocalArea WHERE project_id = $1', [id]);
+
+        // Insert new relationships
+        for (const agency_id of agency_ids) {
+            await client.query(
+                'INSERT INTO ProjectAgency (project_id, agency_id) VALUES ($1, $2)',
+                [id, agency_id]
+            );
+        }
+
+        for (const location_id of location_ids) {
+            await client.query(
+                'INSERT INTO ProjectLocation (project_id, location_id) VALUES ($1, $2)',
+                [id, location_id]
+            );
+        }
+
+        for (const funding_source_id of funding_source_ids) {
+            await client.query(
+                'INSERT INTO ProjectFundingSource (project_id, funding_source_id) VALUES ($1, $2)',
+                [id, funding_source_id]
+            );
+        }
+
+        for (const focal_area_id of focal_area_ids) {
+            await client.query(
+                'INSERT INTO ProjectFocalArea (project_id, focal_area_id) VALUES ($1, $2)',
+                [id, focal_area_id]
+            );
+        }
+
+        console.log('All updates completed successfully');
+        await client.query('COMMIT');
+        return result.rows[0];
+    } catch (err) {
+        console.error('Update Project Error:', err.message);
+        console.error('Stack trace:', err.stack);
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
+    }
 };
 
 Project.deleteProject = async (id) => {
@@ -127,14 +297,93 @@ Project.deleteProject = async (id) => {
 };
 
 Project.getProjectById = async (id) => {
-    const query = `
-            SELECT p.*, wc.*  
+    const client = await pool.connect();
+    try {
+        // Get basic project data with WASH component
+        const projectQuery = `
+            SELECT 
+                p.*,
+                wc.presence,
+                wc.water_supply_percent,
+                wc.sanitation_percent,
+                wc.public_admin_percent
             FROM Project p
-            INNER JOIN WASHComponent wc ON p.project_id = wc.project_id 
+            LEFT JOIN WASHComponent wc ON p.project_id = wc.project_id 
             WHERE p.project_id = $1
-        `
-    const { rows } = await pool.query(query, [id]);
-    return rows[0];
+        `;
+        const projectResult = await client.query(projectQuery, [id]);
+        
+        if (projectResult.rows.length === 0) {
+            return null;
+        }
+        
+        const project = projectResult.rows[0];
+        
+        // Get related agencies
+        const agenciesQuery = `
+            SELECT a.agency_id
+            FROM Agency a
+            INNER JOIN ProjectAgency pa ON a.agency_id = pa.agency_id
+            WHERE pa.project_id = $1
+        `;
+        const agenciesResult = await client.query(agenciesQuery, [id]);
+        
+        // Get related locations
+        const locationsQuery = `
+            SELECT l.location_id
+            FROM Location l
+            INNER JOIN ProjectLocation pl ON l.location_id = pl.location_id
+            WHERE pl.project_id = $1
+        `;
+        const locationsResult = await client.query(locationsQuery, [id]);
+        
+        // Get related funding sources
+        const fundingSourcesQuery = `
+            SELECT fs.funding_source_id
+            FROM FundingSource fs
+            INNER JOIN ProjectFundingSource pfs ON fs.funding_source_id = pfs.funding_source_id
+            WHERE pfs.project_id = $1
+        `;
+        const fundingSourcesResult = await client.query(fundingSourcesQuery, [id]);
+        
+        // Get related focal areas
+        const focalAreasQuery = `
+            SELECT fa.focal_area_id
+            FROM FocalArea fa
+            INNER JOIN ProjectFocalArea pfa ON fa.focal_area_id = pfa.focal_area_id
+            WHERE pfa.project_id = $1
+        `;
+        const focalAreasResult = await client.query(focalAreasQuery, [id]);
+        
+        // Extract project fields excluding WASH component fields
+        const {
+            presence,
+            water_supply_percent,
+            sanitation_percent,
+            public_admin_percent,
+            ...projectData
+        } = project;
+        
+        // Combine all data with properly structured wash_component
+        return {
+            ...projectData,
+            agencies: agenciesResult.rows.map(row => row.agency_id),
+            locations: locationsResult.rows.map(row => row.location_id),
+            funding_sources: fundingSourcesResult.rows.map(row => row.funding_source_id),
+            focal_areas: focalAreasResult.rows.map(row => row.focal_area_id),
+            wash_component: {
+                presence: presence || false,
+                water_supply_percent: parseFloat(water_supply_percent) || 0,
+                sanitation_percent: parseFloat(sanitation_percent) || 0,
+                public_admin_percent: parseFloat(public_admin_percent) || 0
+            }
+        };
+        
+    } catch (err) {
+        throw err;
+    } finally {
+        client.release();
+    }
 };
 
 Project.getProjectsOverviewStats = async () => {

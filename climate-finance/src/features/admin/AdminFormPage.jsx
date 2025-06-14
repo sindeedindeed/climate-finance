@@ -17,7 +17,8 @@ const AdminFormPage = ({
   validationRules = {},
   onSuccess = null,
   transformSubmitData = (data) => data,
-  transformLoadData = (data) => data
+  transformLoadData = (data) => data,
+  backPath = null // Add backPath as an optional prop
 }) => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -30,7 +31,22 @@ const AdminFormPage = ({
   const [error, setError] = useState(null);
 
   const isEditMode = mode === 'edit' && id;
-  const backPath = `/admin/${entityName}s`;
+  
+  // Proper pluralization function
+  const pluralize = (word) => {
+    const pluralRules = {
+      'agency': 'agencies',
+      'focal-area': 'focal-areas',
+      'funding-source': 'funding-sources',
+      'location': 'locations',
+      'user': 'users',
+      'project': 'projects'
+    };
+    return pluralRules[word] || `${word}s`;
+  };
+
+  const defaultBackPath = `/admin/${pluralize(entityName)}`;
+  const finalBackPath = backPath || defaultBackPath;
 
   // Fetch data for edit mode
   useEffect(() => {
@@ -119,13 +135,13 @@ const AdminFormPage = ({
       if (isEditMode) {
         await apiService.update(id, submitData);
       } else {
-        await apiService.create(submitData);
+        await apiService.add(submitData);
       }
       
       if (onSuccess) {
         onSuccess(submitData, isEditMode);
       } else {
-        navigate(backPath);
+        navigate(finalBackPath);
       }
     } catch (err) {
       if (err.response?.data?.errors) {
@@ -139,7 +155,7 @@ const AdminFormPage = ({
   };
 
   const handleCancel = () => {
-    navigate(backPath);
+    navigate(finalBackPath);
   };
 
   if (isFetching) {
@@ -158,7 +174,7 @@ const AdminFormPage = ({
         <ErrorState
           title={`${entityName.charAt(0).toUpperCase() + entityName.slice(1)} Not Found`}
           message={error}
-          onBack={() => navigate(backPath)}
+          onBack={() => navigate(finalBackPath)}
           showBack={true}
         />
       </PageLayout>
@@ -170,7 +186,7 @@ const AdminFormPage = ({
       <Form
         title={`${isEditMode ? 'Edit' : 'Add'} ${entityName.charAt(0).toUpperCase() + entityName.slice(1)}`}
         subtitle={isEditMode ? `Update ${entityName} information` : `Add a new ${entityName} to the system`}
-        backPath={backPath}
+        backPath={finalBackPath}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         isLoading={isLoading}

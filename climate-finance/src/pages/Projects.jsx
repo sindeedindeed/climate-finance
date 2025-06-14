@@ -24,7 +24,9 @@ import {
   Calendar,
   MapPin,
   Users,
-  Building
+  Building,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 
 const Projects = () => {
@@ -36,6 +38,7 @@ const Projects = () => {
   const [projectTrend, setProjectTrend] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
   
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -51,7 +54,6 @@ const Projects = () => {
       setIsLoading(true);
       setError(null);
 
-      // Fetch all data in parallel - Fix: Changed getProjectTrends to getTrend
       const [
         projectsResponse,
         overviewResponse,
@@ -59,38 +61,23 @@ const Projects = () => {
         typeResponse,
         trendResponse
       ] = await Promise.all([
-        projectApi.getAll().catch(err => {
-          console.error('Error fetching projects:', err);
-          return { status: false, data: [] };
-        }),
-        projectApi.getOverviewStats().catch(err => {
-          console.error('Error fetching overview stats:', err);
-          return { status: false, data: null };
-        }),
-        projectApi.getByStatus().catch(err => {
-          console.error('Error fetching status data:', err);
-          return { status: false, data: [] };
-        }),
-        projectApi.getByType().catch(err => {
-          console.error('Error fetching type data:', err);
-          return { status: false, data: [] };
-        }),
-        projectApi.getTrend().catch(err => {
-          console.error('Error fetching trend data:', err);
-          return { status: false, data: [] };
-        })
+        projectApi.getAll(),
+        projectApi.getOverviewStats(),
+        projectApi.getByStatus(),
+        projectApi.getByType(),
+        projectApi.getTrend()
       ]);
 
       // Process projects data
-      if (projectsResponse.status && projectsResponse.data && Array.isArray(projectsResponse.data)) {
+      if (projectsResponse?.status && Array.isArray(projectsResponse.data)) {
         setProjectsList(projectsResponse.data);
       } else {
-        console.log('Projects API failed, using mock data');
         setProjectsList([]);
+        console.warn('No projects data received from API');
       }
 
       // Process overview stats
-      if (overviewResponse.status && overviewResponse.data) {
+      if (overviewResponse?.status && overviewResponse.data) {
         const data = overviewResponse.data;
         setOverviewStats([
           { title: "Total Projects", value: data.total_projects || 0, change: "+12% from last year" },
@@ -99,98 +86,51 @@ const Projects = () => {
           { title: "Completed Projects", value: data.completed_projects || 0, change: "+23% from last year" }
         ]);
       } else {
-        setOverviewStats(getDefaultStats(projectsResponse.data || []));
+        setOverviewStats([]);
       }
 
       // Process status data
-      if (statusResponse.status && statusResponse.data) {
+      if (statusResponse?.status && Array.isArray(statusResponse.data)) {
         setProjectsByStatus(statusResponse.data);
       } else {
-        setProjectsByStatus([
-          { name: "Active", value: 35 },
-          { name: "Completed", value: 20 },
-          { name: "Planning", value: 15 },
-          { name: "On Hold", value: 5 }
-        ]);
+        setProjectsByStatus([]);
+        console.warn('No status data received from API');
       }
 
       // Process type data
-      if (typeResponse.status && typeResponse.data) {
+      if (typeResponse?.status && Array.isArray(typeResponse.data)) {
         setProjectsByType(typeResponse.data);
       } else {
-        setProjectsByType([
-          { name: "Adaptation", value: 45 },
-          { name: "Mitigation", value: 30 },
-          { name: "Cross-cutting", value: 25 }
-        ]);
+        setProjectsByType([]);
+        console.warn('No type data received from API');
       }
 
       // Process trend data
-      if (trendResponse.status && trendResponse.data) {
+      if (trendResponse?.status && Array.isArray(trendResponse.data)) {
         setProjectTrend(trendResponse.data);
       } else {
-        setProjectTrend([
-          { month: 'Jan', projects: 8, funding: 15000000 },
-          { month: 'Feb', projects: 12, funding: 23000000 },
-          { month: 'Mar', projects: 15, funding: 31000000 },
-          { month: 'Apr', projects: 18, funding: 28000000 },
-          { month: 'May', projects: 22, funding: 42000000 },
-          { month: 'Jun', projects: 25, funding: 38000000 }
-        ]);
+        setProjectTrend([]);
+        console.warn('No trend data received from API');
       }
+
+      setRetryCount(0);
     } catch (error) {
-      console.error('Error fetching chart data:', error);
-      setError('Failed to load project data. Please try again.');
-      
-      // Use fallback data
-      setProjectsList(mockProjectsList || []);
-      setOverviewStats(getDefaultStats());
-      setProjectsByStatus([
-        { name: "Active", value: 35 },
-        { name: "Completed", value: 20 },
-        { name: "Planning", value: 15 },
-        { name: "On Hold", value: 5 }
-      ]);
-      setProjectsByType([
-        { name: "Adaptation", value: 45 },
-        { name: "Mitigation", value: 30 },
-        { name: "Cross-cutting", value: 25 }
-      ]);
-      setProjectTrend([
-        { month: 'Jan', projects: 8, funding: 15000000 },
-        { month: 'Feb', projects: 12, funding: 23000000 },
-        { month: 'Mar', projects: 15, funding: 31000000 },
-        { month: 'Apr', projects: 18, funding: 28000000 },
-        { month: 'May', projects: 22, funding: 42000000 },
-        { month: 'Jun', projects: 25, funding: 38000000 }
-      ]);
+      console.error('Error fetching project data:', error);
+      setError(error.message || 'Failed to load project data. Please try again.');
+      setProjectsList([]);
+      setOverviewStats([]);
+      setProjectsByStatus([]);
+      setProjectsByType([]);
+      setProjectTrend([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getDefaultStats = (projects = []) => [
-    { 
-      title: "Total Projects", 
-      value: projects.length, 
-      change: "+12% from last year" 
-    },
-    { 
-      title: "Active Projects", 
-      value: projects.filter(p => p.status === 'Active').length, 
-      change: "+8% from last month" 
-    },
-    { 
-      title: "Total Investment", 
-      value: projects.reduce((sum, p) => sum + (parseFloat(p.total_cost_usd) || 0), 0), 
-      change: "+15% from last year" 
-    },
-    { 
-      title: "Completed Projects", 
-      value: projects.filter(p => p.status === 'Completed').length, 
-      change: "+23% from last year" 
-    }
-  ];
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    fetchAllProjectData();
+  };
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -243,8 +183,12 @@ const Projects = () => {
   if (isLoading) {
     return (
       <PageLayout bgColor="bg-gray-50">
-        <div className="flex justify-center items-center min-h-64">
+        <div className="flex flex-col justify-center items-center min-h-64">
           <Loading size="lg" />
+          <p className="mt-4 text-gray-600">Loading project data...</p>
+          {retryCount > 0 && (
+            <p className="mt-2 text-sm text-gray-500">Retry attempt: {retryCount}</p>
+          )}
         </div>
       </PageLayout>
     );
@@ -254,17 +198,33 @@ const Projects = () => {
     return (
       <PageLayout bgColor="bg-gray-50">
         <Card padding={true}>
-          <div className="text-center py-8">
+          <div className="text-center py-12">
             <div className="text-red-600 mb-4">
-              <FolderOpen size={48} className="mx-auto" />
+              <AlertCircle size={48} className="mx-auto" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">{error}</h3>
-            <button 
-              onClick={fetchAllProjectData}
-              className="text-purple-600 hover:text-purple-700 underline"
-            >
-              Try again
-            </button>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to Load Project Data</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">{error}</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button 
+                onClick={handleRetry}
+                leftIcon={<RefreshCw size={16} />}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Retry
+              </Button>
+              <Button 
+                onClick={() => navigate('/admin')}
+                variant="outline"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Go to Dashboard
+              </Button>
+            </div>
+            {retryCount > 2 && (
+              <p className="mt-4 text-sm text-gray-500">
+                If the problem persists, please contact the system administrator.
+              </p>
+            )}
           </div>
         </Card>
       </PageLayout>
@@ -280,64 +240,133 @@ const Projects = () => {
           <Button
             leftIcon={<Download size={16} />}
             className="bg-purple-600 hover:bg-purple-700 text-white"
+            onClick={() => {
+              if (projectsList.length === 0) {
+                console.log('No data available to export');
+                return;
+              }
+              
+              const exportData = {
+                projects: filteredProjects,
+                overview: overviewStats,
+                chartData: {
+                  status: projectsByStatus,
+                  type: projectsByType,
+                  trend: projectTrend
+                },
+                exportDate: new Date().toISOString()
+              };
+              
+              const dataStr = JSON.stringify(exportData, null, 2);
+              const dataBlob = new Blob([dataStr], { type: 'application/json' });
+              const url = URL.createObjectURL(dataBlob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `climate_projects_${new Date().toISOString().split('T')[0]}.json`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+            }}
           >
             Export Data
           </Button>
         }
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statsData.map((stat, index) => (
-          <div 
-            key={index}
-            className="animate-fade-in-up h-full"
-            style={{ animationDelay: `${index * 100}ms` }}
-          >
-            <StatCard 
-              title={stat.title}
-              value={typeof stat.value === 'number' && stat.title.includes('Investment') ? formatCurrency(stat.value) : stat.value}
-              change={stat.change}
-              color={stat.color}
-              icon={stat.icon}
-            />
-          </div>
-        ))}
-      </div>
+      {/* Stats Section */}
+      {statsData.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {statsData.map((stat, index) => (
+            <div 
+              key={index}
+              className="animate-fade-in-up h-full"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <StatCard 
+                title={stat.title}
+                value={typeof stat.value === 'number' && stat.title.includes('Investment') ? formatCurrency(stat.value) : stat.value}
+                change={stat.change}
+                color={stat.color}
+                icon={stat.icon}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="mb-8">
+          <Card padding={true}>
+            <div className="text-center py-6">
+              <AlertCircle size={24} className="mx-auto text-gray-400 mb-2" />
+              <p className="text-gray-600">Statistics unavailable</p>
+            </div>
+          </Card>
+        </div>
+      )}
 
+      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div className="animate-fade-in-up" style={{ animationDelay: '400ms' }}>
           <Card hover padding={true}>
-            <PieChartComponent
-              title="Projects by Status"
-              data={projectsByStatus}
-              height={300}
-            />
+            {projectsByStatus.length > 0 ? (
+              <PieChartComponent
+                title="Projects by Status"
+                data={projectsByStatus}
+                height={300}
+              />
+            ) : (
+              <div className="h-[300px] flex items-center justify-center">
+                <div className="text-center">
+                  <AlertCircle size={24} className="mx-auto text-gray-400 mb-2" />
+                  <p className="text-gray-600">No status data available</p>
+                </div>
+              </div>
+            )}
           </Card>
         </div>
         
         <div className="animate-fade-in-up" style={{ animationDelay: '500ms' }}>
           <Card hover padding={true}>
-            <PieChartComponent
-              title="Projects by Type"
-              data={projectsByType}
-              height={300}
-            />
+            {projectsByType.length > 0 ? (
+              <PieChartComponent
+                title="Projects by Type"
+                data={projectsByType}
+                height={300}
+              />
+            ) : (
+              <div className="h-[300px] flex items-center justify-center">
+                <div className="text-center">
+                  <AlertCircle size={24} className="mx-auto text-gray-400 mb-2" />
+                  <p className="text-gray-600">No type data available</p>
+                </div>
+              </div>
+            )}
           </Card>
         </div>
         
         <div className="animate-fade-in-up" style={{ animationDelay: '600ms' }}>
           <Card hover padding={true}>
-            <LineChartComponent
-              title="Project Trends"
-              data={projectTrend}
-              xKey="year"
-              yKey="count"
-              height={300}
-            />
+            {projectTrend.length > 0 ? (
+              <LineChartComponent
+                title="Project Trends"
+                data={projectTrend}
+                xKey="year"
+                yKey="count"
+                height={300}
+              />
+            ) : (
+              <div className="h-[300px] flex items-center justify-center">
+                <div className="text-center">
+                  <AlertCircle size={24} className="mx-auto text-gray-400 mb-2" />
+                  <p className="text-gray-600">No trend data available</p>
+                </div>
+              </div>
+            )}
           </Card>
         </div>
       </div>
 
+      {/* Projects List */}
       <Card hover className="mb-6" padding={true}>
         <div className="border-b border-gray-100 pb-8 mb-8">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center">
@@ -374,114 +403,127 @@ const Projects = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map((project, index) => (
-            <div 
-              key={project.project_id}
-              className="animate-fade-in-up"
-              style={{ animationDelay: `${(index % 9) * 100}ms` }}
+        {projectsList.length === 0 ? (
+          <div className="text-center py-12">
+            <FolderOpen size={48} className="mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No projects available</h3>
+            <p className="text-gray-500 mb-4">
+              There are currently no projects in the system.
+            </p>
+            <Button
+              onClick={handleRetry}
+              leftIcon={<RefreshCw size={16} />}
+              variant="outline"
             >
-              <Card 
-                hover 
-                padding={true} 
-                className="h-full group relative"
+              Refresh
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProjects.map((project, index) => (
+              <div 
+                key={project.project_id}
+                className="animate-fade-in-up"
+                style={{ animationDelay: `${(index % 9) * 100}ms` }}
               >
-                <div className="flex flex-col h-full">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors mb-2 line-clamp-2">
-                        {project.title}
-                      </h3>
-                      <p className="text-sm text-gray-500 mb-3 line-clamp-2">
-                        {project.objectives || 'No description available'}
-                      </p>
+                <Card 
+                  hover 
+                  padding={true} 
+                  className="h-full group relative"
+                >
+                  <div className="flex flex-col h-full">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors mb-2 line-clamp-2">
+                          {project.title}
+                        </h3>
+                        <p className="text-sm text-gray-500 mb-3 line-clamp-2">
+                          {project.objectives || 'No description available'}
+                        </p>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}>
-                      {getStatusIcon(project.status)}
-                      <span className="ml-1">{project.status}</span>
-                    </span>
-                    {project.type && (
-                      <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">
-                        {project.type}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}>
+                        {getStatusIcon(project.status)}
+                        <span className="ml-1">{project.status}</span>
                       </span>
-                    )}
-                  </div>
-
-                  <div className="space-y-3 mb-4 flex-grow">
-                    {project.total_cost_usd && (
-                      <div className="flex items-center text-sm text-gray-600">
-                        <DollarSign size={16} className="mr-2 text-green-500" />
-                        <span className="font-medium">Budget:</span>
-                        <span className="ml-1 text-green-600 font-semibold">
-                          {formatCurrency(project.total_cost_usd)}
+                      {project.type && (
+                        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">
+                          {project.type}
                         </span>
-                      </div>
-                    )}
-
-                    {(project.beginning || project.closing) && (
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Calendar size={16} className="mr-2 text-blue-500" />
-                        <span className="font-medium">Duration:</span>
-                        <span className="ml-1">
-                          {formatDate(project.beginning)} - {formatDate(project.closing)}
-                        </span>
-                      </div>
-                    )}
-
-                    {project.beneficiaries && (
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Users size={16} className="mr-2 text-purple-500" />
-                        <span className="font-medium">Beneficiaries:</span>
-                        <span className="ml-1">{project.beneficiaries}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Building size={16} className="mr-1" />
-                      <span>ID: {project.project_id}</span>
+                      )}
                     </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      leftIcon={<Eye size={14} />}
-                      onClick={(e) => handleViewDetails(e, project.project_id)}
-                      className="text-purple-600 border-purple-600 hover:bg-purple-50"
-                    >
-                      View Details
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          ))}
-        </div>
 
-        {filteredProjects.length === 0 && (
+                    <div className="space-y-3 mb-4 flex-grow">
+                      {project.total_cost_usd && (
+                        <div className="flex items-center text-sm text-gray-600">
+                          <DollarSign size={16} className="mr-2 text-green-500" />
+                          <span className="font-medium">Budget:</span>
+                          <span className="ml-1 text-green-600 font-semibold">
+                            {formatCurrency(project.total_cost_usd)}
+                          </span>
+                        </div>
+                      )}
+
+                      {(project.beginning || project.closing) && (
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Calendar size={16} className="mr-2 text-blue-500" />
+                          <span className="font-medium">Duration:</span>
+                          <span className="ml-1">
+                            {formatDate(project.beginning)} - {formatDate(project.closing)}
+                          </span>
+                        </div>
+                      )}
+
+                      {project.beneficiaries && (
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Users size={16} className="mr-2 text-purple-500" />
+                          <span className="font-medium">Beneficiaries:</span>
+                          <span className="ml-1">{project.beneficiaries}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Building size={16} className="mr-1" />
+                        <span>ID: {project.project_id}</span>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        leftIcon={<Eye size={14} />}
+                        onClick={(e) => handleViewDetails(e, project.project_id)}
+                        className="text-purple-600 border-purple-600 hover:bg-purple-50"
+                      >
+                        View Details
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {filteredProjects.length === 0 && projectsList.length > 0 && (
           <div className="text-center py-12">
             <FolderOpen size={48} className="mx-auto text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
             <p className="text-gray-500 mb-4">
-              {searchTerm || selectedSector !== 'All' || selectedStatus !== 'All'
-                ? 'Try adjusting your search criteria or filters.'
-                : 'No projects are currently available.'}
+              Try adjusting your search criteria or filters.
             </p>
-            {(searchTerm || selectedSector !== 'All' || selectedStatus !== 'All') && (
-              <Button
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedSector('All');
-                  setSelectedStatus('All');
-                }}
-                variant="outline"
-              >
-                Clear Filters
-              </Button>
-            )}
+            <Button
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedSector('All');
+                setSelectedStatus('All');
+              }}
+              variant="outline"
+            >
+              Clear Filters
+            </Button>
           </div>
         )}
       </Card>

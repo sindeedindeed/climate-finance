@@ -16,12 +16,14 @@ import {
   Banknote,
   Play,
   Pause,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import PageLayout from '../components/layouts/PageLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import Loading from '../components/ui/Loading';
 import { formatCurrency } from '../utils/formatters';
-import { fundingSources } from '../data/mock/fundingSources';
 import { generateOrganizationLogo } from '../utils/svgPlaceholder';
 import { fundingSourceApi } from '../services/api';
 
@@ -31,9 +33,15 @@ const FundingSourceDetails = () => {
   const [source, setSource] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    fetchFundingSource();
+    if (sourceId) {
+      fetchFundingSource();
+    } else {
+      setError('No funding source ID provided');
+      setLoading(false);
+    }
   }, [sourceId]);
 
   const fetchFundingSource = async () => {
@@ -41,47 +49,35 @@ const FundingSourceDetails = () => {
       setLoading(true);
       setError(null);
 
-      // First try to fetch from API
-      try {
-        const response = await fundingSourceApi.getById(sourceId);
-        if (response.status && response.data) {
-          setSource(response.data);
-          return;
-        }
-      } catch (apiError) {
-        console.log('API fetch failed, trying mock data:', apiError);
-      }
-
-      // Fallback to mock data
-      const foundSource = fundingSources.find(s => 
-        s.id.toString() === sourceId || 
-        s.funding_source_id?.toString() === sourceId ||
-        s.id === sourceId ||
-        s.funding_source_id === sourceId
-      );
-      
-      if (!foundSource) {
+      const response = await fundingSourceApi.getById(sourceId);
+      if (response?.status && response.data) {
+        setSource(response.data);
+        setRetryCount(0);
+      } else {
         setError('Funding source not found');
-        return;
       }
-
-      setSource(foundSource);
     } catch (err) {
       console.error('Error fetching funding source:', err);
-      setError('Error loading funding source data');
+      setError(err.message || 'Error loading funding source data');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    fetchFundingSource();
+  };
+
   if (loading) {
     return (
       <PageLayout bgColor="bg-gray-50">
-        <div className="flex justify-center items-center min-h-64">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div className="h-64 bg-gray-200 rounded mb-6"></div>
-          </div>
+        <div className="flex flex-col justify-center items-center min-h-64">
+          <Loading size="lg" />
+          <p className="mt-4 text-gray-600">Loading funding source details...</p>
+          {retryCount > 0 && (
+            <p className="mt-2 text-sm text-gray-500">Retry attempt: {retryCount}</p>
+          )}
         </div>
       </PageLayout>
     );
@@ -90,20 +86,43 @@ const FundingSourceDetails = () => {
   if (error || !source) {
     return (
       <PageLayout bgColor="bg-gray-50">
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            {error || 'Funding Source Not Found'}
-          </h2>
-          <p className="text-gray-600 mb-6">
-            The funding source you're looking for doesn't exist or couldn't be loaded.
-          </p>
-          <button
-            onClick={() => navigate('/funding-sources')}
-            className="text-purple-600 hover:text-purple-700 underline"
-          >
-            ← Back to Funding Sources
-          </button>
-        </div>
+        <Card padding={true}>
+          <div className="text-center py-12">
+            <div className="text-red-600 mb-4">
+              <AlertCircle size={48} className="mx-auto" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {error || 'Funding Source Not Found'}
+            </h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              {error === 'No funding source ID provided' 
+                ? 'Invalid funding source ID provided in the URL.'
+                : 'The funding source you\'re looking for doesn\'t exist or couldn\'t be loaded.'
+              }
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button 
+                onClick={handleRetry}
+                leftIcon={<RefreshCw size={16} />}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Retry
+              </Button>
+              <Button
+                onClick={() => navigate('/funding-sources')}
+                variant="outline"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Back to Funding Sources
+              </Button>
+            </div>
+            {retryCount > 2 && (
+              <p className="mt-4 text-sm text-gray-500">
+                If the problem persists, please contact the system administrator.
+              </p>
+            )}
+          </div>
+        </Card>
       </PageLayout>
     );
   }
@@ -138,11 +157,11 @@ const FundingSourceDetails = () => {
     const reportData = {
       source: source.name,
       type: source.type,
-      totalCommitted: source.total_committed,
-      totalDisbursed: source.total_disbursed,
+      totalCommitted: source.total_committed || source.grant_amount || 0,
+      totalDisbursed: source.total_disbursed || source.disbursement || 0,
       disbursementRate: disbursementRate,
-      activeProjects: source.active_projects,
-      sectors: source.sectors,
+      activeProjects: source.active_projects || 0,
+      sectors: source.sectors || [],
       exportDate: new Date().toISOString()
     };
     
@@ -175,9 +194,9 @@ const FundingSourceDetails = () => {
             <div className="flex items-center gap-2 mb-1">
               <span className={`text-xs px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 ${getTypeColor(source.type)}`}>
                 {getTypeIcon(source.type)}
-                {source.type}
+                {source.type || 'Unknown'}
               </span>
-              <span className="text-xs text-gray-400">ID: {source.id}</span>
+              <span className="text-xs text-gray-400">ID: {source.funding_source_id || source.id}</span>
             </div>
             
             <div className="flex flex-col md:flex-row md:gap-8">
@@ -193,26 +212,28 @@ const FundingSourceDetails = () => {
                   <div className="flex-1">
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">{source.name}</h2>
                     <p className="text-sm text-gray-600 mb-4">
-                      {source.description || `${source.type} funding organization supporting climate finance initiatives in Bangladesh.`}
+                      {source.description || `${source.type || 'Unknown'} funding organization supporting climate finance initiatives in Bangladesh.`}
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-gray-50 to-purple-50 rounded-lg p-6 mb-6 border border-gray-100">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="text-sm text-gray-700 font-semibold">Disbursement Progress</div>
-                    <div className="text-sm text-purple-600 font-bold">{disbursementRate.toFixed(1)}% Disbursed</div>
+                {disbursementRate > 0 && (
+                  <div className="bg-gradient-to-r from-gray-50 to-purple-50 rounded-lg p-6 mb-6 border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="text-sm text-gray-700 font-semibold">Disbursement Progress</div>
+                      <div className="text-sm text-purple-600 font-bold">{disbursementRate.toFixed(1)}% Disbursed</div>
+                    </div>
+                    <div className="text-sm text-gray-500 mb-4">
+                      Disbursed: {formatCurrency(source.total_disbursed || source.disbursement || 0)} of {formatCurrency(source.total_committed || source.grant_amount || 0)}
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
+                      <div
+                        className="bg-gradient-to-r from-purple-500 to-purple-600 h-4 rounded-full transition-all duration-700 ease-out shadow-sm"
+                        style={{ width: `${disbursementRate}%` }}
+                      ></div>
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-500 mb-4">
-                    Disbursed: {formatCurrency(source.total_disbursed)} of {formatCurrency(source.total_committed)}
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-                    <div
-                      className="bg-gradient-to-r from-purple-500 to-purple-600 h-4 rounded-full transition-all duration-700 ease-out shadow-sm"
-                      style={{ width: `${disbursementRate}%` }}
-                    ></div>
-                  </div>
-                </div>
+                )}
               </div>
               
               {/* Right Side: Source Details */}
@@ -235,21 +256,28 @@ const FundingSourceDetails = () => {
                     <DollarSign size={16} className="mt-0.5 text-purple-600" />
                     <div>
                       <span className="font-semibold">Total Committed</span>
-                      <div className="text-xs text-gray-600">{formatCurrency(source.total_committed)}</div>
+                      <div className="text-xs text-gray-600">{formatCurrency(source.total_committed || source.grant_amount || 0)}</div>
                     </div>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle size={16} className="mt-0.5 text-purple-600" />
                     <div>
                       <span className="font-semibold">Total Disbursed</span>
-                      <div className="text-xs text-gray-600">{formatCurrency(source.total_disbursed)}</div>
+                      <div className="text-xs text-gray-600">{formatCurrency(source.total_disbursed || source.disbursement || 0)}</div>
                     </div>
                   </li>
                   <li className="flex items-start gap-2">
                     <Target size={16} className="mt-0.5 text-purple-600" />
                     <div>
                       <span className="font-semibold">Active Projects</span>
-                      <div className="text-xs text-gray-600">{source.active_projects} Projects</div>
+                      <div className="text-xs text-gray-600">{source.active_projects || 0} Projects</div>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Building size={16} className="mt-0.5 text-purple-600" />
+                    <div>
+                      <span className="font-semibold">Development Partner</span>
+                      <div className="text-xs text-gray-600">{source.dev_partner || 'Not specified'}</div>
                     </div>
                   </li>
                   <li className="flex items-start gap-2">
@@ -269,22 +297,21 @@ const FundingSourceDetails = () => {
           </div>
         </Card>
         
-        {/* Funding Source Overview Content */}
         {/* Financial Summary */}
         <Card className="mb-6" padding={true}>
           <div>
             <div className="font-semibold mb-4">Financial Summary</div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">{formatCurrency(source.total_committed)}</div>
+                <div className="text-2xl font-bold text-purple-600">{formatCurrency(source.total_committed || source.grant_amount || 0)}</div>
                 <div className="text-sm text-gray-600">Total Committed</div>
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">{formatCurrency(source.total_disbursed)}</div>
+                <div className="text-2xl font-bold text-green-600">{formatCurrency(source.total_disbursed || source.disbursement || 0)}</div>
                 <div className="text-sm text-gray-600">Total Disbursed</div>
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-orange-600">{formatCurrency(source.total_committed - source.total_disbursed)}</div>
+                <div className="text-2xl font-bold text-orange-600">{formatCurrency((source.total_committed || source.grant_amount || 0) - (source.total_disbursed || source.disbursement || 0))}</div>
                 <div className="text-sm text-gray-600">Remaining</div>
               </div>
             </div>

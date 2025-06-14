@@ -20,9 +20,15 @@ exports.getAllProjects = async (req, res) => {
 
 exports.updateProject = async (req, res) => {
     try {
+        console.log('=== UPDATE PROJECT DEBUG ===');
+        console.log('Project ID:', req.params.id);
+        console.log('Request Body Keys:', Object.keys(req.body));
+        console.log('Request Body:', JSON.stringify(req.body, null, 2));
+        
         const result = await Project.updateProject(req.params.id, req.body);
         res.status(200).json({ status: true, message: 'Project updated', data: result });
     } catch (e) {
+        console.error('Update Project Controller Error:', e.message);
         res.status(500).json({ status: false, message: `Error: ${e.message}` });
     }
 };

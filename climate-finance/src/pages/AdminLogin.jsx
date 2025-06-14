@@ -144,19 +144,19 @@ const AdminLogin = () => {
               <div className="flex justify-between items-center">
                 <span className="font-medium">Super Admin:</span>
                 <code className="bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-200 font-mono">
-                  admin / admin123
+                  admin@climateFinance.gov.bd / admin123
                 </code>
               </div>
               <div className="flex justify-between items-center">
                 <span className="font-medium">Project Manager:</span>
                 <code className="bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-200 font-mono">
-                  project.manager / pm123
+                  pm@climateFinance.gov.bd / pm123
                 </code>
               </div>
               <div className="flex justify-between items-center">
                 <span className="font-medium">Finance Admin:</span>
                 <code className="bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-200 font-mono">
-                  finance.admin / finance123
+                  finance@climateFinance.gov.bd / finance123
                 </code>
               </div>
             </div>

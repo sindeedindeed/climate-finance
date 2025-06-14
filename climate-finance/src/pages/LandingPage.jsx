@@ -21,15 +21,6 @@ import { CHART_COLORS } from '../utils/constants';
 import { formatCurrency } from '../utils/formatters';
 import { projectApi } from '../services/api';
 
-// Import mock data as fallback
-import { 
-  monthlyFunding, 
-  sectorDistribution, 
-  sourceDistribution, 
-  regionalDistribution, 
-  dashboardStats 
-} from '../data/mock/dashboardData';
-
 const LandingPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -60,10 +51,10 @@ const LandingPage = () => {
         sectorResponse,
         regionalResponse
       ] = await Promise.all([
-        projectApi.getDashboardOverviewStats().catch(() => ({ status: false, data: null })),
-        projectApi.getByStatus().catch(() => ({ status: false, data: [] })),
-        projectApi.getBySector().catch(() => ({ status: false, data: [] })),
-        projectApi.getRegionalDistribution().catch(() => ({ status: false, data: [] }))
+        projectApi.getOverviewStats(),
+        projectApi.getByStatus(),
+        projectApi.getBySector(),
+        projectApi.getRegionalDistribution()
       ]);
 
       // Set overview stats
@@ -72,69 +63,59 @@ const LandingPage = () => {
         setOverviewStats([
           {
             title: "Total Climate Finance",
-            value: data.total_climate_finance || 200000000,
+            value: data.total_climate_finance || 0,
             change: "+18% from last year"
           },
           {
-            title: "Adaptation Finance",
-            value: data.adaptation_finance || 120000000,
-            change: "+14% from last year"
-          },
-          {
-            title: "Mitigation Finance", 
-            value: data.mitigation_finance || 80000000,
-            change: "+22% from last year"
-          },
-          {
             title: "Active Projects",
-            value: data.active_projects || 42,
-            change: "+8% from last year"
+            value: data.active_projects || 0,
+            change: "+8% from last month"
+          },
+          {
+            title: "Total Investment",
+            value: data.total_investment || 0,
+            change: "+15% from last year"
+          },
+          {
+            title: "Completed Projects",
+            value: data.completed_projects || 0,
+            change: "+23% from last year"
           }
         ]);
       } else {
-        setOverviewStats(dashboardStats);
+        setOverviewStats([]);
       }
 
       // Set projects by status for pie chart
-      if (statusResponse.status && statusResponse.data) {
+      if (statusResponse.status && Array.isArray(statusResponse.data)) {
         setProjectsByStatus(statusResponse.data);
       } else {
-        setProjectsByStatus([
-          { name: "Active", value: 35 },
-          { name: "Completed", value: 20 },
-          { name: "Planning", value: 15 },
-          { name: "On Hold", value: 5 }
-        ]);
+        setProjectsByStatus([]);
       }
 
       // Set projects by sector for pie chart  
-      if (sectorResponse.status && sectorResponse.data) {
+      if (sectorResponse.status && Array.isArray(sectorResponse.data)) {
         setProjectsBySector(sectorResponse.data);
       } else {
-        setProjectsBySector(sectorDistribution);
+        setProjectsBySector([]);
       }
 
       // Set regional data for bar chart
-      if (regionalResponse.status && regionalResponse.data) {
+      if (regionalResponse.status && Array.isArray(regionalResponse.data)) {
         setRegionalData(regionalResponse.data);
       } else {
-        setRegionalData(regionalDistribution);
+        setRegionalData([]);
       }
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      setError('Failed to load dashboard data. Using fallback data.');
+      setError('Failed to load dashboard data. Please try again.');
       
-      // Set fallback data
-      setOverviewStats(dashboardStats);
-      setProjectsByStatus([
-        { name: "Active", value: 35 },
-        { name: "Completed", value: 20 },
-        { name: "Planning", value: 15 },
-        { name: "On Hold", value: 5 }
-      ]);
-      setProjectsBySector(sectorDistribution);
-      setRegionalData(regionalDistribution);
+      // Clear all data on error
+      setOverviewStats([]);
+      setProjectsByStatus([]);
+      setProjectsBySector([]);
+      setRegionalData([]);
     } finally {
       setLoading(false);
     }
@@ -145,7 +126,9 @@ const LandingPage = () => {
     setRefreshing(true);    
     try {
       await fetchDashboardData();
-      toast.success('Dashboard data updated successfully');
+      if (!error) {
+        toast.success('Dashboard data updated successfully');
+      }
     } catch {
       toast.error('Failed to refresh data. Please try again.');
     } finally {
@@ -155,7 +138,31 @@ const LandingPage = () => {
 
   // Handle export
   const handleExport = () => {
-    toast.info('Export feature coming soon!');
+    if (overviewStats.length === 0) {
+      toast.error('No data available to export');
+      return;
+    }
+    
+    const exportData = {
+      overview: overviewStats,
+      projectsByStatus,
+      projectsBySector,
+      regionalData,
+      exportDate: new Date().toISOString()
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `climate_finance_dashboard_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast.success('Dashboard data exported successfully');
   };
 
   // Add icons to stats
@@ -163,9 +170,9 @@ const LandingPage = () => {
     const colors = ['primary', 'success', 'warning', 'primary'];
     const icons = [
       <DollarSign size={20} />,
-      <Target size={20} />,
+      <Activity size={20} />,
       <TrendingUp size={20} />,
-      <Activity size={20} />
+      <Target size={20} />
     ];
     
     return {
@@ -223,9 +230,9 @@ const LandingPage = () => {
       {error && (
         <Card padding={true} className="mb-6">
           <div className="text-center py-4">
-            <p className="text-yellow-600 text-sm mb-2">{error}</p>
+            <p className="text-red-600 text-sm mb-2">{error}</p>
             <button
-              onClick={fetchDashboardData}
+              onClick={handleRefresh}
               className="text-purple-600 hover:text-purple-700 underline"
             >
               Try again
@@ -235,39 +242,61 @@ const LandingPage = () => {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statsData.map((stat, index) => (
-          <div 
-            key={index} 
-            className="animate-fade-in-up h-full"
-            style={{ animationDelay: `${index * 100}ms` }}
-          >
-            <StatCard
-              title={stat.title}
-              value={stat.value}
-              change={stat.change}
-              color={stat.color}
-              icon={stat.icon}
-            />
-          </div>
-        ))}
-      </div> 
+      {statsData.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {statsData.map((stat, index) => (
+            <div 
+              key={index} 
+              className="animate-fade-in-up h-full"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <StatCard
+                title={stat.title}
+                value={stat.title.includes('Finance') || stat.title.includes('Investment') ? formatCurrency(stat.value) : stat.value}
+                change={stat.change}
+                color={stat.color}
+                icon={stat.icon}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="mb-8">
+          <Card padding={true}>
+            <div className="text-center py-6">
+              <p className="text-gray-500">No overview statistics available</p>
+            </div>
+          </Card>
+        </div>
+      )}
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">        
         <div className="animate-fade-in-up" style={{ animationDelay: '500ms' }}>
           <Card hover padding={true}>
-            <PieChartComponent
-              title="Projects by Sector" 
-              data={projectsBySector} 
-            />
+            {projectsBySector.length > 0 ? (
+              <PieChartComponent
+                title="Projects by Sector" 
+                data={projectsBySector} 
+              />
+            ) : (
+              <div className="h-[300px] flex items-center justify-center">
+                <p className="text-gray-500">No sector data available</p>
+              </div>
+            )}
           </Card>        
         </div>        
         <div className="animate-fade-in-up" style={{ animationDelay: '600ms' }}>
           <Card hover padding={true}>
-            <PieChartComponent 
-              title="Projects by Status" 
-              data={projectsByStatus} 
-            />
+            {projectsByStatus.length > 0 ? (
+              <PieChartComponent 
+                title="Projects by Status" 
+                data={projectsByStatus} 
+              />
+            ) : (
+              <div className="h-[300px] flex items-center justify-center">
+                <p className="text-gray-500">No status data available</p>
+              </div>
+            )}
           </Card>
         </div>      
       </div>      
@@ -275,16 +304,22 @@ const LandingPage = () => {
       {/* Regional Distribution */}      
       <div className="animate-fade-in-up" style={{ animationDelay: '700ms' }}>
         <Card>
-          <BarChartComponent
-            title="Regional Distribution" 
-            data={regionalData} 
-            xAxisKey="region"
-            bars={[
-              { dataKey: 'adaptation', fill: CHART_COLORS[0], name: 'Adaptation' },
-              { dataKey: 'mitigation', fill: CHART_COLORS[1], name: 'Mitigation' }
-            ]}
-            formatYAxis={true}
-          />
+          {regionalData.length > 0 ? (
+            <BarChartComponent
+              title="Regional Distribution" 
+              data={regionalData} 
+              xAxisKey="region"
+              bars={[
+                { dataKey: 'adaptation', fill: CHART_COLORS[0], name: 'Adaptation' },
+                { dataKey: 'mitigation', fill: CHART_COLORS[1], name: 'Mitigation' }
+              ]}
+              formatYAxis={true}
+            />
+          ) : (
+            <div className="h-[300px] flex items-center justify-center p-6">
+              <p className="text-gray-500">No regional data available</p>
+            </div>
+          )}
         </Card>
       </div>
 

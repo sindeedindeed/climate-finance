@@ -18,261 +18,196 @@ import {
   Droplet,
   Tag,
   FolderOpen,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import PageLayout from '../components/layouts/PageLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import Loading from '../components/ui/Loading';
 import { formatCurrency } from '../utils/formatters';
-import { projectsList } from '../data/mock/projectsData';
-import { agencies, fundingSources, locations, focalAreas } from '../data/mock/adminData';
-import { projectApi } from '../services/api'; // Fix: Use correct import path
+import { projectApi } from '../services/api';
 
 const ProjectDetails = () => {
-  const { id, projectId } = useParams(); // Get both possible parameter names
+  const { id, projectId } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
-  // Use whichever parameter is available
   const actualId = id || projectId;
 
-  // Find project from the projects list or use mock project as fallback
   useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        setLoading(true);
-
-        // First try to fetch from API
-        if (actualId) {
-          try {
-            const response = await projectApi.getById(actualId);
-            if (response.status && response.data) {
-              setProject(response.data);
-              setLoading(false);
-              return;
-            }
-          } catch (apiError) {
-            console.log('API fetch failed, trying mock data:', apiError);
-          }
-        }
-
-        // Fallback to mock data
-        const foundProject = projectsList.find(
-          (p) =>
-            p.id === actualId ||
-            p.project_id === actualId ||
-            p.id === `PRJ-${actualId}` ||
-            p.project_id === `PRJ-${actualId}`
-        );
-
-        if (!foundProject) {
-          setError('Project not found');
-          setLoading(false);
-          return;
-        }
-
-        // Enhanced project with admin data - Fix: Add proper null checks and defaults
-        const enhancedProject = {
-          ...foundProject,
-          // Map agency strings to actual agency objects for more detailed display
-          projectAgencies: Array.isArray(foundProject.fundingSources) 
-            ? foundProject.fundingSources.map((fs) => {
-                return (
-                  agencies.find((a) => a.name === fs) || {
-                    name: fs,
-                    type: 'Unknown',
-                    category: 'Unknown',
-                  }
-                );
-              }) 
-            : [],
-          // Map funding sources to actual funding source objects
-          projectFundingSources: Array.isArray(foundProject.fundingSources)
-            ? foundProject.fundingSources.map((fs) => {
-                return (
-                  fundingSources.find((f) => f.name === fs) || {
-                    name: fs,
-                    dev_partner: 'Unknown',
-                  }
-                );
-              })
-            : [],
-          // Convert location strings to location objects
-          projectLocations: foundProject.location
-            ? foundProject.location.split(', ').map((loc) => {
-                return (
-                  locations.find((l) => l.name === loc) || {
-                    name: loc,
-                    region: 'Unknown',
-                  }
-                );
-              })
-            : [],
-          // For focal areas, we'll use sector as a proxy since that's what we have
-          projectFocalAreas: foundProject.sector ? [{ name: foundProject.sector }] : [],
-          // Ensure required fields have defaults
-          beneficiaries: foundProject.beneficiaries || 0,
-          progress: foundProject.progress || 0,
-          disbursed: foundProject.disbursed || 0,
-          status: foundProject.status || 'Unknown',
-          implementingAgency: foundProject.implementingAgency || 'Not specified'
-        };
-
-        setProject(enhancedProject);
-      } catch (err) {
-        setError('Error loading project data');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (actualId) {
       fetchProject();
     } else {
       setError('No project ID provided');
       setLoading(false);
     }
-  }, [actualId]); // Update dependency
+  }, [actualId]);
 
-  // If no project found and no id (accessing without param), show not found
-  if (error || (!actualId && !project)) {
+  const fetchProject = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await projectApi.getById(actualId);
+      if (response.status && response.data) {
+        setProject(response.data);
+        setRetryCount(0);
+      } else {
+        setError('Project not found');
+      }
+    } catch (err) {
+      console.error('Error fetching project:', err);
+      setError(err.message || 'Error loading project data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    fetchProject();
+  };
+
+  if (loading) {
+    return (
+      <PageLayout bgColor="bg-gray-50">
+        <div className="flex flex-col justify-center items-center min-h-64">
+          <Loading size="lg" />
+          <p className="mt-4 text-gray-600">Loading project details...</p>
+          {retryCount > 0 && (
+            <p className="mt-2 text-sm text-gray-500">Retry attempt: {retryCount}</p>
+          )}
+        </div>
+      </PageLayout>
+    );
+  }
+
+  if (error || !project) {
     return (
       <PageLayout bgColor="bg-gray-50">
         <Card padding={true}>
-          <div className="text-center py-8">
+          <div className="text-center py-12">
             <div className="text-red-600 mb-4">
-              <FolderOpen size={48} className="mx-auto" />
+              <AlertCircle size={48} className="mx-auto" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {error || 'Project not found'}
+              {error || 'Project Not Found'}
             </h3>
-            <p className="text-gray-500 mb-4">
-              The project you're looking for doesn't exist or couldn't be loaded.
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              {error === 'No project ID provided' 
+                ? 'Invalid project ID provided in the URL.'
+                : 'The project you\'re looking for doesn\'t exist or couldn\'t be loaded.'
+              }
             </p>
-            <Button onClick={() => navigate('/projects')} variant="outline">
-              Back to Projects
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button 
+                onClick={handleRetry}
+                leftIcon={<RefreshCw size={16} />}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Retry
+              </Button>
+              <Button
+                onClick={() => navigate('/projects')}
+                variant="outline"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Back to Projects
+              </Button>
+            </div>
+            {retryCount > 2 && (
+              <p className="mt-4 text-sm text-gray-500">
+                If the problem persists, please contact the system administrator.
+              </p>
+            )}
           </div>
         </Card>
       </PageLayout>
     );
   }
 
-  if (loading || !project) {
-    return (
-      <PageLayout bgColor="bg-gray-50">
-        <div className="max-w-2xl mx-auto py-20 text-center">
-          <h2 className="text-2xl font-bold mb-2">Loading project...</h2>
-        </div>
-      </PageLayout>
-    );
-  }
-
-  // Helper functions to handle data mapping between mock and real data
   const getTimeline = (proj) => {
-    return proj.timeline || `${proj.startDate || 'N/A'} - ${proj.endDate || 'N/A'}`;
+    if (proj.beginning && proj.closing) {
+      return `${new Date(proj.beginning).toLocaleDateString()} - ${new Date(proj.closing).toLocaleDateString()}`;
+    }
+    return proj.timeline || 'Not specified';
   };
 
   const getLocation = (proj) => {
-    return proj.locations || proj.location || 'Not specified';
+    if (Array.isArray(proj.projectLocations) && proj.projectLocations.length > 0) {
+      return proj.projectLocations.map(loc => loc.name).join(', ');
+    }
+    return proj.location || 'Not specified';
   };
 
   const getTotalBudget = (proj) => {
-    return proj.totalFunding || proj.totalBudget || proj.total_cost_usd || 0;
+    return proj.total_cost_usd || proj.totalFunding || proj.totalBudget || 0;
   };
 
-  const getManagementData = (proj) => {
-    // If project has management data, use it; otherwise create from milestones
-    if (proj.management && Array.isArray(proj.management)) {
-      return proj.management;
-    }
-
-    // Create management data from milestones or default structure
-    const totalBudget = getTotalBudget(proj);
-    const disbursedAmount = proj.disbursed || (totalBudget * ((proj.progress || 0) / 100));
-
-    return [
-      {
-        name: 'Infrastructure Development',
-        total: totalBudget * 0.4,
-        disbursed: disbursedAmount * 0.4,
-      },
-      {
-        name: 'Community Programs',
-        total: totalBudget * 0.3,
-        disbursed: disbursedAmount * 0.3,
-      },
-      {
-        name: 'Monitoring & Evaluation',
-        total: totalBudget * 0.2,
-        disbursed: disbursedAmount * 0.2,
-      },
-      {
-        name: 'Project Management',
-        total: totalBudget * 0.1,
-        disbursed: disbursedAmount * 0.1,
-      },
-    ];
-  };
-
-  // Handle export functionality
   const handleExportReport = () => {
     const reportData = {
-      projectId: project.id || project.project_id,
+      projectId: project.project_id,
       title: project.title,
       status: project.status,
-      description: project.description,
+      description: project.objectives,
       totalBudget: getTotalBudget(project),
-      disbursed: project.disbursed,
-      progress: project.progress,
+      disbursed: project.disbursement || 0,
+      progress: project.progress || 0,
       location: getLocation(project),
-      implementingAgency: project.implementingAgency,
       timeline: getTimeline(project),
       beneficiaries: project.beneficiaries,
-      sdg: project.sdg,
       exportDate: new Date().toISOString().split('T')[0],
     };
 
-    // Create downloadable JSON file
     const dataStr = JSON.stringify(reportData, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${project.id || project.project_id}_report.json`;
+    link.download = `${project.project_id}_report.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
 
-  // Status badge color
-  const statusColor =
-    project.status === 'Active'
-      ? 'bg-green-100 text-green-700'
-      : 'bg-gray-100 text-gray-700';
-
-  // Get status icon
-  const getStatusIcon = (status) => {
+  const getStatusColor = (status) => {
     switch (status) {
-      case 'Active':
-        return <Play size={12} />;
-      case 'Completed':
-        return <CheckCircle size={12} />;
-      case 'Planning':
-        return <Clock size={12} />;
-      case 'On Hold':
-        return <Pause size={12} />;
-      default:
-        return null;
+      case 'Active': return 'bg-green-100 text-green-700';
+      case 'Completed': return 'bg-blue-100 text-blue-700';
+      case 'Planning': return 'bg-yellow-100 text-yellow-700';
+      case 'On Hold': return 'bg-red-100 text-red-700';
+      default: return 'bg-gray-100 text-gray-700';
     }
   };
 
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'Active': return <Play size={12} />;
+      case 'Completed': return <CheckCircle size={12} />;
+      case 'Planning': return <Clock size={12} />;
+      case 'On Hold': return <Pause size={12} />;
+      default: return null;
+    }
+  };
+
+  const calculateProgress = () => {
+    const total = getTotalBudget(project);
+    const disbursed = project.disbursement || 0;
+    if (total > 0) {
+      return Math.round((disbursed / total) * 100);
+    }
+    return project.progress || 0;
+  };
+
+  const progressPercentage = calculateProgress();
+
   return (
     <PageLayout bgColor="bg-gray-50">
-      {/* Back button with proper container alignment */}
       <div className="mb-6">
         <Link
           to="/projects"
@@ -286,57 +221,52 @@ const ProjectDetails = () => {
         </Link>
       </div>
 
-      {/* Main Info Card - Remove layout-container class for proper alignment */}
       <Card className="mb-6 overflow-visible" padding={true}>
         <div>
-          {/* Project ID and Status - Top Row */}
           <div className="flex items-center gap-2 mb-1">
             <span
-              className={`text-xs px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 ${statusColor}`}
+              className={`text-xs px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 ${getStatusColor(project.status)}`}
             >
               {getStatusIcon(project.status)}
               {project.status}
             </span>
-            <span className="text-xs text-gray-400">{project.id || project.project_id}</span>
+            <span className="text-xs text-gray-400">{project.project_id}</span>
           </div>
 
           <div className="flex flex-col md:flex-row md:gap-8">
-            {/* Left Side: Title, Description and Progress */}
             <div className="w-full md:w-3/5">
-              {/* Title and Description */}
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 {project.title || 'Untitled Project'}
               </h2>
               <p className="text-sm text-gray-600 mb-6">
-                {project.description || project.objectives || 'No description available'}
+                {project.objectives || project.description || 'No description available'}
               </p>
 
-              {/* Progress Bar - Enhanced spacing to match funding source details */}
-              <div className="bg-gradient-to-r from-gray-50 to-purple-50 rounded-lg p-6 border border-gray-100">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="text-sm text-gray-700 font-semibold">
-                    Project Progress
+              {getTotalBudget(project) > 0 && (
+                <div className="bg-gradient-to-r from-gray-50 to-purple-50 rounded-lg p-6 border border-gray-100">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-sm text-gray-700 font-semibold">
+                      Financial Progress
+                    </div>
+                    <div className="text-sm text-purple-600 font-bold">
+                      {progressPercentage}% Disbursed
+                    </div>
                   </div>
-                  <div className="text-sm text-purple-600 font-bold">
-                    {project.progress || 0}% Complete
+                  <div className="text-sm text-gray-500 mb-4">
+                    Disbursed: {formatCurrency(project.disbursement || 0)} of{' '}
+                    {formatCurrency(getTotalBudget(project))}
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
+                    <div
+                      className="bg-gradient-to-r from-purple-500 to-purple-600 h-4 rounded-full transition-all duration-700 ease-out shadow-sm"
+                      style={{ width: `${progressPercentage}%` }}
+                    ></div>
                   </div>
                 </div>
-                <div className="text-sm text-gray-500 mb-4">
-                  Disbursed: {formatCurrency(project.disbursed || 0)} of{' '}
-                  {formatCurrency(project.progressBarMax || getTotalBudget(project))}
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-                  <div
-                    className="bg-gradient-to-r from-purple-500 to-purple-600 h-4 rounded-full transition-all duration-700 ease-out shadow-sm"
-                    style={{ width: `${project.progress || 0}%` }}
-                  ></div>
-                </div>
-              </div>
+              )}
             </div>
 
-            {/* Right Side: Project Details */}
             <div className="w-full md:w-2/5 mt-6 md:mt-0">
-              {/* Export Button - Moved to top right */}
               <div className="flex justify-end mb-4">
                 <Button
                   variant="primary"
@@ -350,15 +280,6 @@ const ProjectDetails = () => {
               </div>
 
               <ul className="space-y-2 text-sm text-gray-700">
-                <li className="flex items-start gap-2">
-                  <Building size={16} className="mt-0.5 text-purple-600" />
-                  <div>
-                    <span className="font-semibold">Implementing Agency</span>
-                    <div className="text-xs text-gray-600">
-                      {project.implementingAgency}
-                    </div>
-                  </div>
-                </li>
                 <li className="flex items-start gap-2">
                   <Calendar size={16} className="mt-0.5 text-purple-600" />
                   <div>
@@ -378,30 +299,32 @@ const ProjectDetails = () => {
                   </div>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Users size={16} className="mt-0.5 text-purple-600" />
-                  <div>
-                    <span className="font-semibold">Beneficiaries</span>
-                    <div className="text-xs text-gray-600">
-                      {(project.beneficiaries || 0).toLocaleString()} People
-                    </div>
-                  </div>
-                </li>
-                <li className="flex items-start gap-2">
                   <DollarSign size={16} className="mt-0.5 text-purple-600" />
                   <div>
-                    <span className="font-semibold">Total Funding</span>
+                    <span className="font-semibold">Total Budget</span>
                     <div className="text-xs text-gray-600">
                       {formatCurrency(getTotalBudget(project))}
                     </div>
                   </div>
                 </li>
-                {project.sdg && (
+                {project.beneficiaries && (
                   <li className="flex items-start gap-2">
-                    <Target size={16} className="mt-0.5 text-purple-600" />
+                    <Users size={16} className="mt-0.5 text-purple-600" />
                     <div>
-                      <span className="font-semibold">SDG alignment</span>
+                      <span className="font-semibold">Beneficiaries</span>
                       <div className="text-xs text-gray-600">
-                        {project.sdg}
+                        {project.beneficiaries}
+                      </div>
+                    </div>
+                  </li>
+                )}
+                {project.sector && (
+                  <li className="flex items-start gap-2">
+                    <Tag size={16} className="mt-0.5 text-purple-600" />
+                    <div>
+                      <span className="font-semibold">Sector</span>
+                      <div className="text-xs text-gray-600">
+                        {project.sector}
                       </div>
                     </div>
                   </li>
@@ -423,8 +346,6 @@ const ProjectDetails = () => {
         </div>
       </Card>
 
-      {/* Project Overview Content - Remove tab conditional wrapper */}
-      {/* Implementing & Executing Agencies */}
       <Card className="mb-6" padding={true}>
         <div>
           <div className="font-semibold mb-4">
@@ -457,7 +378,6 @@ const ProjectDetails = () => {
         </div>
       </Card>
 
-      {/* Funding Sources */}
       <Card className="mb-6" padding={true}>
         <div>
           <div className="font-semibold mb-4">Funding Sources</div>
@@ -488,7 +408,6 @@ const ProjectDetails = () => {
         </div>
       </Card>
 
-      {/* Project Locations */}
       <Card className="mb-6" padding={true}>
         <div>
           <div className="font-semibold mb-4">Project Locations</div>
@@ -519,10 +438,9 @@ const ProjectDetails = () => {
         </div>
       </Card>
 
-      {/* Focal Areas / Sectors */}
       <Card className="mb-6" padding={true}>
         <div>
-          <div className="font-semibold mb-4">Focal Areas / Sectors</div>
+          <div className="font-semibold mb-4">Focal Areas</div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {Array.isArray(project.projectFocalAreas) && project.projectFocalAreas.length > 0 ? (
               project.projectFocalAreas.map((area, index) => (
@@ -545,7 +463,6 @@ const ProjectDetails = () => {
         </div>
       </Card>
 
-      {/* WASH Component (if present) */}
       {project.wash_component?.presence && (
         <Card className="mb-6" padding={true}>
           <div>
@@ -576,40 +493,23 @@ const ProjectDetails = () => {
         </Card>
       )}
 
-      {/* Project Management */}
       <Card className="mb-6" padding={true}>
         <div>
-          <div className="font-semibold mb-4">Project Management</div>
-          {getManagementData(project).map((item) => (
-            <div key={item.name} className="mb-4">
-              <div className="flex justify-between items-center text-sm">
-                <span>{item.name}</span>
-                <span className="font-bold">
-                  {formatCurrency(item.total)}
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                <div
-                  className="bg-purple-500 h-2 rounded-full"
-                  style={{
-                    width: `${Math.round(
-                      (item.disbursed / item.total) * 100
-                    )}%`,
-                  }}
-                ></div>
-              </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>
-                  {Math.round((item.disbursed / item.total) * 100)}%
-                  disbursed
-                </span>
-                <span>
-                  {formatCurrency(item.disbursed)} of{' '}
-                  {formatCurrency(item.total)}
-                </span>
-              </div>
+          <div className="font-semibold mb-4">Financial Summary</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-purple-600">{formatCurrency(getTotalBudget(project))}</div>
+              <div className="text-sm text-gray-600">Total Cost</div>
             </div>
-          ))}
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">{formatCurrency(project.gef_grant || 0)}</div>
+              <div className="text-sm text-gray-600">GEF Grant</div>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">{formatCurrency(project.cofinancing || 0)}</div>
+              <div className="text-sm text-gray-600">Co-financing</div>
+            </div>
+          </div>
         </div>
       </Card>
     </PageLayout>

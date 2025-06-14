@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS  Project (
 CREATE TABLE IF NOT EXISTS Agency (
                         agency_id SERIAL PRIMARY KEY,
                         name VARCHAR(255) NOT NULL,
-                        type VARCHAR(50) NOT NULL
+                        type VARCHAR(50) NOT NULL,
+                        category VARCHAR(100)
 );
 
 -- Table: FundingSource
@@ -109,9 +110,6 @@ CREATE TABLE IF NOT EXISTS ProjectFocalArea (
                                   FOREIGN KEY (project_id) REFERENCES Project(project_id) ON DELETE CASCADE,
                                   FOREIGN KEY (focal_area_id) REFERENCES FocalArea(focal_area_id) ON DELETE CASCADE
 );
-
-
-
 
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_project_title ON Project(title);

@@ -23,7 +23,8 @@ const AdminListPage = ({
   getRowActions = () => [],
   onRowClick = null,
   additionalFilters = null,
-  customEmptyState = null
+  customEmptyState = null,
+  onAddNew = null // Add this prop
 }) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -103,26 +104,34 @@ const AdminListPage = ({
   };
 
   // Prepare table columns with status rendering
-  const tableColumns = columns.map(col => ({
-    ...col,
-    render: col.render || ((value, row) => {
-      if (col.type === 'status') {
-        const config = getStatusConfig(value, col.statusType || 'project');
-        return <Badge variant="custom" className={config.color} icon={config.icon}>{config.label}</Badge>;
+  const tableColumns = columns.map(col => {
+    // If column already has a custom render function, preserve it
+    if (col.render) {
+      return col;
+    }
+    
+    // Otherwise, apply default rendering based on type
+    return {
+      ...col,
+      render: (value, row) => {
+        if (col.type === 'status') {
+          const config = getStatusConfig(value, col.statusType || 'project');
+          return <Badge variant="custom" className={config.color} icon={config.icon}>{config.label}</Badge>;
+        }
+        if (col.type === 'currency') {
+          return new Intl.NumberFormat('en-US', { 
+            style: 'currency', 
+            currency: 'USD',
+            minimumFractionDigits: 0 
+          }).format(value);
+        }
+        if (col.type === 'date') {
+          return value ? new Date(value).toLocaleDateString() : '-';
+        }
+        return value || '-';
       }
-      if (col.type === 'currency') {
-        return new Intl.NumberFormat('en-US', { 
-          style: 'currency', 
-          currency: 'USD',
-          minimumFractionDigits: 0 
-        }).format(value);
-      }
-      if (col.type === 'date') {
-        return value ? new Date(value).toLocaleDateString() : '-';
-      }
-      return value || '-';
-    })
-  }));
+    };
+  });
 
   // Prepare table actions
   const defaultActions = [
@@ -131,8 +140,26 @@ const AdminListPage = ({
       icon: <Edit size={14} />,
       variant: 'outline',
       onClick: (row) => {
-        // Handle different ID field names for different entities
-        const id = row.id || row[`${entityName}_id`] || row.project_id || row.agency_id || row.location_id || row.focal_area_id || row.funding_source_id;
+        let id;
+        if (entityName === 'agency') {
+          id = row.agency_id;
+        } else if (entityName === 'project') {
+          id = row.project_id;
+        } else if (entityName === 'location') {
+          id = row.location_id;
+        } else if (entityName === 'funding-source') {
+          id = row.funding_source_id;
+        } else if (entityName === 'focal-area') {
+          id = row.focal_area_id;
+        } else if (entityName === 'user') {
+          id = row.id;
+        } else {
+          id = row.id || row[`${entityName}_id`];
+        }
+        if (!id) {
+          alert(`Cannot edit ${entityName}: No valid ID found`);
+          return;
+        }
         navigate(`/admin/${entityName}s/${id}/edit`);
       }
     },
@@ -186,7 +213,7 @@ const AdminListPage = ({
             All {title} ({filteredData.length})
           </h3>
           <Button 
-            onClick={() => navigate(`/admin/${entityName}s/new`)} // Fix: Change from /add to /new
+            onClick={onAddNew || (() => navigate(`/admin/${entityName}s/new`))}
             variant="primary"
             leftIcon={<Plus size={16} />}
             className="bg-purple-600 hover:bg-purple-700 text-white mt-4 md:mt-0"

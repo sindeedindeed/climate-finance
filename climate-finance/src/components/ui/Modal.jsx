@@ -111,38 +111,76 @@ export const ConfirmModal = ({
   variant = 'danger', // 'danger' | 'warning' | 'info'
   isLoading = false
 }) => {
-  const variantStyles = {
-    danger: 'bg-red-600 hover:bg-red-700 text-white',
-    warning: 'bg-yellow-600 hover:bg-yellow-700 text-white',
-    info: 'bg-blue-600 hover:bg-blue-700 text-white'
+  const variantConfig = {
+    danger: {
+      iconBg: 'bg-red-100',
+      iconColor: 'text-red-600',
+      buttonStyle: 'bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white',
+      titleColor: 'text-red-600'
+    },
+    warning: {
+      iconBg: 'bg-yellow-100',
+      iconColor: 'text-yellow-600',
+      buttonStyle: 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500 text-white',
+      titleColor: 'text-yellow-600'
+    },
+    info: {
+      iconBg: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      buttonStyle: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 text-white',
+      titleColor: 'text-blue-600'
+    }
   };
+
+  const config = variantConfig[variant];
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={title}
       size="sm"
-      footer={
-        <div className="flex justify-end gap-3">
+      closeOnOverlay={!isLoading}
+      showCloseButton={false}
+      className="animate-fade-in-up"
+    >
+      <div className="flex flex-col items-center text-center p-6">
+        {/* Icon */}
+        <div className={`mx-auto flex items-center justify-center h-12 w-12 rounded-full ${config.iconBg} mb-4`}>
+          <svg className={`h-6 w-6 ${config.iconColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.962-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+
+        {/* Title */}
+        <h3 className={`text-lg font-semibold ${config.titleColor} mb-2`}>
+          {title}
+        </h3>
+
+        {/* Message */}
+        <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+          {message}
+        </p>
+
+        {/* Actions */}
+        <div className="flex gap-3 w-full">
           <Button
             variant="outline"
             onClick={onClose}
             disabled={isLoading}
+            className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
           >
             {cancelText}
           </Button>
           <Button
             onClick={onConfirm}
             loading={isLoading}
-            className={variantStyles[variant]}
+            disabled={isLoading}
+            className={`flex-1 ${config.buttonStyle} focus:ring-2 focus:ring-offset-2 transition-all duration-200`}
           >
             {confirmText}
           </Button>
         </div>
-      }
-    >
-      <p className="text-gray-600">{message}</p>
+      </div>
     </Modal>
   );
 };
