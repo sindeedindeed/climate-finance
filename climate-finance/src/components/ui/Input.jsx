@@ -98,6 +98,11 @@ const Input = ({
       case 'password':
         return (
           <div className="relative">
+            {leftIcon && (
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10">
+                {leftIcon}
+              </div>
+            )}
             <input
               id={name}
               name={name}
@@ -109,14 +114,14 @@ const Input = ({
               placeholder={placeholder}
               required={required}
               disabled={disabled}
-              className={baseInputClasses}
+              className={`${baseInputClasses} ${leftIcon ? 'pl-11' : ''} ${showPasswordToggle ? 'pr-11' : ''}`}
               {...props}
             />
             {showPasswordToggle && (
               <button
                 type="button"
                 onClick={togglePasswordVisibility}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none z-10"
                 tabIndex={-1}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}

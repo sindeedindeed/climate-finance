@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { demoCredentials } from '../data/demoCredentials';
+import { userApi } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -20,13 +20,15 @@ export const AuthProvider = ({ children }) => {
     try {
       // Check if user is already logged in
       const storedUser = localStorage.getItem('adminUser');
-      if (storedUser) {
+      const storedToken = localStorage.getItem('adminToken');
+      if (storedUser && storedToken) {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
       }
     } catch (error) {
       console.error('Error parsing stored user data:', error);
       localStorage.removeItem('adminUser');
+      localStorage.removeItem('adminToken');
       setError('Session data corrupted. Please log in again.');
     }
     setLoading(false);
@@ -43,50 +45,132 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      // Use the proper API service instead of direct fetch
-      const { userApi } = await import('../services/api');
-      const data = await userApi.login({
+      // Call the login API
+      const response = await userApi.login({
         email: usernameOrEmail,
         password: password
       });
 
-      if (data.user) {
-        const userWithoutPassword = { ...data.user };
-        delete userWithoutPassword.password;
-        
-        setUser(userWithoutPassword);
-        localStorage.setItem('adminUser', JSON.stringify(userWithoutPassword));
-        setLoading(false);
-        return { success: true };
-      } else {
-        setLoading(false);
-        return { success: false, error: data.message || 'Authentication failed' };
-      }
-    } catch (error) {
-      console.warn('Backend authentication failed, trying demo credentials:', error.message);
-      
-      // Fallback to demo credentials for development
-      const foundUser = demoCredentials.find(
-        user => (user.username === usernameOrEmail || user.email === usernameOrEmail) && 
-                user.password === password && user.isActive
-      );
+      console.log('Login response:', response);
 
-      if (foundUser) {
-        const userWithoutPassword = { ...foundUser };
-        delete userWithoutPassword.password;
-        userWithoutPassword.lastLogin = new Date().toISOString();
+      // Handle standardized response format: { status: true, data: { user, token } }
+      if (response.status === true && response.data) {
+        const { user: userData, token } = response.data;
         
-        setUser(userWithoutPassword);
-        localStorage.setItem('adminUser', JSON.stringify(userWithoutPassword));
-        setLoading(false);
-        return { success: true };
-      } else {
+        if (userData && token) {
+          // Remove password if present and create clean user object
+          const userWithoutPassword = { ...userData };
+          delete userWithoutPassword.password;
+          
+          // Store user data and token
+          setUser(userWithoutPassword);
+          localStorage.setItem('adminUser', JSON.stringify(userWithoutPassword));
+          localStorage.setItem('adminToken', token);
+          
+          setLoading(false);
+          return { success: true };
+        }
+      }
+      
+      // Handle error responses
+      if (response.status === false) {
         setLoading(false);
         return { 
           success: false, 
-          error: 'Invalid credentials. Please check your username/email and password.' 
+          error: response.message || 'Login failed' 
         };
       }
+
+      // If we get here, the response format is unexpected
+      console.error('Unexpected response format:', response);
+      setLoading(false);
+      return { 
+        success: false, 
+        error: 'Invalid response format from server. Please try again.' 
+      };
+      
+    } catch (error) {
+      console.error('Authentication failed:', error.message);
+      setLoading(false);
+      
+      // Provide user-friendly error messages
+      let errorMessage = 'Authentication failed. Please try again.';
+      
+      if (error.message.includes('Unable to connect')) {
+        errorMessage = 'Unable to connect to server. Please check your internet connection.';
+      } else if (error.message.includes('401') || error.message.includes('403')) {
+        errorMessage = 'Invalid credentials. Please check your email and password.';
+      } else if (error.message.includes('500')) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error.message.includes('network') || error.message.includes('fetch')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error.message.includes('Invalid credentials')) {
+        errorMessage = 'Invalid credentials. Please check your email and password.';
+      } else if (error.message.includes('Account is inactive')) {
+        errorMessage = 'Account is inactive. Please contact administrator.';
+      }
+      
+      return { 
+        success: false, 
+        error: errorMessage
+      };
+    }
+  };
+
+  const register = async (userData) => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const response = await userApi.register(userData);
+
+      console.log('Register response:', response);
+
+      // Handle standardized response format: { status: true, data: userData }
+      if (response.status === true && response.data) {
+        const userWithoutPassword = { ...response.data };
+        delete userWithoutPassword.password;
+        
+        setUser(userWithoutPassword);
+        localStorage.setItem('adminUser', JSON.stringify(userWithoutPassword));
+        
+        setLoading(false);
+        return { success: true };
+      }
+      
+      // Handle error responses
+      if (response.status === false) {
+        setLoading(false);
+        return { 
+          success: false, 
+          error: response.message || 'Registration failed' 
+        };
+      }
+
+      setLoading(false);
+      return { 
+        success: false, 
+        error: 'Invalid response format from server. Please try again.' 
+      };
+      
+    } catch (error) {
+      console.error('Registration failed:', error.message);
+      setLoading(false);
+      
+      let errorMessage = 'Registration failed. Please try again.';
+      
+      if (error.message.includes('Unable to connect')) {
+        errorMessage = 'Unable to connect to server. Please check your internet connection.';
+      } else if (error.message.includes('409') || error.message.includes('Email already exists')) {
+        errorMessage = 'User already exists with this email.';
+      } else if (error.message.includes('400')) {
+        errorMessage = 'Invalid data provided. Please check your input.';
+      }
+      
+      return { 
+        success: false, 
+        error: errorMessage
+      };
     }
   };
 
@@ -94,6 +178,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setError(null);
     localStorage.removeItem('adminUser');
+    localStorage.removeItem('adminToken');
   };
 
   const clearError = () => {
@@ -103,6 +188,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     login,
+    register,
     logout,
     loading,
     error,

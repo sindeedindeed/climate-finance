@@ -24,12 +24,10 @@ const Button = ({
   
   const variantStyles = {    
     primary: `
-      bg-gradient-to-r from-primary-600 to-primary-700
-      hover:from-primary-700 hover:to-primary-800
-      text-white shadow-medium hover:shadow-large
-      focus:ring-primary-200
-      before:absolute before:inset-0 before:bg-white before:opacity-0 
-      hover:before:opacity-10 before:transition-opacity before:duration-300
+      bg-purple-600 hover:bg-purple-700 
+      text-white shadow-lg hover:shadow-xl
+      focus:ring-purple-200 focus:ring-4
+      border-0
     `,
     export: `
       bg-gradient-to-r from-purple-600 to-purple-700
@@ -41,37 +39,35 @@ const Button = ({
     `,
     secondary: `
       bg-white border-2 border-gray-200
-      hover:border-primary-300 hover:bg-primary-50
-      text-gray-700 hover:text-primary-700
+      hover:border-purple-300 hover:bg-purple-50
+      text-gray-700 hover:text-purple-700
       shadow-soft hover:shadow-medium
-      focus:ring-primary-200
+      focus:ring-purple-200
     `,    
     outline: `
-      border-2 border-primary-500 bg-transparent
-      hover:bg-primary-50 hover:border-primary-600
-      text-primary-600 hover:text-primary-700
-      focus:ring-primary-200
+      border-2 border-purple-500 bg-transparent
+      hover:bg-purple-50 hover:border-purple-600
+      text-purple-600 hover:text-purple-700
+      focus:ring-purple-200
       shadow-none hover:shadow-medium
       transition-all duration-200
     `,
     ghost: `
       bg-transparent border-none
-      hover:bg-primary-50 hover:text-primary-700
+      hover:bg-purple-50 hover:text-purple-700
       text-gray-600 
-      focus:ring-primary-200
+      focus:ring-purple-200
       shadow-none
     `,
     danger: `
-      bg-gradient-to-r from-error-500 to-error-600
-      hover:from-error-600 hover:to-error-700
+      bg-red-500 hover:bg-red-600
       text-white shadow-medium hover:shadow-large
-      focus:ring-error-200
+      focus:ring-red-200
     `,
     success: `
-      bg-gradient-to-r from-success-500 to-success-600
-      hover:from-success-600 hover:to-success-700
+      bg-green-500 hover:bg-green-600
       text-white shadow-medium hover:shadow-large
-      focus:ring-success-200
+      focus:ring-green-200
     `,
   };
   

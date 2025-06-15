@@ -5,7 +5,7 @@ import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
-import { ArrowLeft, Shield, Lock, User } from 'lucide-react';
+import { ArrowLeft, Lock, User } from 'lucide-react';
 
 const AdminLogin = () => {
   const [formData, setFormData] = useState({
@@ -18,12 +18,27 @@ const AdminLogin = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  // Demo credentials
+  const demoCredentials = {
+    email: "demo@climatedb.com",
+    username: "demo_user",
+    password: "Demo123!"
+  };
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
     setError(''); // Clear error when user types
+  };
+
+  const handleDemoLogin = () => {
+    setFormData({
+      username: demoCredentials.email,
+      password: demoCredentials.password
+    });
+    setError('');
   };
 
   const handleSubmit = async (e) => {
@@ -59,7 +74,7 @@ const AdminLogin = () => {
         <div>
           <Link
             to="/"
-            className="flex items-center text-purple-600 hover:text-purple-700 transition-colors duration-200 text-sm font-medium"
+            className="flex items-center text-primary-600 hover:text-primary-700 transition-colors duration-200 text-sm font-medium"
           >
             <ArrowLeft size={18} className="mr-2" />
             <span>Back to Main Site</span>
@@ -68,9 +83,6 @@ const AdminLogin = () => {
 
         {/* Header */}
         <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-200">
-            <Shield size={32} className="text-white" />
-          </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
             Admin Portal
           </h2>
@@ -80,23 +92,23 @@ const AdminLogin = () => {
         </div>
 
         {/* Login Form */}
-        <Card padding={true} className="shadow-lg">
+        <Card padding="p-6" className="shadow-lg">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
-              {/* Username Field - Using reusable Input component */}
+              {/* Username/Email Field */}
               <Input
-                label="Username"
+                label="Email or Username"
                 name="username"
                 type="text"
                 value={formData.username}
                 onChange={handleChange}
-                placeholder="Enter your username"
+                placeholder="Enter your email or username"
                 leftIcon={<User size={20} className="text-gray-400" />}
                 required
                 disabled={isLoading}
               />
 
-              {/* Password Field - Using reusable Input component */}
+              {/* Password Field */}
               <Input
                 label="Password"
                 name="password"
@@ -121,7 +133,8 @@ const AdminLogin = () => {
             {/* Login Button */}
             <Button
               type="submit"
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200 py-3"
+              variant="primary"
+              className="w-full py-3"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -136,32 +149,27 @@ const AdminLogin = () => {
           </form>
         </Card>
 
-        {/* Demo Credentials */}
-        <Card padding={true} className="bg-white border border-gray-200">
+        {/* Help Text */}
+        <Card padding="p-4" className="bg-primary-50 border border-primary-200">
           <div className="text-center">
-            <h3 className="text-sm font-medium text-gray-700 mb-4">Demo Credentials:</h3>
-            <div className="space-y-3 text-xs text-gray-600">
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Super Admin:</span>
-                <code className="bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-200 font-mono">
-                  admin@climateFinance.gov.bd / admin123
-                </code>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Project Manager:</span>
-                <code className="bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-200 font-mono">
-                  pm@climateFinance.gov.bd / pm123
-                </code>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Finance Admin:</span>
-                <code className="bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-200 font-mono">
-                  finance@climateFinance.gov.bd / finance123
-                </code>
-              </div>
-            </div>
+            <p className="text-sm text-primary-700">
+              Don't have an account? Contact your system administrator to get access to the admin portal.
+            </p>
           </div>
         </Card>
+
+        {/* Demo Credentials - Small Tooltip */}
+        <div className="text-center">
+          <p className="text-xs text-gray-500 mb-2">
+            Demo credentials: <span className="font-mono text-gray-600">demo@climatedb.com</span> / <span className="font-mono text-gray-600">Demo123!</span>
+          </p>
+          <button
+            onClick={handleDemoLogin}
+            className="text-xs text-blue-600 hover:text-blue-700 underline transition-colors"
+          >
+            Fill demo credentials
+          </button>
+        </div>
       </div>
     </div>
   );
