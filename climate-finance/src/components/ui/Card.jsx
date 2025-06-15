@@ -3,13 +3,14 @@ import React from 'react';
 const Card = ({ 
   children, 
   className = '', 
-  padding = true, // Boolean: true = default padding, false = none
+  padding = true, // Boolean: true = default padding, false = none, or string for custom
   hover = false,
   interactive = false,
   loading = false,
   gradient = false,
   ...props 
-}) => {  const baseStyles = `
+}) => {
+  const baseStyles = `
     bg-white rounded-2xl shadow-soft 
     transition-all duration-300 ease-out
     relative overflow-hidden
@@ -29,6 +30,14 @@ const Card = ({
     border-primary-100
   ` : '';
 
+  // Improved padding logic for better space utilization
+  const getPaddingClasses = () => {
+    if (padding === false) return '';
+    if (typeof padding === 'string') return padding;
+    // Default: more conservative padding that adapts better
+    return 'p-3 sm:p-4 lg:p-6';
+  };
+
   const LoadingSkeleton = () => (
     <div className="animate-pulse">
       <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
@@ -36,15 +45,17 @@ const Card = ({
       <div className="h-4 bg-gray-200 rounded w-2/3"></div>
     </div>
   ); 
+
   if (loading) {
     return (
       <div className={`${baseStyles} ${className}`} {...props}>
-        <div className={padding ? 'p-4 sm:p-6' : ''}>
+        <div className={getPaddingClasses()}>
           <LoadingSkeleton />
         </div>
       </div>
     );
   }
+
   return (
     <div 
       className={`
@@ -56,7 +67,9 @@ const Card = ({
       {...props}
     >
       {gradient && (
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-100 to-transparent opacity-50 rounded-full -mr-16 -mt-16"></div>      )}      <div className={`relative z-10 w-full overflow-hidden ${padding ? 'p-4 sm:p-6' : ''}`}>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-100 to-transparent opacity-50 rounded-full -mr-16 -mt-16"></div>
+      )}
+      <div className={`relative z-10 w-full overflow-hidden ${getPaddingClasses()}`}>
         {children}
       </div>
     </div>

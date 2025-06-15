@@ -4,7 +4,15 @@ import {
   ArrowLeft,
   Download,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Calendar,
+  MapPin,
+  DollarSign,
+  Users,
+  Building,
+  CheckCircle,
+  TrendingUp,
+  Droplets
 } from 'lucide-react';
 import PageLayout from '../components/layouts/PageLayout';
 import Card from '../components/ui/Card';
@@ -13,7 +21,7 @@ import Loading from '../components/ui/Loading';
 import ProgressBar from '../components/ui/ProgressBar';
 import FinancialSummaryCard from '../components/ui/FinancialSummaryCard';
 import { formatCurrency } from '../utils/formatters';
-import { projectApi } from '../services/api';
+import { projectApi, locationApi, agencyApi, fundingSourceApi, focalAreaApi } from '../services/api';
 
 const ProjectDetails = () => {
   const { id, projectId } = useParams();
@@ -27,25 +35,75 @@ const ProjectDetails = () => {
 
   useEffect(() => {
     if (actualId) {
-      fetchProject();
+      fetchProjectWithRelatedData();
     } else {
       setError('No project ID provided');
       setLoading(false);
     }
   }, [actualId]);
 
-  const fetchProject = async () => {
+  const fetchProjectWithRelatedData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await projectApi.getById(actualId);
-      if (response.status && response.data) {
-        setProject(response.data);
-        setRetryCount(0);
-      } else {
+      const projectResponse = await projectApi.getById(actualId);
+      if (!projectResponse?.status || !projectResponse.data) {
         setError('Project not found');
+        return;
       }
+
+      const projectData = projectResponse.data;
+
+      const [agenciesData, locationsData, fundingSourcesData, focalAreasData] = await Promise.all([
+        projectData.agencies && projectData.agencies.length > 0 
+          ? Promise.all(projectData.agencies.map(id => 
+              agencyApi.getById(id).catch(() => null)
+            ))
+          : Promise.resolve([]),
+        projectData.locations && projectData.locations.length > 0
+          ? Promise.all(projectData.locations.map(id => 
+              locationApi.getById(id).catch(() => null)
+            ))
+          : Promise.resolve([]),
+        projectData.funding_sources && projectData.funding_sources.length > 0
+          ? Promise.all(projectData.funding_sources.map(id => 
+              fundingSourceApi.getById(id).catch(() => null)
+            ))
+          : Promise.resolve([]),
+        projectData.focal_areas && projectData.focal_areas.length > 0
+          ? Promise.all(projectData.focal_areas.map(id => 
+              focalAreaApi.getById(id).catch(() => null)
+            ))
+          : Promise.resolve([])
+      ]);
+
+      const projectAgencies = agenciesData
+        .filter(response => response?.status && response.data)
+        .map(response => response.data);
+      
+      const projectLocations = locationsData
+        .filter(response => response?.status && response.data)
+        .map(response => response.data);
+      
+      const projectFundingSources = fundingSourcesData
+        .filter(response => response?.status && response.data)
+        .map(response => response.data);
+      
+      const projectFocalAreas = focalAreasData
+        .filter(response => response?.status && response.data)
+        .map(response => response.data);
+
+      const enrichedProject = {
+        ...projectData,
+        projectAgencies,
+        projectLocations,
+        projectFundingSources,
+        projectFocalAreas
+      };
+
+      setProject(enrichedProject);
+      setRetryCount(0);
     } catch (err) {
       console.error('Error fetching project:', err);
       setError(err.message || 'Error loading project data');
@@ -56,7 +114,7 @@ const ProjectDetails = () => {
 
   const handleRetry = () => {
     setRetryCount(prev => prev + 1);
-    fetchProject();
+    fetchProjectWithRelatedData();
   };
 
   if (loading) {
@@ -172,17 +230,14 @@ const ProjectDetails = () => {
     }
   };
 
-  const getStatusIcon = (status) => {
-    return null;
-  };
-
   const calculateProgress = () => {
-    const total = getTotalBudget(project);
+    const committed = project.gef_grant || 0;
     const disbursed = project.disbursement || 0;
-    if (total > 0) {
-      return Math.round((disbursed / total) * 100);
+    
+    if (committed > 0 && disbursed >= 0) {
+      return Math.min(Math.round((disbursed / committed) * 100), 100);
     }
-    return project.progress || 0;
+    return 0;
   };
 
   const progressPercentage = calculateProgress();
@@ -203,275 +258,250 @@ const ProjectDetails = () => {
           </Link>
         </div>
 
-        <Card className="mb-6 overflow-visible" padding={true}>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span
-                className={`text-xs px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 ${getStatusColor(project.status)}`}
-              >
-                {getStatusIcon(project.status)}
+        {/* Main Project Card - Fixed Typography & Colors */}
+        <Card className="mb-6" padding="p-4 sm:p-6">
+          {/* Top Bar: Status, ID, Export */}
+          <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+            <div className="flex items-center gap-3">
+              <span className={`text-sm px-3 py-1 rounded-full font-semibold ${getStatusColor(project.status)}`}>
                 {project.status}
               </span>
-              <span className="text-xs text-gray-400">{project.project_id}</span>
+              <span className="text-sm text-gray-500 font-medium">#{project.project_id}</span>
             </div>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleExportReport}
+              leftIcon={<Download size={14} />}
+              className="bg-primary-600 hover:bg-primary-700 text-white"
+            >
+              Export Report
+            </Button>
+          </div>
 
-            <div className="flex flex-col md:flex-row md:gap-8">
-              <div className="w-full md:w-3/5">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  {project.title || 'Untitled Project'}
-                </h2>
-                <p className="text-sm text-gray-600 mb-6">
-                  {project.objectives || project.description || 'No description available'}
-                </p>
+          {/* Title and Description */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-3 leading-tight">
+              {project.title || 'Untitled Project'}
+            </h1>
+            <p className="text-base text-gray-600 leading-relaxed">
+              {project.objectives || project.description || 'No description available'}
+            </p>
+          </div>
 
-                {getTotalBudget(project) > 0 && (
-                  <ProgressBar
-                    label="Financial Progress"
-                    percentage={progressPercentage}
-                    current={project.disbursement || 0}
-                    total={getTotalBudget(project)}
-                    formatValue={formatCurrency}
-                    color="purple"
-                  />
+          {/* Key Metrics Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-xl">
+            <div className="text-center">
+              <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Total Budget</div>
+              <div className="text-lg font-bold text-gray-900">{formatCurrency(getTotalBudget(project))}</div>
+            </div>
+            
+            {project.gef_grant && (
+              <div className="text-center">
+                <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">GEF Grant</div>
+                <div className="text-lg font-bold text-success-600">{formatCurrency(project.gef_grant)}</div>
+              </div>
+            )}
+            
+            {project.disbursement && project.disbursement > 0 && (
+              <div className="text-center">
+                <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Disbursed</div>
+                <div className="text-lg font-bold text-primary-600">{formatCurrency(project.disbursement)}</div>
+              </div>
+            )}
+            
+            <div className="text-center">
+              <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Location</div>
+              <div className="text-sm font-semibold text-gray-900 truncate" title={getLocation(project)}>
+                {getLocation(project)}
+              </div>
+            </div>
+          </div>
+
+          {/* Mini Progress Bar */}
+          {project.gef_grant > 0 && project.disbursement > 0 && (
+            <div className="mb-6 p-4 bg-primary-50 rounded-xl border border-primary-100">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-gray-800">Disbursement Progress</span>
+                <span className="text-sm font-bold text-primary-700">{progressPercentage}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <div
+                  className="bg-gradient-to-r from-primary-500 to-primary-600 h-3 rounded-full transition-all duration-700"
+                  style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-sm text-gray-600 mt-2">
+                <span>{formatCurrency(project.disbursement)}</span>
+                <span>{formatCurrency(project.gef_grant)}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Timeline and Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-base">
+            <div>
+              <span className="font-semibold text-gray-800">Timeline:</span>
+              <span className="text-gray-600 ml-2">{getTimeline(project)}</span>
+            </div>
+            
+            {project.beneficiaries && (
+              <div>
+                <span className="font-semibold text-gray-800">Beneficiaries:</span>
+                <span className="text-gray-600 ml-2">{project.beneficiaries}</span>
+              </div>
+            )}
+          </div>
+        </Card>
+
+        {/* Secondary Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Agencies */}
+          <Card padding="p-4 sm:p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Implementing Agencies</h3>
+            {Array.isArray(project.projectAgencies) && project.projectAgencies.length > 0 ? (
+              <div className="space-y-3">
+                {project.projectAgencies.slice(0, 4).map((agency, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="font-medium text-gray-900">{agency.name}</div>
+                    <div className="text-sm text-gray-500 font-medium">{agency.type}</div>
+                  </div>
+                ))}
+                {project.projectAgencies.length > 4 && (
+                  <div className="text-sm text-gray-500 text-center font-medium">
+                    +{project.projectAgencies.length - 4} more agencies
+                  </div>
                 )}
               </div>
-
-              <div className="w-full md:w-2/5 mt-6 md:mt-0">
-                <div className="flex justify-end mb-4">
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
-                    onClick={handleExportReport}
-                    leftIcon={<Download size={16} />}
-                  >
-                    Export Report
-                  </Button>
-                </div>
-
-                <ul className="space-y-2 text-sm text-gray-700">
-                  <li className="flex items-start gap-2">
-                    <div>
-                      <span className="font-semibold">Project Timeline</span>
-                      <div className="text-xs text-gray-600">
-                        {getTimeline(project)}
-                      </div>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div>
-                      <span className="font-semibold">Locations</span>
-                      <div className="text-xs text-gray-600">
-                        {getLocation(project)}
-                      </div>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div>
-                      <span className="font-semibold">Total Budget</span>
-                      <div className="text-xs text-gray-600">
-                        {formatCurrency(getTotalBudget(project))}
-                      </div>
-                    </div>
-                  </li>
-                  {project.beneficiaries && (
-                    <li className="flex items-start gap-2">
-                      <div>
-                        <span className="font-semibold">Beneficiaries</span>
-                        <div className="text-xs text-gray-600">
-                          {project.beneficiaries}
-                        </div>
-                      </div>
-                    </li>
-                  )}
-                  {project.sector && (
-                    <li className="flex items-start gap-2">
-                      <div>
-                        <span className="font-semibold">Sector</span>
-                        <div className="text-xs text-gray-600">
-                          {project.sector}
-                        </div>
-                      </div>
-                    </li>
-                  )}
-                  {project.wash_component?.presence && (
-                    <li className="flex items-start gap-2">
-                      <div>
-                        <span className="font-semibold">WASH Component</span>
-                        <div className="text-xs text-gray-600">
-                          Included in this project
-                        </div>
-                      </div>
-                    </li>
-                  )}
-                </ul>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Building size={24} className="mx-auto mb-2" />
+                <p className="font-medium">No agencies data</p>
               </div>
-            </div>
-          </div>
-        </Card>
+            )}
+          </Card>
 
-        <Card className="mb-6" padding={true}>
-          <div>
-            <div className="font-semibold mb-4">
-              Implementing & Executing Agencies
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Array.isArray(project.projectAgencies) && project.projectAgencies.length > 0 ? (
-                project.projectAgencies.map((agency, index) => (
-                  <div
-                    key={index}
-                    className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-3"
-                  >
-                    <div className="flex-1">
-                      <div className="font-medium text-sm">
-                        {agency.name}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {agency.type} • {agency.category}
-                      </div>
-                    </div>
+          {/* Funding Sources */}
+          <Card padding="p-4 sm:p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Funding Sources</h3>
+            {Array.isArray(project.projectFundingSources) && project.projectFundingSources.length > 0 ? (
+              <div className="space-y-3">
+                {project.projectFundingSources.slice(0, 4).map((source, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-primary-50 rounded-lg border border-primary-100">
+                    <div className="font-medium text-gray-900">{source.name}</div>
+                    <div className="text-sm text-primary-700 font-medium">{source.dev_partner}</div>
                   </div>
-                ))
-              ) : (
-                <div className="text-sm text-gray-500">
-                  No agencies information available
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
-
-        <Card className="mb-6" padding={true}>
-          <div>
-            <div className="font-semibold mb-4">Funding Sources</div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Array.isArray(project.projectFundingSources) && project.projectFundingSources.length > 0 ? (
-                project.projectFundingSources.map((source, index) => (
-                  <div
-                    key={index}
-                    className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-3"
-                  >
-                    <div>
-                      <div className="font-medium text-sm">
-                        {source.name}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {source.dev_partner}
-                      </div>
-                    </div>
+                ))}
+                {project.projectFundingSources.length > 4 && (
+                  <div className="text-sm text-gray-500 text-center font-medium">
+                    +{project.projectFundingSources.length - 4} more sources
                   </div>
-                ))
-              ) : (
-                <div className="text-sm text-gray-500">
-                  No funding source information available
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <DollarSign size={24} className="mx-auto mb-2" />
+                <p className="font-medium">No funding sources</p>
+              </div>
+            )}
+          </Card>
+        </div>
 
-        <Card className="mb-6" padding={true}>
-          <div>
-            <div className="font-semibold mb-4">Project Locations</div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {Array.isArray(project.projectLocations) && project.projectLocations.length > 0 ? (
-                project.projectLocations.map((location, index) => (
-                  <div
+        {/* Bottom Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Locations */}
+          <Card padding="p-4 sm:p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Locations</h3>
+            {Array.isArray(project.projectLocations) && project.projectLocations.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {project.projectLocations.map((location, index) => (
+                  <span
                     key={index}
-                    className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-3"
+                    className="px-3 py-2 bg-success-100 text-success-800 text-sm rounded-lg font-medium"
                   >
-                    <div>
-                      <div className="font-medium text-sm">
-                        {location.name}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {location.region}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-sm text-gray-500">
-                  No location information available
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
+                    {location.name}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <MapPin size={24} className="mx-auto mb-2" />
+                <p className="font-medium">No locations</p>
+              </div>
+            )}
+          </Card>
 
-        <Card className="mb-6" padding={true}>
-          <div>
-            <div className="font-semibold mb-4">Focal Areas</div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {Array.isArray(project.projectFocalAreas) && project.projectFocalAreas.length > 0 ? (
-                project.projectFocalAreas.map((area, index) => (
-                  <div
+          {/* Focal Areas */}
+          <Card padding="p-4 sm:p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Focal Areas</h3>
+            {Array.isArray(project.projectFocalAreas) && project.projectFocalAreas.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {project.projectFocalAreas.map((area, index) => (
+                  <span
                     key={index}
-                    className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-3"
+                    className="px-3 py-2 bg-primary-100 text-primary-800 text-sm rounded-lg font-medium"
                   >
-                    <div>
-                      <div className="font-medium text-sm">{area.name}</div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-sm text-gray-500">
-                  No focal area information available
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
+                    {area.name}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <CheckCircle size={24} className="mx-auto mb-2" />
+                <p className="font-medium">No focal areas</p>
+              </div>
+            )}
+          </Card>
+        </div>
 
+        {/* WASH Component */}
         {project.wash_component?.presence && (
-          <Card className="mb-6" padding={true}>
-            <div>
-              <div className="font-semibold mb-4">WASH Component Details</div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                  <div className="text-sm font-medium mb-1">Water Supply</div>
-                  <div className="text-xs text-gray-500">
-                    {project.wash_component.water_supply_percent || 0}%
-                  </div>
+          <Card padding="p-4 sm:p-6" className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">WASH Component</h3>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-primary-50 rounded-lg border border-primary-100">
+                <div className="text-sm text-gray-600 font-medium mb-1">Water Supply</div>
+                <div className="text-xl font-bold text-primary-700">
+                  {project.wash_component.water_supply_percent || 0}%
                 </div>
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                  <div className="text-sm font-medium mb-1">Sanitation</div>
-                  <div className="text-xs text-gray-500">
-                    {project.wash_component.sanitation_percent || 0}%
-                  </div>
+              </div>
+              <div className="text-center p-4 bg-success-50 rounded-lg border border-success-100">
+                <div className="text-sm text-gray-600 font-medium mb-1">Sanitation</div>
+                <div className="text-xl font-bold text-success-700">
+                  {project.wash_component.sanitation_percent || 0}%
                 </div>
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                  <div className="text-sm font-medium mb-1">
-                    Public Administration
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {project.wash_component.public_admin_percent || 0}%
-                  </div>
+              </div>
+              <div className="text-center p-4 bg-warning-50 rounded-lg border border-warning-100">
+                <div className="text-sm text-gray-600 font-medium mb-1">Public Admin</div>
+                <div className="text-xl font-bold text-warning-700">
+                  {project.wash_component.public_admin_percent || 0}%
                 </div>
               </div>
             </div>
           </Card>
         )}
 
-        <Card className="mb-6" padding={true}>
-          <div>
-            <div className="font-semibold mb-4">Financial Summary</div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <FinancialSummaryCard
-                title="Total Cost"
-                value={formatCurrency(getTotalBudget(project))}
-                color="purple"
-              />
-              <FinancialSummaryCard
-                title="GEF Grant"
-                value={formatCurrency(project.gef_grant || 0)}
-                color="green"
-              />
-              <FinancialSummaryCard
-                title="Co-financing"
-                value={formatCurrency(project.cofinancing || 0)}
-                color="blue"
-              />
+        {/* Financial Summary */}
+        <Card padding="p-4 sm:p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Financial Summary</h3>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center p-4 bg-primary-50 rounded-lg border border-primary-100">
+              <div className="text-sm text-gray-600 font-medium mb-2">Total Cost</div>
+              <div className="text-xl font-bold text-primary-700">
+                {formatCurrency(getTotalBudget(project))}
+              </div>
+            </div>
+            <div className="text-center p-4 bg-success-50 rounded-lg border border-success-100">
+              <div className="text-sm text-gray-600 font-medium mb-2">GEF Grant</div>
+              <div className="text-xl font-bold text-success-700">
+                {formatCurrency(project.gef_grant || 0)}
+              </div>
+            </div>
+            <div className="text-center p-4 bg-warning-50 rounded-lg border border-warning-100">
+              <div className="text-sm text-gray-600 font-medium mb-2">Co-financing</div>
+              <div className="text-xl font-bold text-warning-700">
+                {formatCurrency(project.cofinancing || 0)}
+              </div>
             </div>
           </div>
         </Card>

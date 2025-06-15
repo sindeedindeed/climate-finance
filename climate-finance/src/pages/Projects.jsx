@@ -451,71 +451,91 @@ const Projects = () => {
               >
                 <div 
                   key={project.project_id || index}
-                  className="group p-6 bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-200 cursor-pointer"
+                  className="group bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-200 cursor-pointer h-full flex flex-col"
                   onClick={(e) => handleViewDetails(e, project.project_id)}
                 >
-                  <div className="flex flex-col h-full">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors mb-2 line-clamp-2">
-                          {project.title}
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-3 line-clamp-2">
-                          {project.objectives || 'No description available'}
-                        </p>
-                      </div>
+                  <div className="p-6 flex flex-col h-full min-h-[320px]">
+                    {/* Header Section - Fixed Height */}
+                    <div className="mb-4 min-h-[100px] flex flex-col justify-start">
+                      <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors mb-2 line-clamp-2 text-lg leading-tight">
+                        {project.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 line-clamp-3 flex-1">
+                        {project.objectives || project.description || 'No description available'}
+                      </p>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 mb-4">
+                    {/* Status Badges - Fixed Height */}
+                    <div className="flex flex-wrap gap-2 mb-4 min-h-[32px] items-start">
                       <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}>
-                        <span>{project.status}</span>
+                        {project.status}
                       </span>
                       {project.type && (
                         <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">
                           {project.type}
                         </span>
                       )}
+                      {project.sector && (
+                        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                          {project.sector}
+                        </span>
+                      )}
                     </div>
 
-                    <div className="space-y-3 mb-4 flex-grow">
+                    {/* Content Section - Flexible Height */}
+                    <div className="space-y-3 mb-4 flex-1">
                       {project.total_cost_usd && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <span className="font-medium">Budget:</span>
-                          <span className="ml-1 text-green-600 font-semibold">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600 font-medium">Total Budget:</span>
+                          <span className="text-green-600 font-semibold">
                             {formatCurrency(project.total_cost_usd)}
                           </span>
                         </div>
                       )}
 
-                      {(project.beginning || project.closing) && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <span className="font-medium">Duration:</span>
-                          <span className="ml-1">
-                            {formatDate(project.beginning)} - {formatDate(project.closing)}
+                      {project.gef_grant && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600 font-medium">GEF Grant:</span>
+                          <span className="text-blue-600 font-semibold">
+                            {formatCurrency(project.gef_grant)}
                           </span>
                         </div>
                       )}
 
+                      {(project.beginning && project.closing) && (
+                        <div className="text-sm">
+                          <span className="text-gray-600 font-medium">Duration:</span>
+                          <div className="text-gray-700 mt-1">
+                            {formatDate(project.beginning)} - {formatDate(project.closing)}
+                          </div>
+                        </div>
+                      )}
+
                       {project.beneficiaries && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <span className="font-medium">Beneficiaries:</span>
-                          <span className="ml-1">{project.beneficiaries}</span>
+                        <div className="text-sm">
+                          <span className="text-gray-600 font-medium">Beneficiaries:</span>
+                          <div className="text-gray-700 mt-1 line-clamp-2">
+                            {project.beneficiaries}
+                          </div>
                         </div>
                       )}
                     </div>
 
-                    <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <span>ID: {project.project_id}</span>
+                    {/* Footer Section - Fixed at Bottom */}
+                    <div className="mt-auto pt-4 border-t border-gray-100">
+                      <div className="flex justify-between items-center">
+                        <div className="text-xs text-gray-500 truncate mr-2">
+                          ID: {project.project_id}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => handleViewDetails(e, project.project_id)}
+                          className="text-purple-600 border-purple-600 hover:bg-purple-50 flex-shrink-0"
+                        >
+                          View Details
+                        </Button>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => handleViewDetails(e, project.project_id)}
-                        className="text-purple-600 border-purple-600 hover:bg-purple-50"
-                      >
-                        View Details
-                      </Button>
                     </div>
                   </div>
                 </div>
