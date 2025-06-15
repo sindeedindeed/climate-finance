@@ -76,6 +76,7 @@ export const projectApi = {
   getTrend: () => apiRequest('/project/get-project-by-trend'),
   getByType: () => apiRequest('/project/get-project-by-type'),
   getOverviewStats: () => apiRequest('/project/get-overview-stat'),
+  getProjectsOverviewStats: () => apiRequest('/project/projectsOverviewStats'),
 
   // Funding Source Analytics
   getFundingSourceByType: () => apiRequest('/project/get-funding-source-by-type'),
@@ -212,6 +213,19 @@ export const focalAreaApi = {
 // User API endpoints
 export const userApi = {
   getAll: () => apiRequest('/auth/get-all-user'),
+  getById: (id) => {
+    if (!id) throw new Error('User ID is required');
+    return apiRequest(`/auth/user/${id}`);
+  },
+  login: (credentials) => {
+    if (!credentials || !credentials.email || !credentials.password) {
+      throw new Error('Email and password are required');
+    }
+    return apiRequest('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+  },
   register: (userData) => {
     if (!userData || !userData.email || !userData.password) {
       throw new Error('Email and password are required');

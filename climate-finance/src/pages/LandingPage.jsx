@@ -60,26 +60,39 @@ const LandingPage = () => {
       // Set overview stats
       if (overviewResponse.status && overviewResponse.data) {
         const data = overviewResponse.data;
+        const currentYear = data.current_year || {};
+        
+        // Helper function to calculate percentage change
+        const calculateChange = (total, current) => {
+          if (!total || !current || total === current) return "No previous data";
+          const previous = total - current;
+          if (previous <= 0) return "No comparison available";
+          const percentage = Math.round(((current / previous) - 1) * 100);
+          return percentage >= 0 ? `+${percentage}% from last year` : `${percentage}% from last year`;
+        };
+        
         setOverviewStats([
           {
             title: "Total Climate Finance",
             value: data.total_climate_finance || 0,
-            change: "+18% from last year"
+            change: calculateChange(data.total_climate_finance, currentYear.total_climate_finance)
           },
           {
             title: "Active Projects",
             value: data.active_projects || 0,
-            change: "+8% from last month"
+            change: calculateChange(data.active_projects, currentYear.active_projects)
           },
           {
             title: "Total Investment",
-            value: data.total_investment || 0,
-            change: "+15% from last year"
+            value: data.total_climate_finance || 0, // ✅ Fixed: Use total_climate_finance instead of total_investment
+            change: calculateChange(data.total_climate_finance, currentYear.total_climate_finance)
           },
           {
             title: "Completed Projects",
             value: data.completed_projects || 0,
-            change: "+23% from last year"
+            change: currentYear.completed_projects ? 
+              calculateChange(data.completed_projects, currentYear.completed_projects) : 
+              "Based on all-time data"
           }
         ]);
       } else {
@@ -102,7 +115,12 @@ const LandingPage = () => {
 
       // Set regional data for bar chart
       if (regionalResponse.status && Array.isArray(regionalResponse.data)) {
-        setRegionalData(regionalResponse.data);
+        // ✅ Fix: Map API data structure - backend returns {location_name, adaptation_total, mitigation_total}
+        setRegionalData(regionalResponse.data.map(item => ({
+          region: item.location_name,
+          adaptation: item.adaptation_total || 0,
+          mitigation: item.mitigation_total || 0
+        })));
       } else {
         setRegionalData([]);
       }

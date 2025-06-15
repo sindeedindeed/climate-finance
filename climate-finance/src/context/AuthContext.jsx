@@ -43,21 +43,14 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      // Try backend API first
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: usernameOrEmail,
-          password: password
-        })
+      // Use the proper API service instead of direct fetch
+      const { userApi } = await import('../services/api');
+      const data = await userApi.login({
+        email: usernameOrEmail,
+        password: password
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.user) {
+      if (data.user) {
         const userWithoutPassword = { ...data.user };
         delete userWithoutPassword.password;
         

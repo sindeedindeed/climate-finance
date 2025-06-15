@@ -18,13 +18,18 @@ User.getUserByEmail = async (email) => {
     return result.rows[0];
 };
 
+User.getUserById = async (id) => {
+    const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+    return result.rows[0];
+};
+
 User.updateLastLogin = async (userId) => {
     await pool.query('UPDATE users SET last_login = NOW() WHERE id = $1', [userId]);
 };
 
 User.getAllUser = async () =>{
     const response = await pool.query('SELECT * FROM users')
-    return response.rows[0];
+    return response.rows;  // ✅ Return all users, not just the first one
 }
 
 User.deleteUserById = async (id) => {

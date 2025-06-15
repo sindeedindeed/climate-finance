@@ -94,8 +94,8 @@ const ProjectFormPage = ({
           total_cost_usd: projectData.total_cost_usd,
           gef_grant: projectData.gef_grant,
           cofinancing: projectData.cofinancing,
-          beginning: projectData.beginning,
-          closing: projectData.closing,
+          beginning: formatDateForInput(projectData.beginning),
+          closing: formatDateForInput(projectData.closing),
           approval_fy: projectData.approval_fy,
           beneficiaries: projectData.beneficiaries || '',
           objectives: projectData.objectives || '',
@@ -417,6 +417,7 @@ const ProjectFormPage = ({
                   <option value="Forestry">Forestry</option>
                   <option value="Coastal">Coastal</option>
                   <option value="Disaster Risk Management">Disaster Risk Management</option>
+                  <option value="Disaster Risk Reduction">Disaster Risk Reduction</option>
                   <option value="Health">Health</option>
                   <option value="Cross-cutting">Cross-cutting</option>
                 </select>

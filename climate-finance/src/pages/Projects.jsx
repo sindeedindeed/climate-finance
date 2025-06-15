@@ -62,7 +62,7 @@ const Projects = () => {
         trendResponse
       ] = await Promise.all([
         projectApi.getAll(),
-        projectApi.getOverviewStats(),
+        projectApi.getProjectsOverviewStats(), // ✅ Fixed API call
         projectApi.getByStatus(),
         projectApi.getByType(),
         projectApi.getTrend()
@@ -79,11 +79,40 @@ const Projects = () => {
       // Process overview stats
       if (overviewResponse?.status && overviewResponse.data) {
         const data = overviewResponse.data;
+        const currentYear = data.current_year || {};
+        
+        // Helper function to calculate percentage change
+        const calculateChange = (total, current) => {
+          if (!total || !current || total === current) return "No previous data";
+          const previous = total - current;
+          if (previous <= 0) return "No comparison available";
+          const percentage = Math.round(((current / previous) - 1) * 100);
+          return percentage >= 0 ? `+${percentage}% from last year` : `${percentage}% from last year`;
+        };
+        
         setOverviewStats([
-          { title: "Total Projects", value: data.total_projects || 0, change: "+12% from last year" },
-          { title: "Active Projects", value: data.active_projects || 0, change: "+8% from last month" },
-          { title: "Total Investment", value: data.total_investment || 0, change: "+15% from last year" },
-          { title: "Completed Projects", value: data.completed_projects || 0, change: "+23% from last year" }
+          { 
+            title: "Total Projects", 
+            value: data.total_projects || 0, 
+            change: calculateChange(data.total_projects, currentYear.total_projects)
+          },
+          { 
+            title: "Active Projects", 
+            value: data.active_projects || 0, 
+            change: calculateChange(data.active_projects, currentYear.active_projects)
+          },
+          { 
+            title: "Total Investment", 
+            value: data.total_investment || 0, 
+            change: calculateChange(data.total_investment, currentYear.total_investment)
+          },
+          { 
+            title: "Completed Projects", 
+            value: data.completed_projects || 0, 
+            change: currentYear.completed_projects ? 
+              calculateChange(data.completed_projects, currentYear.completed_projects) : 
+              "Based on all-time data"
+          }
         ]);
       } else {
         setOverviewStats([]);
@@ -133,13 +162,7 @@ const Projects = () => {
   };
 
   const getStatusIcon = (status) => {
-    switch (status) {
-      case 'Active': return <Play size={12} />;
-      case 'Completed': return <CheckCircle size={12} />;
-      case 'Planning': return <Clock size={12} />;
-      case 'On Hold': return <Pause size={12} />;
-      default: return null;
-    }
+    return null;
   };
 
   const sectors = ['All', ...new Set(projectsList.map(p => p.sector).filter(Boolean))];
@@ -350,8 +373,8 @@ const Projects = () => {
               <LineChartComponent
                 title="Project Trends"
                 data={projectTrend}
-                xKey="year"
-                yKey="count"
+                xAxisKey="year" // ✅ Fixed: was "xKey"
+                yAxisKey="projects" // ✅ Fixed: was "yKey", should match backend data structure
                 height={300}
               />
             ) : (
@@ -426,10 +449,10 @@ const Projects = () => {
                 className="animate-fade-in-up"
                 style={{ animationDelay: `${(index % 9) * 100}ms` }}
               >
-                <Card 
-                  hover 
-                  padding={true} 
-                  className="h-full group relative"
+                <div 
+                  key={project.project_id || index}
+                  className="group p-6 bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-200 cursor-pointer"
+                  onClick={(e) => handleViewDetails(e, project.project_id)}
                 >
                   <div className="flex flex-col h-full">
                     <div className="flex justify-between items-start mb-4">
@@ -445,8 +468,7 @@ const Projects = () => {
 
                     <div className="flex flex-wrap gap-2 mb-4">
                       <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}>
-                        {getStatusIcon(project.status)}
-                        <span className="ml-1">{project.status}</span>
+                        <span>{project.status}</span>
                       </span>
                       {project.type && (
                         <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">
@@ -458,7 +480,6 @@ const Projects = () => {
                     <div className="space-y-3 mb-4 flex-grow">
                       {project.total_cost_usd && (
                         <div className="flex items-center text-sm text-gray-600">
-                          <DollarSign size={16} className="mr-2 text-green-500" />
                           <span className="font-medium">Budget:</span>
                           <span className="ml-1 text-green-600 font-semibold">
                             {formatCurrency(project.total_cost_usd)}
@@ -468,7 +489,6 @@ const Projects = () => {
 
                       {(project.beginning || project.closing) && (
                         <div className="flex items-center text-sm text-gray-600">
-                          <Calendar size={16} className="mr-2 text-blue-500" />
                           <span className="font-medium">Duration:</span>
                           <span className="ml-1">
                             {formatDate(project.beginning)} - {formatDate(project.closing)}
@@ -478,7 +498,6 @@ const Projects = () => {
 
                       {project.beneficiaries && (
                         <div className="flex items-center text-sm text-gray-600">
-                          <Users size={16} className="mr-2 text-purple-500" />
                           <span className="font-medium">Beneficiaries:</span>
                           <span className="ml-1">{project.beneficiaries}</span>
                         </div>
@@ -487,13 +506,11 @@ const Projects = () => {
 
                     <div className="flex justify-between items-center pt-4 border-t border-gray-100">
                       <div className="flex items-center text-sm text-gray-500">
-                        <Building size={16} className="mr-1" />
                         <span>ID: {project.project_id}</span>
                       </div>
                       <Button
                         size="sm"
                         variant="outline"
-                        leftIcon={<Eye size={14} />}
                         onClick={(e) => handleViewDetails(e, project.project_id)}
                         className="text-purple-600 border-purple-600 hover:bg-purple-50"
                       >
@@ -501,7 +518,7 @@ const Projects = () => {
                       </Button>
                     </div>
                   </div>
-                </Card>
+                </div>
               </div>
             ))}
           </div>

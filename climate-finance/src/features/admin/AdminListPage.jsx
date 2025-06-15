@@ -49,13 +49,21 @@ const AdminListPage = ({
       setError(null);
       const response = await apiService.getAll();
       
-      // Fix: Ensure data is always an array
-      const responseData = response.data || response || [];
-      setData(Array.isArray(responseData) ? responseData : []);
+      // ✅ Fix: Handle the correct API response format
+      // API returns: { status: true, data: [...] } or { status: false, message: "..." }
+      if (response.status && Array.isArray(response.data)) {
+        setData(response.data);
+      } else if (Array.isArray(response)) {
+        // Fallback for direct array response
+        setData(response);
+      } else {
+        console.warn('No data received from API or invalid format:', response);
+        setData([]);
+      }
     } catch (err) {
       console.error('Error fetching data:', err);
       setError(err.message || `Failed to fetch ${entityName}s`);
-      setData([]); // Fix: Set empty array on error
+      setData([]);
     } finally {
       setIsLoading(false);
     }

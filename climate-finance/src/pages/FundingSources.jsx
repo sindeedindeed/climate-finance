@@ -40,7 +40,12 @@ const FundingSources = () => {
     return ['All', ...new Set(fundingSourcesList.map(source => source.type).filter(Boolean))];
   }, [fundingSourcesList]);
 
-  // Calculate stats from actual data
+  // Fetch all funding source data
+  useEffect(() => {
+    fetchAllFundingData();
+  }, []);
+
+  // Calculate stats from actual data (fallback function)
   const getStatsFromData = (sources) => {
     if (!Array.isArray(sources) || sources.length === 0) {
       return [];
@@ -77,7 +82,7 @@ const FundingSources = () => {
     ];
   };
 
-  // Calculate chart data from actual sources
+  // Calculate chart data from actual sources (fallback function)
   const getChartDataFromSources = (sources) => {
     if (!Array.isArray(sources) || sources.length === 0) {
       return {
@@ -89,8 +94,7 @@ const FundingSources = () => {
     // Group by type
     const typeGroups = sources.reduce((acc, source) => {
       const type = source.type || 'Unknown';
-      const amount = parseFloat(source.total_committed) || parseFloat(source.grant_amount) || 0;
-      acc[type] = (acc[type] || 0) + amount;
+      acc[type] = (acc[type] || 0) + (parseFloat(source.total_committed) || parseFloat(source.grant_amount) || 0);
       return acc;
     }, {});
 
@@ -99,17 +103,12 @@ const FundingSources = () => {
       value
     }));
 
-    // Group by sectors (if available)
+    // Group by sector (if available)
     const sectorGroups = sources.reduce((acc, source) => {
-      const sectors = source.sectors || [];
-      const amount = (parseFloat(source.total_committed) || parseFloat(source.grant_amount) || 0) / (sectors.length || 1);
-      
-      if (Array.isArray(sectors) && sectors.length > 0) {
-        sectors.forEach(sector => {
-          acc[sector] = (acc[sector] || 0) + amount;
+      if (source.sectors && Array.isArray(source.sectors)) {
+        source.sectors.forEach(sector => {
+          acc[sector] = (acc[sector] || 0) + (parseFloat(source.total_committed) || parseFloat(source.grant_amount) || 0);
         });
-      } else {
-        acc['Unspecified'] = (acc['Unspecified'] || 0) + amount;
       }
       return acc;
     }, {});
@@ -122,18 +121,25 @@ const FundingSources = () => {
     return { fundingByType, sectorAllocation };
   };
 
-  // Fetch all funding source data
-  useEffect(() => {
-    fetchAllFundingData();
-  }, []);
-
   const fetchAllFundingData = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Fetch funding sources first
-      const fundingSourceResponse = await fundingSourceApi.getAll();
+      // Fetch funding sources and overview stats in parallel
+      const [
+        fundingSourceResponse,
+        overviewResponse,
+        fundingByTypeResponse,
+        fundingTrendResponse,
+        sectorAllocationResponse
+      ] = await Promise.all([
+        fundingSourceApi.getAll(),
+        projectApi.getFundingSourceOverview(), // ✅ Use the dedicated API endpoint
+        projectApi.getFundingSourceByType(),
+        projectApi.getFundingSourceTrend().catch(() => ({ status: false, data: [] })),
+        projectApi.getFundingSourceSectorAllocation()
+      ]);
       
       let sources = [];
       if (fundingSourceResponse?.status && Array.isArray(fundingSourceResponse.data)) {
@@ -144,24 +150,76 @@ const FundingSources = () => {
       
       setFundingSourcesList(sources);
 
-      // Calculate stats and chart data from actual sources
-      const calculatedStats = getStatsFromData(sources);
-      const chartData = getChartDataFromSources(sources);
-      
-      setOverviewStats(calculatedStats);
-      setFundingByType(chartData.fundingByType);
-      setSectorAllocation(chartData.sectorAllocation);
+      // Use API data for stats if available, otherwise calculate from sources
+      if (overviewResponse?.status && overviewResponse.data) {
+        const data = overviewResponse.data;
+        const currentYear = data.current_year || {};
+        
+        // Helper function to calculate percentage change
+        const calculateChange = (total, current) => {
+          if (!total || !current || total === current) return "No previous data";
+          const previous = total - current;
+          if (previous <= 0) return "No comparison available";
+          const percentage = Math.round(((current / previous) - 1) * 100);
+          return percentage >= 0 ? `+${percentage}% from last year` : `${percentage}% from last year`;
+        };
+        
+        setOverviewStats([
+          { 
+            title: "Total Climate Finance", 
+            value: data.total_climate_finance || 0, 
+            change: currentYear.total_finance ? 
+              calculateChange(data.total_climate_finance, currentYear.total_finance) : 
+              "Based on all-time data"
+          },
+          { 
+            title: "Active Funding Sources", 
+            value: data.active_funding_source || 0, 
+            change: currentYear.active_funding_source ? 
+              calculateChange(data.active_funding_source, currentYear.active_funding_source) :
+              `Across ${new Set(sources.map(s => s.type).filter(Boolean)).size} categories`
+          },
+          { 
+            title: "Committed Funds", 
+            value: data.committed_funds || 0, 
+            change: currentYear.committed_funds ? 
+              calculateChange(data.committed_funds, currentYear.committed_funds) :
+              `${sources.length} funding sources`
+          },
+          { 
+            title: "Disbursed Funds", 
+            value: data.disbursed_funds || 0, 
+            change: data.committed_funds > 0 ? `${Math.round((data.disbursed_funds / data.committed_funds) * 100)}% of committed` : "No disbursements" 
+          }
+        ]);
+      } else {
+        // Fallback to calculated stats from sources
+        const calculatedStats = getStatsFromData(sources);
+        setOverviewStats(calculatedStats);
+      }
 
-      // Try to fetch additional chart data from API
-      try {
-        const trendResponse = await projectApi.getFundingSourceTrend();
-        if (trendResponse?.status && Array.isArray(trendResponse.data) && trendResponse.data.length > 0) {
-          setFundingTrend(trendResponse.data);
-        } else {
-          setFundingTrend([]);
-        }
-      } catch (trendError) {
-        console.warn('Failed to fetch funding trend data:', trendError.message);
+      // Set chart data from API or calculate from sources
+      if (fundingByTypeResponse?.status && fundingByTypeResponse.data) {
+        setFundingByType(fundingByTypeResponse.data);
+      } else {
+        const chartData = getChartDataFromSources(sources);
+        setFundingByType(chartData.fundingByType);
+      }
+
+      if (sectorAllocationResponse?.status && sectorAllocationResponse.data) {
+        // ✅ Fix: Map API data structure - backend returns {sector, gef_grant}
+        setSectorAllocation(sectorAllocationResponse.data.map(item => ({
+          name: item.sector,
+          value: item.gef_grant
+        })));
+      } else {
+        const chartData = getChartDataFromSources(sources);
+        setSectorAllocation(chartData.sectorAllocation);
+      }
+
+      if (fundingTrendResponse?.status && Array.isArray(fundingTrendResponse.data) && fundingTrendResponse.data.length > 0) {
+        setFundingTrend(fundingTrendResponse.data);
+      } else {
         setFundingTrend([]);
       }
 
@@ -358,9 +416,9 @@ const FundingSources = () => {
                 title="Funding Trend"
                 data={fundingTrend}
                 xAxisKey="year"
-                yAxisKey="amount"
+                yAxisKey="gef_grant" // ✅ Fixed: should match backend data structure
                 formatYAxis={true}
-                lineName="Amount"
+                lineName="Funding Amount"
               />
             ) : (
               <div className="h-[300px] flex items-center justify-center">

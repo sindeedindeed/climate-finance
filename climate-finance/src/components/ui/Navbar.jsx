@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Home, FolderOpen, DollarSign, FileText, Info, Shield } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const Navbar = () => {
@@ -14,27 +14,24 @@ const Navbar = () => {
   };
 
   const navLinks = [
-    { to: '/', label: 'Dashboard', icon: <Home size={16} />, isActive: path === '/' },
+    { to: '/', label: 'Dashboard', isActive: path === '/' },
     { 
       to: '/projects', 
       label: 'Projects', 
-      icon: <FolderOpen size={16} />,
       isActive: path === '/projects' || path.startsWith('/projects/') 
     },
     { 
       to: '/funding-sources', 
       label: 'Funding Sources', 
-      icon: <DollarSign size={16} />,
       isActive: path === '/funding-sources' 
     },
     { 
       to: isAuthenticated ? '/admin/dashboard' : '/admin/login', 
       label: 'Admin', 
-      icon: <Shield size={16} />,
       isActive: path.startsWith('/admin')
     },
-    { to: null, label: 'Reports', icon: <FileText size={16} />, isDisabled: true },
-    { to: null, label: 'About', icon: <Info size={16} />, isDisabled: true }
+    { to: null, label: 'Reports', isDisabled: true },
+    { to: null, label: 'About', isDisabled: true }
   ];
 
   const allNavLinks = navLinks;
@@ -58,23 +55,21 @@ const Navbar = () => {
               link.isDisabled ? (
                 <span 
                   key={index}
-                  className="text-gray-400 cursor-not-allowed flex items-center gap-2"
+                  className="text-gray-400 cursor-not-allowed"
                   title="Coming Soon"
                 >
-                  {link.icon}
                   {link.label}
                 </span>
               ) : (
                 <Link 
                   key={index}
                   to={link.to} 
-                  className={`transition-colors duration-200 flex items-center gap-2 ${
+                  className={`transition-colors duration-200 ${
                     link.isActive 
                       ? 'text-primary font-medium'
                       : 'text-gray-600 hover:text-primary'
                   }`}
                 >
-                  {link.icon}
                   {link.label}
                 </Link>
               )
@@ -104,24 +99,22 @@ const Navbar = () => {
               link.isDisabled ? (
                 <span 
                   key={index}
-                  className="text-gray-400 cursor-not-allowed py-2 flex items-center gap-3"
+                  className="text-gray-400 cursor-not-allowed py-2"
                   title="Coming Soon"
                 >
-                  {link.icon}
                   {link.label}
                 </span>
               ) : (
                 <Link 
                   key={index}
                   to={link.to} 
-                  className={`py-2 transition-colors duration-200 flex items-center gap-3 ${
+                  className={`py-2 transition-colors duration-200 ${
                     link.isActive 
                       ? 'text-primary font-medium'
                       : 'text-gray-600 hover:text-primary'
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  {link.icon}
                   {link.label}
                 </Link>
               )

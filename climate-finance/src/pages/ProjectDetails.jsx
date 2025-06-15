@@ -2,22 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
-  Calendar,
-  MapPin,
-  DollarSign,
-  Users,
-  Building,
-  FileText,
-  CheckCircle,
-  Clock,
-  Target,
   Download,
-  AlignLeft,
-  Play,
-  Pause,
-  Droplet,
-  Tag,
-  FolderOpen,
   AlertCircle,
   RefreshCw
 } from 'lucide-react';
@@ -26,6 +11,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
 import ProgressBar from '../components/ui/ProgressBar';
+import FinancialSummaryCard from '../components/ui/FinancialSummaryCard';
 import { formatCurrency } from '../utils/formatters';
 import { projectApi } from '../services/api';
 
@@ -187,13 +173,7 @@ const ProjectDetails = () => {
   };
 
   const getStatusIcon = (status) => {
-    switch (status) {
-      case 'Active': return <Play size={12} />;
-      case 'Completed': return <CheckCircle size={12} />;
-      case 'Planning': return <Clock size={12} />;
-      case 'On Hold': return <Pause size={12} />;
-      default: return null;
-    }
+    return null;
   };
 
   const calculateProgress = () => {
@@ -271,7 +251,6 @@ const ProjectDetails = () => {
 
                 <ul className="space-y-2 text-sm text-gray-700">
                   <li className="flex items-start gap-2">
-                    <Calendar size={16} className="mt-0.5 text-purple-600" />
                     <div>
                       <span className="font-semibold">Project Timeline</span>
                       <div className="text-xs text-gray-600">
@@ -280,7 +259,6 @@ const ProjectDetails = () => {
                     </div>
                   </li>
                   <li className="flex items-start gap-2">
-                    <MapPin size={16} className="mt-0.5 text-purple-600" />
                     <div>
                       <span className="font-semibold">Locations</span>
                       <div className="text-xs text-gray-600">
@@ -289,7 +267,6 @@ const ProjectDetails = () => {
                     </div>
                   </li>
                   <li className="flex items-start gap-2">
-                    <DollarSign size={16} className="mt-0.5 text-purple-600" />
                     <div>
                       <span className="font-semibold">Total Budget</span>
                       <div className="text-xs text-gray-600">
@@ -299,7 +276,6 @@ const ProjectDetails = () => {
                   </li>
                   {project.beneficiaries && (
                     <li className="flex items-start gap-2">
-                      <Users size={16} className="mt-0.5 text-purple-600" />
                       <div>
                         <span className="font-semibold">Beneficiaries</span>
                         <div className="text-xs text-gray-600">
@@ -310,7 +286,6 @@ const ProjectDetails = () => {
                   )}
                   {project.sector && (
                     <li className="flex items-start gap-2">
-                      <Tag size={16} className="mt-0.5 text-purple-600" />
                       <div>
                         <span className="font-semibold">Sector</span>
                         <div className="text-xs text-gray-600">
@@ -321,7 +296,6 @@ const ProjectDetails = () => {
                   )}
                   {project.wash_component?.presence && (
                     <li className="flex items-start gap-2">
-                      <Droplet size={16} className="mt-0.5 text-purple-600" />
                       <div>
                         <span className="font-semibold">WASH Component</span>
                         <div className="text-xs text-gray-600">
@@ -348,7 +322,6 @@ const ProjectDetails = () => {
                     key={index}
                     className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-3"
                   >
-                    <Building size={18} className="text-purple-600" />
                     <div className="flex-1">
                       <div className="font-medium text-sm">
                         {agency.name}
@@ -378,7 +351,6 @@ const ProjectDetails = () => {
                     key={index}
                     className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-3"
                   >
-                    <DollarSign size={18} className="text-purple-600" />
                     <div>
                       <div className="font-medium text-sm">
                         {source.name}
@@ -408,7 +380,6 @@ const ProjectDetails = () => {
                     key={index}
                     className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-3"
                   >
-                    <MapPin size={18} className="text-purple-600" />
                     <div>
                       <div className="font-medium text-sm">
                         {location.name}
@@ -438,7 +409,6 @@ const ProjectDetails = () => {
                     key={index}
                     className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-center gap-3"
                   >
-                    <Tag size={18} className="text-purple-600" />
                     <div>
                       <div className="font-medium text-sm">{area.name}</div>
                     </div>
@@ -487,18 +457,21 @@ const ProjectDetails = () => {
           <div>
             <div className="font-semibold mb-4">Financial Summary</div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">{formatCurrency(getTotalBudget(project))}</div>
-                <div className="text-sm text-gray-600">Total Cost</div>
-              </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">{formatCurrency(project.gef_grant || 0)}</div>
-                <div className="text-sm text-gray-600">GEF Grant</div>
-              </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">{formatCurrency(project.cofinancing || 0)}</div>
-                <div className="text-sm text-gray-600">Co-financing</div>
-              </div>
+              <FinancialSummaryCard
+                title="Total Cost"
+                value={formatCurrency(getTotalBudget(project))}
+                color="purple"
+              />
+              <FinancialSummaryCard
+                title="GEF Grant"
+                value={formatCurrency(project.gef_grant || 0)}
+                color="green"
+              />
+              <FinancialSummaryCard
+                title="Co-financing"
+                value={formatCurrency(project.cofinancing || 0)}
+                color="blue"
+              />
             </div>
           </div>
         </Card>

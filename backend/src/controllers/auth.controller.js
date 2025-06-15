@@ -44,12 +44,27 @@ exports.login = async (req, res) => {
 exports.getAllUser = async (req, res)=>{
   try {
     const response = await User.getAllUser();
-    res.status(200).json({status: true, message:response})
+    res.status(200).json({status: true, data: response})  // ✅ Consistent format
   }
   catch (e) {
-    res.status(500).json({ message: 'Server Error', e });
+    res.status(500).json({status: false, message: `Server Error: ${e.message}`});
   }
 }
+
+exports.getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.getUserById(id);
+    if (!user) {
+      return res.status(404).json({status: false, message: 'User not found'});
+    }
+    // Remove password from response
+    const { password, ...userWithoutPassword } = user;
+    res.status(200).json({status: true, data: userWithoutPassword});
+  } catch (error) {
+    res.status(500).json({status: false, message: `Server Error: ${error.message}`});
+  }
+};
 
 exports.updateUser = async (req, res) => {
   const id = req.params.id;

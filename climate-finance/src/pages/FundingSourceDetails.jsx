@@ -24,6 +24,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
 import ProgressBar from '../components/ui/ProgressBar';
+import FinancialSummaryCard from '../components/ui/FinancialSummaryCard';
 import { formatCurrency } from '../utils/formatters';
 import { generateOrganizationLogo } from '../utils/svgPlaceholder';
 import { fundingSourceApi } from '../services/api';
@@ -148,11 +149,15 @@ const FundingSourceDetails = () => {
     }
   };
 
-  const disbursementRate = source.total_disbursed && source.total_committed 
-    ? (source.total_disbursed / source.total_committed) * 100 
-    : source.disbursement && source.grant_amount
-    ? (source.disbursement / source.grant_amount) * 100
-    : 0;
+  const disbursementRate = (() => {
+    const committed = source.total_committed || source.grant_amount || 0;
+    const disbursed = source.total_disbursed || source.disbursement || 0;
+    
+    if (committed > 0 && disbursed >= 0) {
+      return (disbursed / committed) * 100;
+    }
+    return 0;
+  })();
 
   const handleExportReport = () => {
     const reportData = {
@@ -218,7 +223,8 @@ const FundingSourceDetails = () => {
                   </div>
                 </div>
 
-                {disbursementRate > 0 && (
+                {/* Show progress bar if we have valid disbursement data */}
+                {disbursementRate > 0 && (source.total_committed || source.grant_amount) > 0 && (
                   <ProgressBar
                     label="Disbursement Progress"
                     percentage={disbursementRate}
@@ -226,6 +232,7 @@ const FundingSourceDetails = () => {
                     total={source.total_committed || source.grant_amount || 0}
                     formatValue={formatCurrency}
                     color="purple"
+                    className="mt-4"
                   />
                 )}
               </div>
@@ -296,18 +303,21 @@ const FundingSourceDetails = () => {
           <div>
             <div className="font-semibold mb-4">Financial Summary</div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">{formatCurrency(source.total_committed || source.grant_amount || 0)}</div>
-                <div className="text-sm text-gray-600">Total Committed</div>
-              </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">{formatCurrency(source.total_disbursed || source.disbursement || 0)}</div>
-                <div className="text-sm text-gray-600">Total Disbursed</div>
-              </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-orange-600">{formatCurrency((source.total_committed || source.grant_amount || 0) - (source.total_disbursed || source.disbursement || 0))}</div>
-                <div className="text-sm text-gray-600">Remaining</div>
-              </div>
+              <FinancialSummaryCard
+                title="Total Committed"
+                value={formatCurrency(source.total_committed || source.grant_amount || 0)}
+                color="purple"
+              />
+              <FinancialSummaryCard
+                title="Total Disbursed"
+                value={formatCurrency(source.total_disbursed || source.disbursement || 0)}
+                color="green"
+              />
+              <FinancialSummaryCard
+                title="Remaining"
+                value={formatCurrency((source.total_committed || source.grant_amount || 0) - (source.total_disbursed || source.disbursement || 0))}
+                color="orange"
+              />
             </div>
           </div>
         </Card>
