@@ -8,15 +8,16 @@ FundingSource.addFundingSource = async (data) => {
         grant_amount,
         loan_amount,
         counterpart_funding,
+        disbursement,
         non_grant_instrument
     } = data;
 
     const query = `
         INSERT INTO FundingSource (
-            name, dev_partner, grant_amount, loan_amount, counterpart_funding, non_grant_instrument
-        ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *
+            name, dev_partner, grant_amount, loan_amount, counterpart_funding, disbursement, non_grant_instrument
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
     `;
-    const values = [name, dev_partner, grant_amount, loan_amount, counterpart_funding, non_grant_instrument];
+    const values = [name, dev_partner, grant_amount, loan_amount, counterpart_funding, disbursement, non_grant_instrument];
     const { rows } = await pool.query(query, values);
     return rows[0];
 };

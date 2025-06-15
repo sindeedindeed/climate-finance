@@ -1,15 +1,16 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import { adminDashboardStats } from "../data/mock/adminData";
-import { formatCurrency } from "../utils/formatters";
-import Button from "../components/ui/Button";
-import Card from "../components/ui/Card";
 import PageLayout from "../components/layouts/PageLayout";
+import PageHeader from "../components/layouts/PageHeader";
+import Card from "../components/ui/Card";
+import Loading from "../components/ui/Loading";
+import ErrorState from "../components/ui/ErrorState";
+import { formatCurrency } from '../utils/formatters';
+import { projectApi } from '../services/api';
 import {
-  ArrowLeft,
-  FolderTree,
   Users,
+  FolderTree,
   DollarSign,
   Building2,
   MapPin,
@@ -17,11 +18,92 @@ import {
   Plus,
   User,
   Banknote,
+  RefreshCw
 } from "lucide-react";
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [dashboardStats, setDashboardStats] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch dashboard statistics
+  useEffect(() => {
+    fetchDashboardStats();
+  }, []);
+
+  const fetchDashboardStats = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await projectApi.getDashboardOverviewStats();
+
+      if (response.status && response.data) {
+        const data = response.data;
+        setDashboardStats([
+          {
+            title: "Total Projects",
+            value: data.total_projects || 0,
+            change: "+2 this month",
+            color: "bg-purple-500",
+          },
+          {
+            title: "Active Projects",
+            value: data.active_projects || 0,
+            change: "+1 this month",
+            color: "bg-purple-600",
+          },
+          {
+            title: "Total Climate Finance",
+            value: data.total_climate_finance || 0,
+            change: "+15% this year",
+            color: "bg-purple-700",
+          },
+          {
+            title: "Adaptation Finance",
+            value: data.adaptation_finance || 0,
+            change: "+12% this year",
+            color: "bg-purple-400",
+          },
+        ]);
+      } else {
+        throw new Error('Invalid response data');
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+      setError("Failed to load dashboard statistics");
+      // Fallback to default values
+      setDashboardStats([
+        {
+          title: "Total Projects",
+          value: 0,
+          change: "No data available",
+          color: "bg-purple-500",
+        },
+        {
+          title: "Active Projects",
+          value: 0,
+          change: "No data available",
+          color: "bg-purple-600",
+        },
+        {
+          title: "Total Climate Finance",
+          value: 0,
+          change: "No data available",
+          color: "bg-purple-700",
+        },
+        {
+          title: "Adaptation Finance",
+          value: 0,
+          change: "No data available",
+          color: "bg-purple-400",
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -73,53 +155,46 @@ const AdminDashboard = () => {
     },
   ];
 
+  if (isLoading) {
+    return (
+      <PageLayout bgColor="bg-gray-50">
+        <div className="flex justify-center items-center min-h-64">
+          <Loading size="lg" />
+        </div>
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout bgColor="bg-gray-50">
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
-        <div className="flex items-center space-x-4">
-          <Link
-            to="/"
-            className="text-purple-600 hover:text-purple-700 transition-colors duration-200"
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </Link>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">
-              Climate Finance Admin Portal
-            </h2>
-            <p className="text-gray-500">Welcome back, {user?.fullName}</p>
-          </div>
-        </div>
+      {/* Page Header - Using reusable component */}
+      <PageHeader
+        title="Climate Finance Admin Portal"
+        subtitle={`Welcome back, ${user?.fullName || user?.full_name || 'Admin'}`}
+        backPath="/"
+        backText="Back to Main Site"
+        showUserInfo={true}
+        showLogout={true}
+        onLogout={handleLogout}
+      />
 
-        <div className="flex items-center space-x-4 mt-4 md:mt-0">
-          <div className="text-right">
-            <p className="text-sm font-medium text-gray-900">
-              {user?.fullName}
-            </p>
-            <p className="text-xs text-gray-500">{user?.role}</p>
-          </div>
-          <Button onClick={handleLogout} variant="outline" size="sm">
-            Logout
-          </Button>
-        </div>
-      </div>
+      {error && (
+        <ErrorState
+          title="Dashboard Error"
+          message={error}
+          onRefresh={fetchDashboardStats}
+          showRefresh={true}
+          className="mb-6"
+        />
+      )}
 
       {/* Dashboard Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {adminDashboardStats.map((stat, index) => (
+        {dashboardStats.map((stat, index) => (
           <Card key={index} hover padding={true} className="group">
             <div className="flex items-center">
               <div
-                className={`p-3 rounded-xl ${
-                  index === 0
-                    ? "bg-purple-500"
-                    : index === 1
-                    ? "bg-purple-600"
-                    : index === 2
-                    ? "bg-purple-700"
-                    : "bg-purple-400"
-                } group-hover:scale-105 transition-transform duration-200`}
+                className={`p-3 rounded-xl ${stat.color} group-hover:scale-105 transition-transform duration-200`}
               >
                 <div className="w-6 h-6 text-white">
                   {index === 0 && <FolderTree size={24} />}
@@ -135,7 +210,7 @@ const AdminDashboard = () => {
                   </dt>
                   <dd className="text-lg font-medium text-gray-900 group-hover:text-purple-600 transition-colors">
                     {typeof stat.value === "number" &&
-                    stat.title.includes("Budget")
+                    stat.title.includes("Finance")
                       ? formatCurrency(stat.value)
                       : stat.value}
                   </dd>
@@ -148,29 +223,27 @@ const AdminDashboard = () => {
       </div>
 
       {/* Quick Actions Menu */}
-      <Card hover className="mb-8" padding={true}>
+      <Card hover padding={true} className="mb-8">
         <h2 className="text-lg font-semibold text-gray-800 mb-6">
           Quick Actions
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {menuItems.map((item, index) => (
             <Link
               key={index}
               to={item.path}
-              className="block p-6 bg-gray-50 rounded-xl border-2 border-transparent hover:border-purple-300 hover:bg-purple-50 hover:shadow-md transition-all duration-200 group"
+              className="group flex items-center p-4 rounded-xl border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200"
             >
-              <div className="flex items-center">
-                <div
-                  className={`p-3 rounded-xl ${item.color} group-hover:scale-105 transition-transform duration-200`}
-                >
-                  {item.icon}
+              <div
+                className={`p-3 rounded-xl ${item.color} group-hover:scale-105 transition-transform duration-200`}
+              >
+                {item.icon}
+              </div>
+              <div className="ml-4">
+                <div className="font-medium text-gray-900 group-hover:text-purple-700">
+                  {item.title}
                 </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-medium text-gray-900 group-hover:text-purple-600 transition-colors">
-                    {item.title}
-                  </h3>
-                  <p className="text-sm text-gray-500">{item.description}</p>
-                </div>
+                <p className="text-sm text-gray-500">{item.description}</p>
               </div>
             </Link>
           ))}
@@ -219,10 +292,25 @@ const AdminDashboard = () => {
             </div>
             <div className="ml-4 flex-1">
               <p className="text-sm font-medium text-gray-900">
-                Funding source added
+                Funding source updated
               </p>
               <p className="text-xs text-gray-500">
-                New partnership with World Bank
+                World Bank funding allocation modified
+              </p>
+            </div>
+            <div className="text-xs text-gray-500">2 days ago</div>
+          </div>
+
+          <div className="flex items-center p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors duration-200">
+            <div className="p-2 bg-blue-100 rounded-full">
+              <Building2 className="w-4 h-4 text-blue-600" />
+            </div>
+            <div className="ml-4 flex-1">
+              <p className="text-sm font-medium text-gray-900">
+                New agency registered
+              </p>
+              <p className="text-xs text-gray-500">
+                Department of Environment added
               </p>
             </div>
             <div className="text-xs text-gray-500">3 days ago</div>

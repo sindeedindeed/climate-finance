@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  DollarSign, 
-  TrendingUp, 
-  Activity, 
-  Target,
   ArrowRight,
   Download,
-  RefreshCw
+  RefreshCw,
+  DollarSign,
+  TrendingUp,
+  Target,
+  Activity
 } from 'lucide-react';
 import PageLayout from '../components/layouts/PageLayout';
 import Card from '../components/ui/Card';
@@ -19,36 +19,116 @@ import Loading from '../components/ui/Loading';
 import { useToast } from '../components/ui/Toast';
 import { CHART_COLORS } from '../utils/constants';
 import { formatCurrency } from '../utils/formatters';
-
-// Import mock data
-import { 
-  monthlyFunding, 
-  sectorDistribution, 
-  sourceDistribution, 
-  regionalDistribution, 
-  dashboardStats 
-} from '../data/mock/dashboardData';
+import { projectApi } from '../services/api';
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
   const { toast } = useToast();
 
-  // Simulate initial data loading
+  // API data states
+  const [overviewStats, setOverviewStats] = useState([]);
+  const [projectsByStatus, setProjectsByStatus] = useState([]);
+  const [projectsBySector, setProjectsBySector] = useState([]);
+  const [regionalData, setRegionalData] = useState([]);
+
+  // Fetch all dashboard data
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
+    fetchDashboardData();
   }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch all dashboard data in parallel
+      const [
+        overviewResponse,
+        statusResponse,
+        sectorResponse,
+        regionalResponse
+      ] = await Promise.all([
+        projectApi.getOverviewStats(),
+        projectApi.getByStatus(),
+        projectApi.getBySector(),
+        projectApi.getRegionalDistribution()
+      ]);
+
+      // Set overview stats
+      if (overviewResponse.status && overviewResponse.data) {
+        const data = overviewResponse.data;
+        setOverviewStats([
+          {
+            title: "Total Climate Finance",
+            value: data.total_climate_finance || 0,
+            change: "+18% from last year"
+          },
+          {
+            title: "Active Projects",
+            value: data.active_projects || 0,
+            change: "+8% from last month"
+          },
+          {
+            title: "Total Investment",
+            value: data.total_investment || 0,
+            change: "+15% from last year"
+          },
+          {
+            title: "Completed Projects",
+            value: data.completed_projects || 0,
+            change: "+23% from last year"
+          }
+        ]);
+      } else {
+        setOverviewStats([]);
+      }
+
+      // Set projects by status for pie chart
+      if (statusResponse.status && Array.isArray(statusResponse.data)) {
+        setProjectsByStatus(statusResponse.data);
+      } else {
+        setProjectsByStatus([]);
+      }
+
+      // Set projects by sector for pie chart  
+      if (sectorResponse.status && Array.isArray(sectorResponse.data)) {
+        setProjectsBySector(sectorResponse.data);
+      } else {
+        setProjectsBySector([]);
+      }
+
+      // Set regional data for bar chart
+      if (regionalResponse.status && Array.isArray(regionalResponse.data)) {
+        setRegionalData(regionalResponse.data);
+      } else {
+        setRegionalData([]);
+      }
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      setError('Failed to load dashboard data. Please try again.');
+      
+      // Clear all data on error
+      setOverviewStats([]);
+      setProjectsByStatus([]);
+      setProjectsBySector([]);
+      setRegionalData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Handle refresh
   const handleRefresh = async () => {
-    setRefreshing(true);    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      toast.success('Dashboard data updated successfully');
+    setRefreshing(true);    
+    try {
+      await fetchDashboardData();
+      if (!error) {
+        toast.success('Dashboard data updated successfully');
+      }
     } catch {
       toast.error('Failed to refresh data. Please try again.');
     } finally {
@@ -58,48 +138,67 @@ const LandingPage = () => {
 
   // Handle export
   const handleExport = () => {
-    toast.info('Export feature coming soon!');
+    if (overviewStats.length === 0) {
+      toast.error('No data available to export');
+      return;
+    }
+    
+    const exportData = {
+      overview: overviewStats,
+      projectsByStatus,
+      projectsBySector,
+      regionalData,
+      exportDate: new Date().toISOString()
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `climate_finance_dashboard_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast.success('Dashboard data exported successfully');
   };
 
   // Add icons to stats
-  const statsWithIcons = dashboardStats.map((stat, index) => {
+  const statsData = overviewStats.map((stat, index) => {
+    const colors = ['primary', 'success', 'warning', 'primary'];
     const icons = [
       <DollarSign size={20} />,
+      <Activity size={20} />,
       <TrendingUp size={20} />,
-      <Target size={20} />,
-      <Activity size={20} />
+      <Target size={20} />
     ];
-    
-    const colors = ['primary', 'success', 'warning', 'primary'];
     
     return {
       ...stat,
-      value: typeof stat.value === 'number' ? formatCurrency(stat.value) : stat.value,
-      icon: icons[index],
-      color: colors[index]
+      color: colors[index],
+      icon: icons[index]
     };
   });
 
   if (loading) {
     return (
-      <PageLayout>
-        <Loading 
-          type="spinner" 
-          size="lg" 
-          text="Loading dashboard data..." 
-          fullScreen={false} 
-        />
+      <PageLayout bgColor="bg-gray-50">
+        <div className="flex justify-center items-center min-h-64">
+          <Loading size="lg" text="Loading dashboard..." />
+        </div>
       </PageLayout>
     );
   }
 
   return (
-    <PageLayout>
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-8">
-        <div className="mb-6 lg:mb-0">
-          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-            Climate Finance Overview
+    <PageLayout bgColor="bg-gray-50">
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="mb-6">
+          <h1 className="text-4xl font-bold text-gray-800 mb-4">
+            Climate Finance Dashboard
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl">
             Track, analyze and visualize climate finance flows in Bangladesh with 
@@ -116,7 +215,8 @@ const LandingPage = () => {
             loading={refreshing}
           >
             {refreshing ? 'Refreshing...' : 'Refresh Data'}
-          </Button>          <Button
+          </Button>          
+          <Button
             variant="primary"
             leftIcon={<Download size={16} />}
             onClick={handleExport}
@@ -127,91 +227,127 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statsWithIcons.map((stat, index) => (
-          <div 
-            key={index} 
-            className="animate-fade-in-up"
-            style={{ animationDelay: `${index * 100}ms` }}
-          >
-            <StatCard
-              title={stat.title}
-              value={stat.value}
-              change={stat.change}
-              icon={stat.icon}
-              color={stat.color}
-            />
+      {error && (
+        <Card padding={true} className="mb-6">
+          <div className="text-center py-4">
+            <p className="text-red-600 text-sm mb-2">{error}</p>
+            <button
+              onClick={handleRefresh}
+              className="text-purple-600 hover:text-purple-700 underline"
+            >
+              Try again
+            </button>
           </div>
-        ))}      </div>      {/* Monthly Funding Chart */}      <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
-        <Card gradient>
-          <BarChartComponent
-            title="Monthly Funding Allocation" 
-            data={monthlyFunding} 
-            xAxisKey="month"
-            bars={[
-              { dataKey: 'adaptation', fill: CHART_COLORS[0], name: 'Adaptation' },
-              { dataKey: 'mitigation', fill: CHART_COLORS[1], name: 'Mitigation' }
-            ]}
-            formatYAxis={true}
-          />
         </Card>
-      </div>      {/* Pie Charts Row */}      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">        <div className="animate-fade-in-up" style={{ animationDelay: '500ms' }}>
-          <Card hover padding={true}>
-            <PieChartComponent
-              title="Sector Distribution" 
-              data={sectorDistribution} 
-            />
-          </Card>        </div>        <div className="animate-fade-in-up" style={{ animationDelay: '600ms' }}>
-          <Card hover padding={true}>
-            <PieChartComponent 
-              title="Funding Sources" 
-              data={sourceDistribution} 
-            />
+      )}
+
+      {/* Stats Grid */}
+      {statsData.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 max-w-7xl mx-auto">
+          {statsData.map((stat, index) => (
+            <div 
+              key={index} 
+              className="animate-fade-in-up h-full"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <StatCard
+                title={stat.title}
+                value={stat.title.includes('Finance') || stat.title.includes('Investment') ? formatCurrency(stat.value) : stat.value}
+                change={stat.change}
+                color={stat.color}
+                icon={stat.icon}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="mb-8 max-w-7xl mx-auto">
+          <Card padding={true}>
+            <div className="text-center py-6">
+              <p className="text-gray-500">No overview statistics available</p>
+            </div>
           </Card>
-        </div>      </div>      {/* Regional Distribution */}      <div className="animate-fade-in-up" style={{ animationDelay: '700ms' }}>
+        </div>
+      )}
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">        
+        <div className="animate-fade-in-up" style={{ animationDelay: '500ms' }}>
+          <Card hover padding={true}>
+            {projectsBySector.length > 0 ? (
+              <PieChartComponent
+                title="Projects by Sector" 
+                data={projectsBySector} 
+              />
+            ) : (
+              <div className="h-[300px] flex items-center justify-center">
+                <p className="text-gray-500">No sector data available</p>
+              </div>
+            )}
+          </Card>        
+        </div>        
+        <div className="animate-fade-in-up" style={{ animationDelay: '600ms' }}>
+          <Card hover padding={true}>
+            {projectsByStatus.length > 0 ? (
+              <PieChartComponent 
+                title="Projects by Status" 
+                data={projectsByStatus} 
+              />
+            ) : (
+              <div className="h-[300px] flex items-center justify-center">
+                <p className="text-gray-500">No status data available</p>
+              </div>
+            )}
+          </Card>
+        </div>      
+      </div>      
+      
+      {/* Regional Distribution */}      
+      <div className="animate-fade-in-up" style={{ animationDelay: '700ms' }}>
         <Card>
-          <BarChartComponent
-            title="Regional Distribution" 
-            data={regionalDistribution} 
-            xAxisKey="region"
-            bars={[
-              { dataKey: 'adaptation', fill: CHART_COLORS[0], name: 'Adaptation' },
-              { dataKey: 'mitigation', fill: CHART_COLORS[1], name: 'Mitigation' }
-            ]}
-            formatYAxis={true}
-          />
+          {regionalData.length > 0 ? (
+            <BarChartComponent
+              title="Regional Distribution" 
+              data={regionalData} 
+              xAxisKey="region"
+              bars={[
+                { dataKey: 'adaptation', fill: CHART_COLORS[0], name: 'Adaptation' },
+                { dataKey: 'mitigation', fill: CHART_COLORS[1], name: 'Mitigation' }
+              ]}
+              formatYAxis={true}
+            />
+          ) : (
+            <div className="h-[300px] flex items-center justify-center p-6">
+              <p className="text-gray-500">No regional data available</p>
+            </div>
+          )}
         </Card>
       </div>
 
       {/* Quick Actions */}
       <div className="mt-8 p-6 bg-gradient-to-r from-primary-50 to-primary-100 rounded-2xl border border-primary-200 animate-fade-in-up" style={{ animationDelay: '800ms' }}>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h3 className="text-lg font-semibold text-primary-900 mb-1">
-              Ready to dive deeper?
-            </h3>
-            <p className="text-primary-700">
-              Explore detailed project tracking and funding source analysis.
-            </p>
-          </div>          <div className="flex flex-col sm:flex-row gap-3">
-            <Button 
-              variant="secondary" 
-              rightIcon={<ArrowRight size={16} />}
-              onClick={() => navigate('/projects')}
-              className="bg-white border-2 border-purple-300 text-purple-700 hover:bg-purple-50 hover:border-purple-400 hover:text-purple-800 transition-all duration-200"
-            >
-              View Projects
-            </Button>
-            <Button 
-              variant="primary"
-              rightIcon={<ArrowRight size={16} />}
-              onClick={() => navigate('/funding-sources')}
-              className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
-            >
-              Explore Funding
-            </Button>
-          </div>
+        <div className="text-center mb-6">
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">Explore Climate Finance Data</h3>
+          <p className="text-gray-600">Access detailed reports and analytics</p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button
+            variant="primary"
+            onClick={() => navigate('/projects')}
+            rightIcon={<ArrowRight size={16} />}
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            View Projects
+          </Button>
+          
+          <Button
+            variant="outline"
+            onClick={() => navigate('/funding-sources')}
+            rightIcon={<ArrowRight size={16} />}
+            className="border-purple-600 text-purple-600 hover:bg-purple-50"
+          >
+            Funding Sources
+          </Button>
         </div>
       </div>
     </PageLayout>

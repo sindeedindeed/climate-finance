@@ -175,7 +175,7 @@ const RadioWithSliders = ({
         </div>
       )}
 
-      <style jsx>{`
+      <style jsx="true">{`
         .slider-input::-webkit-slider-thumb {
           appearance: none;
           width: 16px;

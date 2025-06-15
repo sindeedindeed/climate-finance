@@ -1,8 +1,22 @@
+-- Table: User
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
+    role VARCHAR(50) NOT NULL DEFAULT 'Viewer' CHECK (role IN ('Viewer', 'Super Admin', 'Project Manager', 'Finance Admin', 'Data Manager')),
+    department VARCHAR(100) NOT NULL,
+    active BOOLEAN NOT NULL,
+    last_login TIMESTAMP DEFAULT NULL
+);
+
 -- Table: Project
 CREATE TABLE IF NOT EXISTS  Project (
                          project_id VARCHAR(50) PRIMARY KEY,
                          title VARCHAR(255) NOT NULL,
-                         type VARCHAR(100),
+                         type VARCHAR(100) CHECK (type IN ('Adaptation', 'Mitigation')),
+                         sector VARCHAR(100) NOT NULL DEFAULT 'Agriculture',
+                         division VARCHAR(100) NOT NULL DEFAULT 'Local Government Division',
                          status VARCHAR(50),
                          approval_fy INTEGER,
                          beginning DATE,
@@ -10,6 +24,7 @@ CREATE TABLE IF NOT EXISTS  Project (
                          total_cost_usd DECIMAL(15,2),
                          gef_grant DECIMAL(15,2),
                          cofinancing DECIMAL(15,2),
+                         disbursement DECIMAL(15,2) NOT NULL DEFAULT 0.00,
                          wash_finance DECIMAL(15,2),
                          wash_finance_percent DECIMAL(5,2),
                          beneficiaries VARCHAR(100),
@@ -20,7 +35,8 @@ CREATE TABLE IF NOT EXISTS  Project (
 CREATE TABLE IF NOT EXISTS Agency (
                         agency_id SERIAL PRIMARY KEY,
                         name VARCHAR(255) NOT NULL,
-                        type VARCHAR(50) NOT NULL
+                        type VARCHAR(50) NOT NULL,
+                        category VARCHAR(100)
 );
 
 -- Table: FundingSource
@@ -28,9 +44,11 @@ CREATE TABLE IF NOT EXISTS FundingSource (
                                funding_source_id SERIAL PRIMARY KEY,
                                name VARCHAR(100) NOT NULL,
                                dev_partner VARCHAR(255),
+                               type VARCHAR(100),
                                grant_amount DECIMAL(15,2),
                                loan_amount DECIMAL(15,2),
                                counterpart_funding DECIMAL(15,2),
+                               disbursement DECIMAL(15,2) NOT NULL DEFAULT 0.00,
                                non_grant_instrument VARCHAR(50)
 );
 

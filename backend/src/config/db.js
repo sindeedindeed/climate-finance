@@ -6,6 +6,9 @@ const path = require('path');
 
 const pool = new Pool({
   connectionString: process.env.PG_URI, // Example: "postgres://user:password@localhost:5432/mydb"
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 const connectDB = async () => {

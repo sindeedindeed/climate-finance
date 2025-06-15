@@ -1,4 +1,5 @@
 import React from 'react';
+import { Plus } from 'lucide-react';
 
 const CheckboxGroup = ({ 
   label, 
@@ -8,7 +9,9 @@ const CheckboxGroup = ({
   className = '',
   getOptionId = (option) => option.id,
   getOptionLabel = (option) => option.name,
-  getOptionSubtext = () => null
+  getOptionSubtext = () => null,
+  onAddNew = null,
+  addButtonText = "Add New"
 }) => {
   const handleCheckboxChange = (optionId, isChecked) => {
     let newSelectedValues;
@@ -22,9 +25,22 @@ const CheckboxGroup = ({
 
   return (
     <div className={`bg-white border border-gray-300 rounded-xl p-4 ${className}`}>
-      {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-3">{label}</label>
-      )}
+      {/* Header with label and optional add button */}
+      <div className="flex items-center justify-between mb-3">
+        {label && (
+          <label className="block text-sm font-medium text-gray-700">{label}</label>
+        )}
+        {onAddNew && (
+          <button
+            type="button"
+            onClick={onAddNew}
+            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-md transition-all duration-200"
+          >
+            <Plus size={12} />
+            {addButtonText}
+          </button>
+        )}
+      </div>
       
       {options.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto">
@@ -74,6 +90,16 @@ const CheckboxGroup = ({
             </svg>
           </div>
           <p className="text-sm text-gray-500">No options available</p>
+          {onAddNew && (
+            <button
+              type="button"
+              onClick={onAddNew}
+              className="mt-3 inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-md transition-all duration-200"
+            >
+              <Plus size={14} />
+              {addButtonText}
+            </button>
+          )}
         </div>
       )}
       

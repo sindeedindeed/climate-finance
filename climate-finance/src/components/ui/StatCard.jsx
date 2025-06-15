@@ -81,23 +81,25 @@ const StatCard = ({ title, value, change, icon = null, color = 'primary' }) => {
             <p className="text-gray-600 text-sm font-medium">{title}</p>
           </div>
           
-          <div className="mb-3">
+          <div className="mb-3 text-center">
             <h3 className="text-3xl font-bold text-gray-900 tracking-tight">
               {formatDisplayValue(animatedValue)}
             </h3>
           </div>
           
-          <div className={`
-            inline-flex items-center gap-1 px-2 py-1 
-            rounded-full text-xs font-semibold
-            ${changeColorClass}
-          `}>
-            {isPositive ? (
-              <TrendingUp size={12} className="text-success-600" />
-            ) : (
-              <TrendingDown size={12} className="text-error-600" />
-            )}
-            <span>{change}</span>
+          <div className="flex justify-center">
+            <div className={`
+              inline-flex items-center gap-1 px-2 py-1 
+              rounded-full text-xs font-semibold
+              ${changeColorClass}
+            `}>
+              {isPositive ? (
+                <TrendingUp size={12} className="text-success-600" />
+              ) : (
+                <TrendingDown size={12} className="text-error-600" />
+              )}
+              <span>{change}</span>
+            </div>
           </div>
         </div>
         

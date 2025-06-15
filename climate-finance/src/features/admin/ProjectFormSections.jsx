@@ -1,6 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import CheckboxGroup from '../../components/ui/CheckboxGroup';
 import RadioWithSliders from '../../components/ui/RadioWithSliders';
+import PeopleAffectedDisplay from '../../components/ui/PeopleAffectedDisplay';
 
 const ProjectFormSections = ({
   formData,
@@ -12,6 +14,33 @@ const ProjectFormSections = ({
   locations,
   focalAreas
 }) => {
+  const navigate = useNavigate();
+
+  const handleAddAgency = () => {
+    localStorage.setItem('projectFormData', JSON.stringify(formData));
+    navigate('/admin/agencies/new');
+  };
+
+  const handleAddFundingSource = () => {
+    localStorage.setItem('projectFormData', JSON.stringify(formData));
+    navigate('/admin/funding-sources/new');
+  };
+
+  const handleAddLocation = () => {
+    localStorage.setItem('projectFormData', JSON.stringify(formData));
+    navigate('/admin/locations/new');
+  };
+
+  const handleAddFocalArea = () => {
+    localStorage.setItem('projectFormData', JSON.stringify(formData));
+    navigate('/admin/focal-areas/new');
+  };
+
+  // Get selected location objects for people affected calculation
+  const selectedLocationObjects = formData.locations.map(locationId => 
+    locations.find(loc => loc.location_id === locationId)
+  ).filter(Boolean);
+
   return (
     <>
       {/* Agencies */}
@@ -24,7 +53,9 @@ const ProjectFormSections = ({
           onChange={(values) => handleMultiSelectChange({ target: { value: values } }, 'agencies')}
           getOptionId={(agency) => agency.agency_id}
           getOptionLabel={(agency) => agency.name}
-          getOptionSubtext={(agency) => `${agency.type}`}
+          getOptionSubtext={(agency) => `${agency.type}${agency.category ? ` • ${agency.category}` : ''}`}
+          onAddNew={handleAddAgency}
+          addButtonText="Add Agency"
         />
       </div>
 
@@ -39,6 +70,8 @@ const ProjectFormSections = ({
           getOptionId={(source) => source.funding_source_id}
           getOptionLabel={(source) => source.name}
           getOptionSubtext={(source) => `Development Partner: ${source.dev_partner}`}
+          onAddNew={handleAddFundingSource}
+          addButtonText="Add Funding Source"
         />
       </div>
 
@@ -53,7 +86,20 @@ const ProjectFormSections = ({
           getOptionId={(location) => location.location_id}
           getOptionLabel={(location) => location.name}
           getOptionSubtext={(location) => `Region: ${location.region}`}
+          onAddNew={handleAddLocation}
+          addButtonText="Add Location"
         />
+        
+        {/* People Affected Display */}
+        {selectedLocationObjects.length > 0 && (
+          <div className="mt-4">
+            <PeopleAffectedDisplay 
+              locations={selectedLocationObjects}
+              impactPercentage={10}
+              showDetails={true}
+            />
+          </div>
+        )}
       </div>
 
       {/* Focal Areas */}
@@ -66,6 +112,8 @@ const ProjectFormSections = ({
           onChange={(values) => handleMultiSelectChange({ target: { value: values } }, 'focal_areas')}
           getOptionId={(area) => area.focal_area_id}
           getOptionLabel={(area) => area.name}
+          onAddNew={handleAddFocalArea}
+          addButtonText="Add Focal Area"
         />
       </div>
 
