@@ -25,8 +25,18 @@ const AdminProjects = () => {
     {
       key: 'type',
       header: 'Type',
-      type: 'status',
-      statusType: 'project'
+      render: (value) => {
+        // Project types like "Adaptation", "Mitigation" should be displayed directly
+        if (!value) return '-';
+        const colorClass = value === 'Adaptation' ? 'bg-blue-100 text-blue-800' : 
+                          value === 'Mitigation' ? 'bg-green-100 text-green-800' : 
+                          'bg-purple-100 text-purple-800';
+        return (
+          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${colorClass}`}>
+            {value}
+          </span>
+        );
+      }
     },
     {
       key: 'total_cost_usd',
