@@ -68,46 +68,34 @@ const StatCard = ({ title, value, change, icon = null, color = 'primary' }) => {
       `}
       padding={true}
     >
-      <div className="flex flex-col h-full">
-        <div className="flex items-start justify-between flex-1">
-          <div className="flex-1 min-h-0">
-            <div className="flex items-center gap-2 mb-3">
-              {icon && (
-                <div className={`
-                  p-2 rounded-xl 
-                  ${colorVariants[color]}
-                  group-hover:scale-110 
-                  transition-transform duration-300
-                `}>
-                  {icon}
-                </div>
-              )}
-              <p className="text-gray-600 text-sm font-medium leading-tight">{title}</p>
-            </div>
-            
-            <div className="mb-3">
-              <h3 className="text-2xl font-bold text-gray-900 tracking-tight leading-tight">
-                {formatDisplayValue(animatedValue)}
-              </h3>
-            </div>
-          </div>
-          
-          {/* Decorative Element */}
-          <div className="opacity-20 group-hover:opacity-30 transition-opacity duration-300 flex-shrink-0">
+      <div className="flex flex-col h-full text-center">
+        {/* Icon and Title - Centered */}
+        <div className="flex flex-col items-center mb-4">
+          {icon && (
             <div className={`
-              w-12 h-12 rounded-xl 
+              p-2 rounded-xl 
               ${colorVariants[color]}
-              flex items-center justify-center
+              group-hover:scale-110 
+              transition-transform duration-300
+              mb-2
             `}>
-              {icon || <div className="w-6 h-6 bg-current rounded opacity-50"></div>}
+              {icon}
             </div>
-          </div>
+          )}
+          <p className="text-gray-600 text-sm font-medium leading-tight text-center">{title}</p>
         </div>
         
-        {/* Change indicator - always at bottom */}
-        <div className="mt-auto">
+        {/* Value - Centered and taking available space */}
+        <div className="flex-1 flex items-center justify-center mb-4">
+          <h3 className="text-3xl font-bold text-gray-900 tracking-tight text-center">
+            {formatDisplayValue(animatedValue)}
+          </h3>
+        </div>
+        
+        {/* Change indicator - Centered at bottom */}
+        <div className="flex justify-center">
           <div className={`
-            inline-flex items-center gap-1 px-2 py-1 
+            inline-flex items-center gap-1 px-3 py-1.5 
             rounded-full text-xs font-semibold
             ${changeColorClass}
           `}>
@@ -122,7 +110,7 @@ const StatCard = ({ title, value, change, icon = null, color = 'primary' }) => {
         
         {/* Progress indicator for percentage values */}
         {change.includes('%') && (
-          <div className="mt-2">
+          <div className="mt-3">
             <div className="w-full bg-gray-200 rounded-full h-1.5">
               <div 
                 className={`

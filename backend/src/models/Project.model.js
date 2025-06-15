@@ -198,8 +198,8 @@ Project.updateProject = async (id, data) => {
                 title = $1, type = $2, sector = $3, division = $4, status = $5, 
                 approval_fy = $6, beginning = $7, closing = $8, total_cost_usd = $9, 
                 gef_grant = $10, cofinancing = $11, wash_finance = $12, 
-                wash_finance_percent = $13, beneficiaries = $14, objectives = $15
-            WHERE project_id = $16
+                wash_finance_percent = $13, beneficiaries = $14, objectives = $15, disbursement = $16
+            WHERE project_id = $17
             RETURNING *
         `;
         
@@ -208,7 +208,7 @@ Project.updateProject = async (id, data) => {
         const values = [
             title, type, sector, division, status, approval_fy, beginning, closing,
             total_cost_usd, gef_grant, cofinancing, wash_finance,
-            wash_finance_percent, beneficiaries, objectives, id
+            wash_finance_percent, beneficiaries, objectives, data.disbursement || 0, id
         ];
         
         const result = await client.query(updateProjectQuery, values);
@@ -319,36 +319,36 @@ Project.getProjectById = async (id) => {
         
         const project = projectResult.rows[0];
         
-        // Get related agencies
+        // Get related agencies with full details
         const agenciesQuery = `
-            SELECT a.agency_id
+            SELECT a.agency_id, a.name, a.type, a.category
             FROM Agency a
             INNER JOIN ProjectAgency pa ON a.agency_id = pa.agency_id
             WHERE pa.project_id = $1
         `;
         const agenciesResult = await client.query(agenciesQuery, [id]);
         
-        // Get related locations
+        // Get related locations with full details
         const locationsQuery = `
-            SELECT l.location_id
+            SELECT l.location_id, l.name, l.region
             FROM Location l
             INNER JOIN ProjectLocation pl ON l.location_id = pl.location_id
             WHERE pl.project_id = $1
         `;
         const locationsResult = await client.query(locationsQuery, [id]);
         
-        // Get related funding sources
+        // Get related funding sources with full details
         const fundingSourcesQuery = `
-            SELECT fs.funding_source_id
+            SELECT fs.funding_source_id, fs.name, fs.dev_partner, fs.grant_amount, fs.loan_amount, fs.disbursement
             FROM FundingSource fs
             INNER JOIN ProjectFundingSource pfs ON fs.funding_source_id = pfs.funding_source_id
             WHERE pfs.project_id = $1
         `;
         const fundingSourcesResult = await client.query(fundingSourcesQuery, [id]);
         
-        // Get related focal areas
+        // Get related focal areas with full details
         const focalAreasQuery = `
-            SELECT fa.focal_area_id
+            SELECT fa.focal_area_id, fa.name
             FROM FocalArea fa
             INNER JOIN ProjectFocalArea pfa ON fa.focal_area_id = pfa.focal_area_id
             WHERE pfa.project_id = $1
@@ -364,13 +364,19 @@ Project.getProjectById = async (id) => {
             ...projectData
         } = project;
         
-        // Combine all data with properly structured wash_component
+        // Combine all data with properly structured wash_component and full related data
         return {
             ...projectData,
+            // For form editing (return IDs)
             agencies: agenciesResult.rows.map(row => row.agency_id),
             locations: locationsResult.rows.map(row => row.location_id),
             funding_sources: fundingSourcesResult.rows.map(row => row.funding_source_id),
             focal_areas: focalAreasResult.rows.map(row => row.focal_area_id),
+            // For display purposes (return full objects)
+            projectAgencies: agenciesResult.rows,
+            projectLocations: locationsResult.rows,
+            projectFundingSources: fundingSourcesResult.rows,
+            projectFocalAreas: focalAreasResult.rows,
             wash_component: {
                 presence: presence || false,
                 water_supply_percent: parseFloat(water_supply_percent) || 0,

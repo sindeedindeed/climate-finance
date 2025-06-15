@@ -41,10 +41,50 @@ FundingSource.deleteFundingSource = async (id) => {
 };
 
 FundingSource.getFundingSourceById = async (id) => {
-    const { rows } = await pool.query('SELECT * FROM FundingSource WHERE funding_source_id = $1', [id]);
-    return rows[0];
+    const client = await pool.connect();
+    try {
+        // Get basic funding source data
+        const fundingSourceQuery = `
+            SELECT * FROM FundingSource WHERE funding_source_id = $1
+        `;
+        const fundingSourceResult = await client.query(fundingSourceQuery, [id]);
+        
+        if (fundingSourceResult.rows.length === 0) {
+            return null;
+        }
+        
+        const fundingSource = fundingSourceResult.rows[0];
+        
+        // Get related sectors from projects using this funding source
+        const sectorsQuery = `
+            SELECT DISTINCT p.sector
+            FROM Project p
+            INNER JOIN ProjectFundingSource pfs ON p.project_id = pfs.project_id
+            WHERE pfs.funding_source_id = $1 AND p.sector IS NOT NULL
+            ORDER BY p.sector
+        `;
+        const sectorsResult = await client.query(sectorsQuery, [id]);
+        
+        // Get count of active projects
+        const activeProjectsQuery = `
+            SELECT COUNT(DISTINCT p.project_id) AS active_projects
+            FROM Project p
+            INNER JOIN ProjectFundingSource pfs ON p.project_id = pfs.project_id
+            WHERE pfs.funding_source_id = $1
+        `;
+        const activeProjectsResult = await client.query(activeProjectsQuery, [id]);
+        
+        return {
+            ...fundingSource,
+            sectors: sectorsResult.rows.map(row => row.sector),
+            active_projects: parseInt(activeProjectsResult.rows[0]?.active_projects || 0)
+        };
+        
+    } catch (err) {
+        throw err;
+    } finally {
+        client.release();
+    }
 };
-
-
 
 module.exports = FundingSource;

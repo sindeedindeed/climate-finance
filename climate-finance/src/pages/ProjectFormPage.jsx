@@ -33,7 +33,8 @@ const defaultFormData = {
     water_supply_percent: 0,
     sanitation_percent: 0,
     public_admin_percent: 0
-  }
+  },
+  disbursement: ''
 };
 
 const formatDateForInput = (dateStr) => {
@@ -108,7 +109,8 @@ const ProjectFormPage = ({
             water_supply_percent: 0,
             sanitation_percent: 0,
             public_admin_percent: 0
-          }
+          },
+          disbursement: projectData.disbursement || ''
         });
       } else {
         throw new Error('Project not found');
@@ -247,6 +249,7 @@ const ProjectFormPage = ({
         wash_finance: washFinance,
         wash_finance_percent: washFinancePercent,
         wash_component: formData.wash_component,
+        disbursement: parseFloat(formData.disbursement) || 0,
         // Transform relationship arrays to match backend expectations
         agency_ids: formData.agencies || [],
         location_ids: formData.locations || [],
@@ -524,6 +527,29 @@ const ProjectFormPage = ({
                   min="0"
                 />
               </div>
+              
+              {/* Disbursement field - Only show in edit mode */}
+              {actualMode === 'edit' && (
+                <div className="md:col-span-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Disbursement (USD)
+                    <span className="text-sm text-gray-500 ml-1">(Amount already disbursed from funding sources)</span>
+                  </label>
+                  <input
+                    type="number"
+                    name="disbursement"
+                    value={formData.disbursement || ''}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                    step="0.01"
+                    min="0"
+                    placeholder="Enter disbursed amount..."
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    This field tracks the actual amount disbursed from the funding sources for this project.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
