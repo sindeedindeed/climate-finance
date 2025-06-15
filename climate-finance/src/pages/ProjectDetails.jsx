@@ -290,23 +290,23 @@ const ProjectDetails = () => {
           </div>
 
           {/* Key Metrics Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 p-3 sm:p-4 bg-gray-50 rounded-xl">
             <div className="text-center">
               <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Total Budget</div>
-              <div className="text-lg font-bold text-gray-900">{formatCurrency(getTotalBudget(project))}</div>
+              <div className="text-base sm:text-lg font-bold text-gray-900">{formatCurrency(getTotalBudget(project))}</div>
             </div>
             
             {project.gef_grant && (
               <div className="text-center">
                 <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">GEF Grant</div>
-                <div className="text-lg font-bold text-success-600">{formatCurrency(project.gef_grant)}</div>
+                <div className="text-base sm:text-lg font-bold text-success-600">{formatCurrency(project.gef_grant)}</div>
               </div>
             )}
             
             {project.disbursement && project.disbursement > 0 && (
               <div className="text-center">
                 <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Disbursed</div>
-                <div className="text-lg font-bold text-primary-600">{formatCurrency(project.disbursement)}</div>
+                <div className="text-base sm:text-lg font-bold text-primary-600">{formatCurrency(project.disbursement)}</div>
               </div>
             )}
             

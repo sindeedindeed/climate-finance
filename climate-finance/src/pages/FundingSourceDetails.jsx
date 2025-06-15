@@ -233,24 +233,24 @@ const FundingSourceDetails = () => {
           </div>
 
           {/* Key Metrics Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 p-3 sm:p-4 bg-gray-50 rounded-xl">
             <div className="text-center">
               <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Committed</div>
-              <div className="text-lg font-bold text-gray-900">
+              <div className="text-base sm:text-lg font-bold text-gray-900">
                 {formatCurrency(source.total_committed || source.grant_amount || 0)}
               </div>
             </div>
             
             <div className="text-center">
               <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Disbursed</div>
-              <div className="text-lg font-bold text-success-600">
+              <div className="text-base sm:text-lg font-bold text-success-600">
                 {formatCurrency(source.total_disbursed || source.disbursement || 0)}
               </div>
             </div>
             
             <div className="text-center">
               <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Projects</div>
-              <div className="text-lg font-bold text-primary-600">
+              <div className="text-base sm:text-lg font-bold text-primary-600">
                 {source.active_projects || 0} Active
               </div>
             </div>

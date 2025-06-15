@@ -442,7 +442,7 @@ const Projects = () => {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredProjects.map((project, index) => (
               <div 
                 key={project.project_id}
@@ -454,10 +454,10 @@ const Projects = () => {
                   className="group bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-200 cursor-pointer h-full flex flex-col"
                   onClick={(e) => handleViewDetails(e, project.project_id)}
                 >
-                  <div className="p-6 flex flex-col h-full min-h-[320px]">
+                  <div className="p-4 sm:p-6 flex flex-col h-full min-h-[320px]">
                     {/* Header Section - Fixed Height */}
                     <div className="mb-4 min-h-[100px] flex flex-col justify-start">
-                      <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors mb-2 line-clamp-2 text-lg leading-tight">
+                      <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors mb-2 line-clamp-2 text-base sm:text-lg leading-tight">
                         {project.title}
                       </h3>
                       <p className="text-sm text-gray-500 line-clamp-3 flex-1">
@@ -487,7 +487,7 @@ const Projects = () => {
                       {project.total_cost_usd && (
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-600 font-medium">Total Budget:</span>
-                          <span className="text-green-600 font-semibold">
+                          <span className="text-green-600 font-semibold text-xs sm:text-sm">
                             {formatCurrency(project.total_cost_usd)}
                           </span>
                         </div>
@@ -496,7 +496,7 @@ const Projects = () => {
                       {project.gef_grant && (
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-600 font-medium">GEF Grant:</span>
-                          <span className="text-blue-600 font-semibold">
+                          <span className="text-blue-600 font-semibold text-xs sm:text-sm">
                             {formatCurrency(project.gef_grant)}
                           </span>
                         </div>
@@ -505,7 +505,7 @@ const Projects = () => {
                       {(project.beginning && project.closing) && (
                         <div className="text-sm">
                           <span className="text-gray-600 font-medium">Duration:</span>
-                          <div className="text-gray-700 mt-1">
+                          <div className="text-gray-700 mt-1 text-xs">
                             {formatDate(project.beginning)} - {formatDate(project.closing)}
                           </div>
                         </div>
@@ -514,7 +514,7 @@ const Projects = () => {
                       {project.beneficiaries && (
                         <div className="text-sm">
                           <span className="text-gray-600 font-medium">Beneficiaries:</span>
-                          <div className="text-gray-700 mt-1 line-clamp-2">
+                          <div className="text-gray-700 mt-1 line-clamp-2 text-xs">
                             {project.beneficiaries}
                           </div>
                         </div>
@@ -531,7 +531,7 @@ const Projects = () => {
                           size="sm"
                           variant="outline"
                           onClick={(e) => handleViewDetails(e, project.project_id)}
-                          className="text-purple-600 border-purple-600 hover:bg-purple-50 flex-shrink-0"
+                          className="text-purple-600 border-purple-600 hover:bg-purple-50 flex-shrink-0 text-xs px-2 py-1"
                         >
                           View Details
                         </Button>
