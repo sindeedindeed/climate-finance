@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataSource name="postgresql://acmeai:jzOVIcN9E7lOhIG14cVygEt0gCWHKS2X@dpg-d14j3fm3jp1c73bfkqb0-a.singapore-postgres.render.com/climate_finance">
-  <database-model serializer="dbm" dbms="POSTGRES" family-id="POSTGRES" format-version="4.51">
+  <database-model serializer="dbm" dbms="POSTGRES" family-id="POSTGRES" format-version="4.52">
     <root id="1">
       <DateStyle>mdy</DateStyle>
       <IntrospectionStateNumber>1210</IntrospectionStateNumber>
