@@ -18,6 +18,19 @@ User.getUserByEmail = async (email) => {
     return result.rows[0];
 };
 
+User.getUserByUsername = async (username) => {
+    const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    return result.rows[0];
+};
+
+User.getUserByEmailOrUsername = async (identifier) => {
+    const result = await pool.query(
+        'SELECT * FROM users WHERE email = $1 OR username = $1', 
+        [identifier]
+    );
+    return result.rows[0];
+};
+
 User.getUserById = async (id) => {
     const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
     return result.rows[0];

@@ -53,27 +53,36 @@ export const AuthProvider = ({ children }) => {
 
       console.log('Login response:', response);
 
-      // Handle standardized response format: { status: true, data: { user, token } }
+      // Handle both possible response formats
+      let userData, token;
+      
+      // Format 1: {status: true, message: 'Login successful', data: {user, token}}
       if (response.status === true && response.data) {
-        const { user: userData, token } = response.data;
+        userData = response.data.user;
+        token = response.data.token;
+      }
+      // Format 2: {message: 'Login successful', token, user}
+      else if (response.message === 'Login successful' && response.token && response.user) {
+        userData = response.user;
+        token = response.token;
+      }
+      
+      if (userData && token) {
+        // Remove password if present and create clean user object
+        const userWithoutPassword = { ...userData };
+        delete userWithoutPassword.password;
         
-        if (userData && token) {
-          // Remove password if present and create clean user object
-          const userWithoutPassword = { ...userData };
-          delete userWithoutPassword.password;
-          
-          // Store user data and token
-          setUser(userWithoutPassword);
-          localStorage.setItem('adminUser', JSON.stringify(userWithoutPassword));
-          localStorage.setItem('adminToken', token);
-          
-          setLoading(false);
-          return { success: true };
-        }
+        // Store user data and token
+        setUser(userWithoutPassword);
+        localStorage.setItem('adminUser', JSON.stringify(userWithoutPassword));
+        localStorage.setItem('adminToken', token);
+        
+        setLoading(false);
+        return { success: true };
       }
       
       // Handle error responses
-      if (response.status === false) {
+      if (response.status === false || (response.message && response.message !== 'Login successful')) {
         setLoading(false);
         return { 
           success: false, 
@@ -163,6 +172,8 @@ export const AuthProvider = ({ children }) => {
         errorMessage = 'Unable to connect to server. Please check your internet connection.';
       } else if (error.message.includes('409') || error.message.includes('Email already exists')) {
         errorMessage = 'User already exists with this email.';
+      } else if (error.message.includes('Username already exists')) {
+        errorMessage = 'Username already taken. Please choose a different username.';
       } else if (error.message.includes('400')) {
         errorMessage = 'Invalid data provided. Please check your input.';
       }

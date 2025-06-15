@@ -227,9 +227,28 @@ export const userApi = {
     });
   },
   register: (userData) => {
-    if (!userData || !userData.email || !userData.password) {
-      throw new Error('Email and password are required');
+    if (!userData) {
+      throw new Error('User data is required');
     }
+    
+    // Validate required fields for registration
+    const requiredFields = ['username', 'email', 'password', 'role', 'department'];
+    const missingFields = requiredFields.filter(field => !userData[field]?.trim());
+    
+    if (missingFields.length > 0) {
+      throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+    }
+    
+    if (userData.password.length < 8) {
+      throw new Error('Password must be at least 8 characters long');
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(userData.email)) {
+      throw new Error('Please enter a valid email address');
+    }
+    
     return apiRequest('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),

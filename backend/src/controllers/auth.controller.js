@@ -6,11 +6,21 @@ exports.register = async (req, res) => {
   try {
     const { username, email, password, role, department, active } = req.body;
 
-    const existingUser = await User.getUserByEmail(email);
-    if (existingUser) {
+    // Check for existing email
+    const existingUserByEmail = await User.getUserByEmail(email);
+    if (existingUserByEmail) {
       return res.status(400).json({ 
         status: false, 
         message: 'Email already exists' 
+      });
+    }
+
+    // Check for existing username
+    const existingUserByUsername = await User.getUserByUsername(username);
+    if (existingUserByUsername) {
+      return res.status(400).json({ 
+        status: false, 
+        message: 'Username already exists' 
       });
     }
 
@@ -37,7 +47,8 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.getUserByEmail(email);
+    // Use the new method that supports both email and username
+    const user = await User.getUserByEmailOrUsername(email);
     if (!user) {
       return res.status(400).json({ 
         status: false, 
@@ -53,16 +64,8 @@ exports.login = async (req, res) => {
       });
     }
 
-    // For demo user, just compare plain text. For others, use bcrypt
-    let validPassword = false;
-    
-    if (email === 'demo@climatedb.com') {
-      // Demo user - simple plain text comparison
-      validPassword = password === user.password;
-    } else {
-      // Other users - use bcrypt
-      validPassword = await bcrypt.compare(password, user.password);
-    }
+    // Use bcrypt for all users
+    const validPassword = await bcrypt.compare(password, user.password);
 
     if (!validPassword) {
       return res.status(400).json({ 
