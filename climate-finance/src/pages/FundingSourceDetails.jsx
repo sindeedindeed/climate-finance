@@ -330,23 +330,6 @@ const FundingSourceDetails = () => {
             </div>
           </div>
         </Card>
-
-        {/* All Sector Focus Areas */}
-        {source.sectors && Array.isArray(source.sectors) && source.sectors.length > 0 && (
-          <Card padding="p-4 sm:p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">All Sector Focus Areas</h3>
-            <div className="flex flex-wrap gap-3">
-              {source.sectors.map((sector, index) => (
-                <span
-                  key={index}
-                  className="px-4 py-2 bg-gradient-to-r from-primary-100 to-primary-200 text-primary-800 text-sm font-medium rounded-lg border border-primary-200 hover:border-primary-300 transition-all duration-200"
-                >
-                  {sector}
-                </span>
-              ))}
-            </div>
-          </Card>
-        )}
       </div>
     </PageLayout>
   );
