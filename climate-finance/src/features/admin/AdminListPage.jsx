@@ -49,10 +49,15 @@ const AdminListPage = ({
       setError(null);
       const response = await apiService.getAll();
       
-      // ✅ Fix: Handle the correct API response format
-      // API returns: { status: true, data: [...] } or { status: false, message: "..." }
-      if (response.status && Array.isArray(response.data)) {
-        setData(response.data);
+      // Handle different API response formats
+      if (response.status) {
+        // All APIs now return: { status: true, data: [...] }
+        if (Array.isArray(response.data)) {
+          setData(response.data);
+        } else {
+          console.warn('No data received from API or invalid format:', response);
+          setData([]);
+        }
       } else if (Array.isArray(response)) {
         // Fallback for direct array response
         setData(response);

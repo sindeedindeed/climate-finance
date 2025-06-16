@@ -20,6 +20,49 @@ const StatCard = ({ title, value, change, icon = null, color = 'primary' }) => {
     error: 'text-error-600 bg-error-50',
   };
 
+  const iconColorVariants = {
+    primary: 'text-primary-600',
+    success: 'text-success-600',
+    warning: 'text-warning-600',
+    error: 'text-error-600',
+  };
+
+  // Helper function to clone icon with color classes
+  const renderIconWithColor = (iconElement) => {
+    if (!iconElement) return null;
+    
+    // Get the color value for inline styles as fallback - using actual Tailwind values
+    const colorMap = {
+      primary: '#7C65C1', // primary-600 from your config
+      success: '#059669', // success-600 
+      warning: '#D97706', // warning-600
+      error: '#DC2626',   // error-600
+    };
+    
+    // If it's a React element, clone it with both className and style
+    if (React.isValidElement(iconElement)) {
+      return React.cloneElement(iconElement, {
+        className: `${iconElement.props.className || ''} ${iconColorVariants[color]}`.trim(),
+        style: { 
+          color: colorMap[color],
+          fill: 'currentColor',
+          stroke: 'currentColor',
+          ...iconElement.props.style 
+        }
+      });
+    }
+    
+    // Fallback: wrap in span with both class and inline style
+    return (
+      <span 
+        className={iconColorVariants[color]}
+        style={{ color: colorMap[color] }}
+      >
+        {iconElement}
+      </span>
+    );
+  };
+
   // Animation for numeric values
   useEffect(() => {
     if (isNumericValue && typeof value === 'number') {
@@ -79,7 +122,7 @@ const StatCard = ({ title, value, change, icon = null, color = 'primary' }) => {
               transition-transform duration-300
               mb-2
             `}>
-              {icon}
+              {renderIconWithColor(icon)}
             </div>
           )}
           <p className="text-gray-600 text-sm font-medium leading-tight text-center">{title}</p>
