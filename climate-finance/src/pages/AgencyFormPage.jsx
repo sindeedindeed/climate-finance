@@ -24,21 +24,12 @@ const AgencyFormPage = ({ mode = 'add' }) => {
         { value: 'Accredited', label: 'Accredited' }
       ],
       className: 'md:col-span-1'
-    },
-    {
-      name: 'category',
-      label: 'Category',
-      type: 'text',
-      placeholder: 'Enter agency category (optional)',
-      helpText: 'e.g., National, International, Local Govt. Division',
-      className: 'md:col-span-1'
     }
   ];
 
   const defaultFormData = {
     name: '',
-    type: '',
-    category: ''
+    type: ''
   };
 
   const validationRules = {
@@ -53,14 +44,12 @@ const AgencyFormPage = ({ mode = 'add' }) => {
 
   const transformSubmitData = (data) => ({
     name: data.name?.trim(),
-    type: data.type,
-    category: data.category?.trim() || null
+    type: data.type
   });
 
   const transformLoadData = (data) => ({
     name: data.name || '',
-    type: data.type || '',
-    category: data.category || ''
+    type: data.type || ''
   });
 
   return (

@@ -53,7 +53,7 @@ const ProjectFormSections = ({
           onChange={(values) => handleMultiSelectChange({ target: { value: values } }, 'agencies')}
           getOptionId={(agency) => agency.agency_id}
           getOptionLabel={(agency) => agency.name}
-          getOptionSubtext={(agency) => `${agency.type}${agency.category ? ` • ${agency.category}` : ''}`}
+          getOptionSubtext={(agency) => agency.type}
           onAddNew={handleAddAgency}
           addButtonText="Add Agency"
         />

@@ -212,10 +212,35 @@ export const focalAreaApi = {
 
 // User API endpoints
 export const userApi = {
-  getAll: () => apiRequest('/auth/get-all-user'),
+  getAll: () => {
+    return apiRequest('/auth/get-all-user').then(response => {
+      // Handle the specific response format for user API
+      if (response.status && response.message) {
+        // If message is a single user object, wrap it in an array
+        if (response.message && !Array.isArray(response.message)) {
+          return {
+            status: true,
+            data: [response.message]
+          };
+        }
+        // If message is already an array, use it as data
+        if (Array.isArray(response.message)) {
+          return {
+            status: true,
+            data: response.message
+          };
+        }
+      }
+      return response;
+    });
+  },
   getById: (id) => {
     if (!id) throw new Error('User ID is required');
     return apiRequest(`/auth/user/${id}`);
+  },
+  add: (userData) => {
+    // Alias for register to maintain consistency with other APIs
+    return userApi.register(userData);
   },
   login: (credentials) => {
     if (!credentials || !credentials.email || !credentials.password) {
