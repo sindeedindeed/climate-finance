@@ -35,8 +35,7 @@ CREATE TABLE IF NOT EXISTS  Project (
 CREATE TABLE IF NOT EXISTS Agency (
                         agency_id SERIAL PRIMARY KEY,
                         name VARCHAR(255) NOT NULL,
-                        type VARCHAR(50) NOT NULL,
-                        category VARCHAR(100)
+                        type VARCHAR(50) NOT NULL
 );
 
 -- Table: FundingSource
