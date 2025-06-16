@@ -321,7 +321,7 @@ Project.getProjectById = async (id) => {
         
         // Get related agencies with full details
         const agenciesQuery = `
-            SELECT a.agency_id, a.name, a.type, a.category
+            SELECT a.agency_id, a.name, a.type
             FROM Agency a
             INNER JOIN ProjectAgency pa ON a.agency_id = pa.agency_id
             WHERE pa.project_id = $1
