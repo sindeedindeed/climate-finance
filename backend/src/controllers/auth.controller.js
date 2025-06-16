@@ -110,6 +110,7 @@ exports.getAllUser = async (req, res) => {
       return userWithoutPassword;
     });
     
+    // Return users in the data field for consistency with other APIs
     res.status(200).json({
       status: true, 
       data: usersWithoutPasswords,
