@@ -64,20 +64,44 @@ const FormField = ({
 
       case 'checkbox':
         return (
-          <div className="flex items-center">
-            <input
-              id={name}
-              name={name}
-              type="checkbox"
-              checked={value}
-              onChange={onChange}
-              disabled={disabled}
-              className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-              {...props}
-            />
-            <label htmlFor={name} className="ml-2 block text-sm text-gray-900">
-              {label}
-            </label>
+          <div className="flex items-center h-11 px-3 py-2">
+            <div className="relative">
+              <input
+                id={name}
+                name={name}
+                type="checkbox"
+                checked={value || false}
+                onChange={onChange}
+                disabled={disabled}
+                className="sr-only"
+                {...props}
+              />
+              <div 
+                className={`
+                  w-11 h-6 rounded-full cursor-pointer transition-all duration-200 ease-in-out
+                  ${value 
+                    ? 'bg-purple-600 shadow-md' 
+                    : 'bg-gray-200 hover:bg-gray-300'
+                  }
+                  ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+                `}
+                onClick={() => !disabled && onChange({ target: { name, type: 'checkbox', checked: !value } })}
+              >
+                <div 
+                  className={`
+                    w-5 h-5 bg-white rounded-full shadow-sm transform transition-transform duration-200 ease-in-out
+                    ${value ? 'translate-x-5' : 'translate-x-0.5'}
+                  `}
+                >
+                </div>
+              </div>
+            </div>
+            <span 
+              className={`ml-3 text-sm ${disabled ? 'text-gray-400' : 'text-gray-600'} cursor-pointer`}
+              onClick={() => !disabled && onChange({ target: { name, type: 'checkbox', checked: !value } })}
+            >
+              {value ? 'Active' : 'Inactive'}
+            </span>
           </div>
         );
 
@@ -144,7 +168,51 @@ const FormField = ({
   if (type === 'checkbox') {
     return (
       <div className={className}>
-        {renderInput()}
+        {label && (
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {label}
+            {required && <span className="text-red-500 ml-1">*</span>}
+          </label>
+        )}
+        <div className="flex items-center h-11 px-3 py-2">
+          <div className="relative">
+            <input
+              id={name}
+              name={name}
+              type="checkbox"
+              checked={value || false}
+              onChange={onChange}
+              disabled={disabled}
+              className="sr-only"
+              {...props}
+            />
+            <div 
+              className={`
+                w-11 h-6 rounded-full cursor-pointer transition-all duration-200 ease-in-out
+                ${value 
+                  ? 'bg-purple-600 shadow-md' 
+                  : 'bg-gray-200 hover:bg-gray-300'
+                }
+                ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+              `}
+              onClick={() => !disabled && onChange({ target: { name, type: 'checkbox', checked: !value } })}
+            >
+              <div 
+                className={`
+                  w-5 h-5 bg-white rounded-full shadow-sm transform transition-transform duration-200 ease-in-out
+                  ${value ? 'translate-x-5' : 'translate-x-0.5'}
+                `}
+              >
+              </div>
+            </div>
+          </div>
+          <span 
+            className={`ml-3 text-sm ${disabled ? 'text-gray-400' : 'text-gray-600'} cursor-pointer`}
+            onClick={() => !disabled && onChange({ target: { name, type: 'checkbox', checked: !value } })}
+          >
+            {value ? 'Active' : 'Inactive'}
+          </span>
+        </div>
         {helpText && <p className="mt-1 text-xs text-gray-500">{helpText}</p>}
         {error && (
           <div className="mt-1 flex items-center gap-1 text-red-600">
