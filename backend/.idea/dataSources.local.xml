@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="dataSourceStorageLocal" created-in="PY-241.15989.155">
+  <component name="dataSourceStorageLocal" created-in="IU-233.14015.106">
     <data-source name="postgres@localhost" uuid="2128c39f-f532-45ad-938f-fc705d035c82">
       <database-info product="PostgreSQL" version="16.2" jdbc-version="4.2" driver-name="PostgreSQL JDBC Driver" driver-version="42.7.3" dbms="POSTGRES" exact-version="16.2" exact-driver-version="42.7">
         <identifier-quote-string>&quot;</identifier-quote-string>
@@ -22,7 +22,7 @@
       </schema-mapping>
     </data-source>
     <data-source name="postgresql://acmeai:jzOVIcN9E7lOhIG14cVygEt0gCWHKS2X@dpg-d14j3fm3jp1c73bfkqb0-a.singapore-postgres.render.com/climate_finance" uuid="efa2fe71-94c6-481a-bad3-25580feab66b">
-      <database-info product="PostgreSQL" version="16.9 (Debian 16.9-1.pgdg120+1)" jdbc-version="4.2" driver-name="PostgreSQL JDBC Driver" driver-version="42.6.0" dbms="POSTGRES" exact-version="16.9" exact-driver-version="42.6">
+      <database-info product="PostgreSQL" version="16.9 (Debian 16.9-1.pgdg120+1)" jdbc-version="4.2" driver-name="PostgreSQL JDBC Driver" driver-version="42.7.3" dbms="POSTGRES" exact-version="16.9" exact-driver-version="42.7">
         <identifier-quote-string>&quot;</identifier-quote-string>
       </database-info>
       <case-sensitivity plain-identifiers="lower" quoted-identifiers="exact" />
@@ -30,8 +30,13 @@
       <user-name>acmeai</user-name>
       <schema-mapping>
         <introspection-scope>
-          <node kind="database" qname="@">
-            <node kind="schema" qname="@" />
+          <node negative="1">
+            <node kind="database" negative="1">
+              <node kind="schema" negative="1" />
+            </node>
+            <node kind="database" qname="@">
+              <node kind="schema" qname="@" />
+            </node>
           </node>
         </introspection-scope>
       </schema-mapping>
