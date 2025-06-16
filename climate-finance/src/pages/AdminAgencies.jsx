@@ -24,22 +24,6 @@ const AdminAgencies = () => {
       header: 'Type',
       type: 'status',
       statusType: 'agency'
-    },
-    {
-      key: 'category',
-      header: 'Category',
-      searchKey: 'category',
-      render: (value, row) => {
-        if (value === null || value === undefined || value === '' || !value) {
-          return <span className="text-xs text-gray-400 italic">No category</span>;
-        }
-        
-        return (
-          <span className="text-sm text-gray-700 bg-gray-100 px-2 py-1 rounded-md">
-            {value}
-          </span>
-        );
-      }
     }
   ];
 

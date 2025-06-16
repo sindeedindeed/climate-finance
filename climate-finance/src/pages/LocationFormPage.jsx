@@ -8,7 +8,7 @@ const LocationFormPage = ({ mode = 'add' }) => {
       name: 'name',
       label: 'Location Name',
       type: 'text',
-      placeholder: 'Enter location name (e.g., Dhaka, Chittagong)',
+      placeholder: 'Enter location name',
       required: true,
       className: 'md:col-span-1'
     },
