@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowRight,
-  Download,
   RefreshCw,
   DollarSign,
   TrendingUp,
@@ -20,6 +19,7 @@ import { useToast } from '../components/ui/Toast';
 import { CHART_COLORS } from '../utils/constants';
 import { formatCurrency } from '../utils/formatters';
 import { projectApi } from '../services/api';
+import ExportButton from '../components/ui/ExportButton';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -154,33 +154,23 @@ const LandingPage = () => {
     }
   };
 
-  // Handle export
-  const handleExport = () => {
+  // Prepare export data
+  const getExportData = () => {
     if (overviewStats.length === 0) {
-      toast.error('No data available to export');
-      return;
+      return null;
     }
     
-    const exportData = {
+    return {
       overview: overviewStats,
       projectsByStatus,
       projectsBySector,
       regionalData,
-      exportDate: new Date().toISOString()
+      summary: {
+        totalProjects: overviewStats.find(s => s.title.includes('Projects'))?.value || 0,
+        totalFunding: overviewStats.find(s => s.title.includes('Finance'))?.value || 0,
+        activeSources: overviewStats.find(s => s.title.includes('Sources'))?.value || 0
+      }
     };
-    
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `climate_finance_dashboard_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    toast.success('Dashboard data exported successfully');
   };
 
   // Add icons to stats
@@ -234,14 +224,15 @@ const LandingPage = () => {
           >
             {refreshing ? 'Refreshing...' : 'Refresh Data'}
           </Button>          
-          <Button
+          <ExportButton
+            data={getExportData()}
+            filename="climate_finance_dashboard"
+            title="Bangladesh Climate Finance Dashboard"
+            subtitle="Overview of climate finance data and project statistics"
             variant="primary"
-            leftIcon={<Download size={16} />}
-            onClick={handleExport}
             className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
-          >
-            Export Report
-          </Button>
+            exportFormats={['pdf', 'json']}
+          />
         </div>
       </div>
 

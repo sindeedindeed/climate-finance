@@ -11,20 +11,12 @@ import PageLayout from '../components/layouts/PageLayout';
 import PageHeader from '../components/layouts/PageHeader';
 import SearchFilter from '../components/ui/SearchFilter';
 import Loading from '../components/ui/Loading';
+import ExportButton from '../components/ui/ExportButton';
 import {
   FolderOpen,
   Activity,
   DollarSign,
   CheckCircle,
-  Play,
-  Clock,
-  Pause,
-  Download,
-  Eye,
-  Calendar,
-  MapPin,
-  Users,
-  Building,
   AlertCircle,
   RefreshCw
 } from 'lucide-react';
@@ -62,13 +54,12 @@ const Projects = () => {
         trendResponse
       ] = await Promise.all([
         projectApi.getAll(),
-        projectApi.getProjectsOverviewStats(), // ✅ Fixed API call
+        projectApi.getProjectsOverviewStats(),
         projectApi.getByStatus(),
         projectApi.getByType(),
         projectApi.getTrend()
       ]);
 
-      // Process projects data
       if (projectsResponse?.status && Array.isArray(projectsResponse.data)) {
         setProjectsList(projectsResponse.data);
       } else {
@@ -76,12 +67,10 @@ const Projects = () => {
         console.warn('No projects data received from API');
       }
 
-      // Process overview stats
       if (overviewResponse?.status && overviewResponse.data) {
         const data = overviewResponse.data;
         const currentYear = data.current_year || {};
-        
-        // Helper function to calculate percentage change
+
         const calculateChange = (total, current) => {
           if (!total || !current || total === current) return "No previous data";
           const previous = total - current;
@@ -89,7 +78,7 @@ const Projects = () => {
           const percentage = Math.round(((current / previous) - 1) * 100);
           return percentage >= 0 ? `+${percentage}% from last year` : `${percentage}% from last year`;
         };
-        
+
         setOverviewStats([
           { 
             title: "Total Projects", 
@@ -118,7 +107,6 @@ const Projects = () => {
         setOverviewStats([]);
       }
 
-      // Process status data
       if (statusResponse?.status && Array.isArray(statusResponse.data)) {
         setProjectsByStatus(statusResponse.data);
       } else {
@@ -126,7 +114,6 @@ const Projects = () => {
         console.warn('No status data received from API');
       }
 
-      // Process type data
       if (typeResponse?.status && Array.isArray(typeResponse.data)) {
         setProjectsByType(typeResponse.data);
       } else {
@@ -134,7 +121,6 @@ const Projects = () => {
         console.warn('No type data received from API');
       }
 
-      // Process trend data
       if (trendResponse?.status && Array.isArray(trendResponse.data)) {
         setProjectTrend(trendResponse.data);
       } else {
@@ -159,10 +145,6 @@ const Projects = () => {
   const handleRetry = () => {
     setRetryCount(prev => prev + 1);
     fetchAllProjectData();
-  };
-
-  const getStatusIcon = (status) => {
-    return null;
   };
 
   const sectors = ['All', ...new Set(projectsList.map(p => p.sector).filter(Boolean))];
@@ -201,6 +183,31 @@ const Projects = () => {
   const handleViewDetails = (e, projectId) => {
     e.stopPropagation();
     navigate(`/projects/${projectId}`);
+  };
+
+  const getExportData = () => {
+    if (filteredProjects.length === 0) {
+      return null;
+    }
+    
+    return {
+      projects: filteredProjects,
+      overview: overviewStats,
+      chartData: {
+        status: projectsByStatus,
+        type: projectsByType,
+        trend: projectTrend
+      },
+      filters: {
+        searchTerm,
+        statusFilter: selectedStatus,
+        sectorFilter: selectedSector
+      },
+      summary: {
+        totalProjects: filteredProjects.length,
+        totalBudget: filteredProjects.reduce((sum, p) => sum + (p.total_cost_usd || 0), 0)
+      }
+    };
   };
 
   if (isLoading) {
@@ -260,44 +267,17 @@ const Projects = () => {
         title="Climate Projects"
         subtitle="Explore climate finance projects across Bangladesh"
         actions={
-          <Button
-            leftIcon={<Download size={16} />}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-            onClick={() => {
-              if (projectsList.length === 0) {
-                console.log('No data available to export');
-                return;
-              }
-              
-              const exportData = {
-                projects: filteredProjects,
-                overview: overviewStats,
-                chartData: {
-                  status: projectsByStatus,
-                  type: projectsByType,
-                  trend: projectTrend
-                },
-                exportDate: new Date().toISOString()
-              };
-              
-              const dataStr = JSON.stringify(exportData, null, 2);
-              const dataBlob = new Blob([dataStr], { type: 'application/json' });
-              const url = URL.createObjectURL(dataBlob);
-              const link = document.createElement('a');
-              link.href = url;
-              link.download = `climate_projects_${new Date().toISOString().split('T')[0]}.json`;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              URL.revokeObjectURL(url);
-            }}
-          >
-            Export Data
-          </Button>
+          <ExportButton
+            data={getExportData()}
+            filename="climate_projects"
+            title="Climate Finance Projects"
+            subtitle="Comprehensive list of climate projects in Bangladesh"
+            variant="primary"
+            exportFormats={['pdf', 'json']}
+          />
         }
       />
 
-      {/* Stats Section */}
       {statsData.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {statsData.map((stat, index) => (
@@ -327,7 +307,6 @@ const Projects = () => {
         </div>
       )}
 
-      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div className="animate-fade-in-up" style={{ animationDelay: '400ms' }}>
           <Card hover padding={true}>
@@ -373,8 +352,8 @@ const Projects = () => {
               <LineChartComponent
                 title="Project Trends"
                 data={projectTrend}
-                xAxisKey="year" // ✅ Fixed: was "xKey"
-                yAxisKey="projects" // ✅ Fixed: was "yKey", should match backend data structure
+                xAxisKey="year"
+                yAxisKey="projects"
                 height={300}
               />
             ) : (
@@ -389,7 +368,6 @@ const Projects = () => {
         </div>
       </div>
 
-      {/* Projects List */}
       <Card hover className="mb-6" padding={true}>
         <div className="border-b border-gray-100 pb-8 mb-8">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center">
@@ -455,7 +433,6 @@ const Projects = () => {
                   onClick={(e) => handleViewDetails(e, project.project_id)}
                 >
                   <div className="p-4 sm:p-6 flex flex-col h-full min-h-[320px]">
-                    {/* Header Section - Fixed Height */}
                     <div className="mb-4 min-h-[100px] flex flex-col justify-start">
                       <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors mb-2 line-clamp-2 text-base sm:text-lg leading-tight">
                         {project.title}
@@ -465,7 +442,6 @@ const Projects = () => {
                       </p>
                     </div>
 
-                    {/* Status Badges - Fixed Height */}
                     <div className="flex flex-wrap gap-2 mb-4 min-h-[32px] items-start">
                       <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}>
                         {project.status}
@@ -482,7 +458,6 @@ const Projects = () => {
                       )}
                     </div>
 
-                    {/* Content Section - Flexible Height */}
                     <div className="space-y-3 mb-4 flex-1">
                       {project.total_cost_usd && (
                         <div className="flex items-center justify-between text-sm">
@@ -521,7 +496,6 @@ const Projects = () => {
                       )}
                     </div>
 
-                    {/* Footer Section - Fixed at Bottom */}
                     <div className="mt-auto pt-4 border-t border-gray-100">
                       <div className="flex justify-between items-center">
                         <div className="text-xs text-gray-500 truncate mr-2">
