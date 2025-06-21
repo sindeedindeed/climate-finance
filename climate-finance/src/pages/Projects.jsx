@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { projectApi } from '../services/api';
 import { formatCurrency, formatDate } from '../utils/formatters';
@@ -31,11 +31,23 @@ const Projects = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
-  
+
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSector, setSelectedSector] = useState('All');
-  const [selectedStatus, setSelectedStatus] = useState('All');
+  const [activeFilters, setActiveFilters] = useState({
+    sector: 'All',
+    status: 'All',
+    type: 'All',
+    division: 'All',
+    agency: 'All',
+    funding_source: 'All',
+    location: 'All',
+    focal_area: 'All',
+    approval_fy: 'All'
+  });
+
+  // Add filtered projects state
+  const [filteredProjects, setFilteredProjects] = useState([]);
 
   useEffect(() => {
     fetchAllProjectData();
@@ -70,7 +82,6 @@ const Projects = () => {
       if (overviewResponse?.status && overviewResponse.data) {
         const data = overviewResponse.data;
         const currentYear = data.current_year || {};
-
         const calculateChange = (total, current) => {
           if (!total || !current || total === current) return "No previous data";
           const previous = total - current;
@@ -80,24 +91,24 @@ const Projects = () => {
         };
 
         setOverviewStats([
-          { 
-            title: "Total Projects", 
-            value: data.total_projects || 0, 
+          {
+            title: "Total Projects",
+            value: data.total_projects || 0,
             change: calculateChange(data.total_projects, currentYear.total_projects)
           },
-          { 
-            title: "Active Projects", 
-            value: data.active_projects || 0, 
+          {
+            title: "Active Projects",
+            value: data.active_projects || 0,
             change: calculateChange(data.active_projects, currentYear.active_projects)
           },
-          { 
-            title: "Total Investment", 
-            value: data.total_investment || 0, 
+          {
+            title: "Total Investment",
+            value: data.total_investment || 0,
             change: calculateChange(data.total_investment, currentYear.total_investment)
           },
-          { 
-            title: "Completed Projects", 
-            value: data.completed_projects || 0, 
+          {
+            title: "Completed Projects",
+            value: data.completed_projects || 0,
             change: currentYear.completed_projects ? 
               calculateChange(data.completed_projects, currentYear.completed_projects) : 
               "Based on all-time data"
@@ -147,13 +158,9 @@ const Projects = () => {
     fetchAllProjectData();
   };
 
-  const sectors = ['All', ...new Set(projectsList.map(p => p.sector).filter(Boolean))];
-  const statuses = ['All', ...new Set(projectsList.map(p => p.status).filter(Boolean))];
-
   const statsData = Array.isArray(overviewStats) ? overviewStats.map((stat, index) => {
     const colors = ['primary', 'success', 'warning', 'primary'];
     const icons = [<FolderOpen size={20} />, <Activity size={20} />, <DollarSign size={20} />, <CheckCircle size={20} />];
-    
     return {
       ...stat,
       color: colors[index] || 'primary',
@@ -161,14 +168,179 @@ const Projects = () => {
     };
   }) : [];
 
-  const filteredProjects = projectsList.filter(project => {
-    const matchesSearch = project.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.project_id?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSector = selectedSector === 'All' || project.sector === selectedSector;
-    const matchesStatus = selectedStatus === 'All' || project.status === selectedStatus;
+  // Set default filtered projects when projectsList changes
+  useEffect(() => {
+    if (projectsList.length > 0 && filteredProjects.length === 0) {
+      setFilteredProjects(projectsList);
+    }
+  }, [projectsList.length]);
+
+  const handleFilteredData = useCallback((filtered) => {
+    // Early return to prevent unnecessary state updates
+    if (!Array.isArray(filtered)) {
+      return;
+    }
     
-    return matchesSearch && matchesSector && matchesStatus;
-  });
+    // Check if the filtered data is actually different
+    if (filtered.length === filteredProjects.length && 
+        filtered.every((item, index) => item === filteredProjects[index])) {
+      return;
+    }
+    
+    setFilteredProjects(filtered);
+  }, [filteredProjects]);
+
+  const getProjectsConfig = useMemo(() => {
+    // Early return if no projects to prevent unnecessary recalculation
+    if (!projectsList || projectsList.length === 0) {
+      return {
+        searchFields: [
+          { key: 'title', label: 'Project Title', weight: 3 },
+          { key: 'project_id', label: 'Project ID', weight: 3 },
+          { key: 'objectives', label: 'Objectives', weight: 2 },
+          { key: 'beneficiaries', label: 'Beneficiaries', weight: 1 }
+        ],
+        filters: []
+      };
+    }
+
+    // Create unique option arrays using the actual fields available
+    const sectors = Array.from(new Set(projectsList.map(p => p.sector).filter(Boolean))).sort();
+    const types = Array.from(new Set(projectsList.map(p => p.type).filter(Boolean))).sort();
+    const divisions = Array.from(new Set(projectsList.map(p => p.division).filter(Boolean))).sort();
+    const approvalYears = Array.from(new Set(projectsList.map(p => p.approval_fy).filter(Boolean))).sort();
+    
+    // Extract agencies from projectAgencies array
+    const agencies = new Set();
+    projectsList.forEach(p => {
+      if (p.projectAgencies && Array.isArray(p.projectAgencies)) {
+        p.projectAgencies.forEach(agency => {
+          if (agency.name) agencies.add(agency.name);
+        });
+      }
+    });
+    const uniqueAgencies = Array.from(agencies).sort();
+    
+    // Extract funding sources from projectFundingSources array
+    const fundingSources = new Set();
+    projectsList.forEach(p => {
+      if (p.projectFundingSources && Array.isArray(p.projectFundingSources)) {
+        p.projectFundingSources.forEach(source => {
+          if (source.name) fundingSources.add(source.name);
+        });
+      }
+    });
+    const uniqueFundingSources = Array.from(fundingSources).sort();
+    
+    // Extract locations from projectLocations array
+    const locations = new Set();
+    projectsList.forEach(p => {
+      if (p.projectLocations && Array.isArray(p.projectLocations)) {
+        p.projectLocations.forEach(location => {
+          if (location.name) locations.add(location.name);
+        });
+      }
+    });
+    const uniqueLocations = Array.from(locations).sort();
+    
+    // Extract focal areas from projectFocalAreas array
+    const focalAreas = new Set();
+    projectsList.forEach(p => {
+      if (p.projectFocalAreas && Array.isArray(p.projectFocalAreas)) {
+        p.projectFocalAreas.forEach(area => {
+          if (area.name) focalAreas.add(area.name);
+        });
+      }
+    });
+    const uniqueFocalAreas = Array.from(focalAreas).sort();
+
+    return {
+      searchFields: [
+        { key: 'title', label: 'Project Title', weight: 3 },
+        { key: 'project_id', label: 'Project ID', weight: 3 },
+        { key: 'objectives', label: 'Objectives', weight: 2 },
+        { key: 'beneficiaries', label: 'Beneficiaries', weight: 1 }
+      ],
+      filters: [
+        {
+          key: 'status',
+          label: 'Status',
+          options: [
+            { value: 'All', label: 'All Statuses' },
+            { value: 'Active', label: 'Active' },
+            { value: 'Completed', label: 'Completed' },
+            { value: 'Planning', label: 'Planning' },
+            { value: 'On Hold', label: 'On Hold' },
+            { value: 'Cancelled', label: 'Cancelled' }
+          ]
+        },
+        ...(sectors.length > 0 ? [{
+          key: 'sector',
+          label: 'Sector',
+          options: [
+            { value: 'All', label: 'All Sectors' },
+            ...sectors.map(sector => ({ value: sector, label: sector }))
+          ]
+        }] : []),
+        ...(types.length > 0 ? [{
+          key: 'type',
+          label: 'Project Type',
+          options: [
+            { value: 'All', label: 'All Types' },
+            ...types.map(type => ({ value: type, label: type }))
+          ]
+        }] : []),
+        ...(divisions.length > 0 ? [{
+          key: 'division',
+          label: 'Division',
+          options: [
+            { value: 'All', label: 'All Divisions' },
+            ...divisions.map(division => ({ value: division, label: division }))
+          ]
+        }] : []),
+        ...(uniqueAgencies.length > 0 ? [{
+          key: 'agency',
+          label: 'Agency',
+          options: [
+            { value: 'All', label: 'All Agencies' },
+            ...uniqueAgencies.map(agency => ({ value: agency, label: agency }))
+          ]
+        }] : []),
+        ...(uniqueFundingSources.length > 0 ? [{
+          key: 'funding_source',
+          label: 'Funding Source',
+          options: [
+            { value: 'All', label: 'All Funding Sources' },
+            ...uniqueFundingSources.map(source => ({ value: source, label: source }))
+          ]
+        }] : []),
+        ...(uniqueLocations.length > 0 ? [{
+          key: 'location',
+          label: 'Location',
+          options: [
+            { value: 'All', label: 'All Locations' },
+            ...uniqueLocations.map(location => ({ value: location, label: location }))
+          ]
+        }] : []),
+        ...(uniqueFocalAreas.length > 0 ? [{
+          key: 'focal_area',
+          label: 'Focal Area',
+          options: [
+            { value: 'All', label: 'All Focal Areas' },
+            ...uniqueFocalAreas.map(area => ({ value: area, label: area }))
+          ]
+        }] : []),
+        ...(approvalYears.length > 0 ? [{
+          key: 'approval_fy',
+          label: 'Approval Year',
+          options: [
+            { value: 'All', label: 'All Years' },
+            ...approvalYears.map(year => ({ value: year, label: year }))
+          ]
+        }] : [])
+      ]
+    };
+  }, [projectsList.length]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -200,8 +372,7 @@ const Projects = () => {
       },
       filters: {
         searchTerm,
-        statusFilter: selectedStatus,
-        sectorFilter: selectedSector
+        activeFilters
       },
       summary: {
         totalProjects: filteredProjects.length,
@@ -263,7 +434,7 @@ const Projects = () => {
 
   return (
     <PageLayout bgColor="bg-gray-50">
-      <PageHeader
+      <PageHeader 
         title="Climate Projects"
         subtitle="Explore climate finance projects across Bangladesh"
         actions={
@@ -272,8 +443,9 @@ const Projects = () => {
             filename="climate_projects"
             title="Climate Finance Projects"
             subtitle="Comprehensive list of climate projects in Bangladesh"
-            variant="primary"
+            variant="export"
             exportFormats={['pdf', 'json']}
+            className="w-full sm:w-auto"
           />
         }
       />
@@ -312,7 +484,7 @@ const Projects = () => {
           <Card hover padding={true}>
             {projectsByStatus.length > 0 ? (
               <PieChartComponent
-                title="Projects by Status"
+                title="Projects by Status" 
                 data={projectsByStatus}
                 height={300}
               />
@@ -369,39 +541,35 @@ const Projects = () => {
       </div>
 
       <Card hover className="mb-6" padding={true}>
-        <div className="border-b border-gray-100 pb-8 mb-8">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 md:mb-0">Climate Finance Projects</h3>
-            
-            <SearchFilter
-              searchValue={searchTerm}
-              onSearchChange={setSearchTerm}
-              searchPlaceholder="Search projects..."
-              filters={[
-                {
-                  value: selectedSector,
-                  onChange: setSelectedSector,
-                  options: sectors.map(sector => ({
-                    value: sector,
-                    label: sector === 'All' ? 'All Sectors' : sector
-                  }))
-                },
-                {
-                  value: selectedStatus,
-                  onChange: setSelectedStatus,
-                  options: statuses.map(status => ({
-                    value: status,
-                    label: status === 'All' ? 'All Status' : status
-                  }))
-                }
-              ]}
-              className="mt-4 md:mt-0"
-            />
-          </div>
-
-          <div className="text-sm text-gray-500 mt-2">
-            Showing {filteredProjects.length} of {projectsList.length} projects
-          </div>
+        <div className="border-b border-gray-100 pb-6 mb-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-6">Climate Finance Projects</h3>
+          
+          <SearchFilter
+            data={projectsList}
+            onFilteredData={handleFilteredData}
+            searchValue={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchPlaceholder="Search projects by title, ID, objectives..."
+            entityType="projects"
+            customConfig={getProjectsConfig}
+            activeFilters={activeFilters}
+            onFiltersChange={setActiveFilters}
+            showAdvancedSearch={true}
+            onClearAll={() => {
+              setSearchTerm('');
+              setActiveFilters({
+                sector: 'All',
+                status: 'All',
+                type: 'All',
+                division: 'All',
+                agency: 'All',
+                funding_source: 'All',
+                location: 'All',
+                focal_area: 'All',
+                approval_fy: 'All'
+              });
+            }}
+          />
         </div>
 
         {projectsList.length === 0 ? (
@@ -423,12 +591,11 @@ const Projects = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredProjects.map((project, index) => (
               <div 
-                key={project.project_id}
+                key={project.project_id || `project-${index}`}
                 className="animate-fade-in-up"
                 style={{ animationDelay: `${(index % 9) * 100}ms` }}
               >
                 <div 
-                  key={project.project_id || index}
                   className="group bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-200 cursor-pointer h-full flex flex-col"
                   onClick={(e) => handleViewDetails(e, project.project_id)}
                 >
@@ -501,7 +668,7 @@ const Projects = () => {
                         <div className="text-xs text-gray-500 truncate mr-2">
                           ID: {project.project_id}
                         </div>
-                        <Button
+                        <Button 
                           size="sm"
                           variant="outline"
                           onClick={(e) => handleViewDetails(e, project.project_id)}
@@ -528,8 +695,17 @@ const Projects = () => {
             <Button
               onClick={() => {
                 setSearchTerm('');
-                setSelectedSector('All');
-                setSelectedStatus('All');
+                setActiveFilters({
+                  sector: 'All',
+                  status: 'All',
+                  type: 'All',
+                  division: 'All',
+                  agency: 'All',
+                  funding_source: 'All',
+                  location: 'All',
+                  focal_area: 'All',
+                  approval_fy: 'All'
+                });
               }}
               variant="outline"
             >

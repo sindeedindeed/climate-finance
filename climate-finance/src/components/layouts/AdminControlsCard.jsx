@@ -8,6 +8,8 @@ const AdminControlsCard = ({
   onSearchChange,
   searchPlaceholder = 'Search...',
   filters = [],
+  activeFilters = {},
+  onFilterChange,
   onAddNew,
   addButtonText = 'Add New',
   children,
@@ -33,7 +35,12 @@ const AdminControlsCard = ({
         searchValue={searchValue}
         onSearchChange={onSearchChange}
         searchPlaceholder={searchPlaceholder}
-        filters={filters}
+        filters={filters.map(filter => ({
+          key: filter.key,
+          value: activeFilters[filter.key] || filter.defaultValue || '',
+          onChange: (value) => onFilterChange?.(filter.key, value),
+          options: filter.options
+        }))}
       />
 
       {children}

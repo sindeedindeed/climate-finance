@@ -1,3 +1,6 @@
+// Note: For data search/filtering, use SearchFilter component instead of Input with search icon
+// This Input component should be used for form inputs and simple search fields only
+
 import React from 'react';
 import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 

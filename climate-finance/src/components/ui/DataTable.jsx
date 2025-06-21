@@ -1,13 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronDown, ChevronUp, Search, MoreHorizontal } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import Button from './Button';
 import Loading from './Loading';
 import ErrorState from './ErrorState';
 
 const DataTable = ({
-  data = [],
+  data = [], // This should now be filteredData from parent
   columns = [],
-  searchable = false,
   sortable = true,
   pagination = true,
   pageSize = 10,
@@ -16,30 +15,19 @@ const DataTable = ({
   loading = false,
   error = null,
   emptyState = null,
-  className = '',
-  searchPlaceholder = 'Search...'
+  className = ''
+  // Removed searchable and searchPlaceholder props
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  // Removed search-related state
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Filter data based on search
-  const filteredData = useMemo(() => {
-    if (!searchTerm) return data;
-    
-    return data.filter(row =>
-      columns.some(column => {
-        const value = row[column.key];
-        return value?.toString().toLowerCase().includes(searchTerm.toLowerCase());
-      })
-    );
-  }, [data, searchTerm, columns]);
-
+  // Use data directly as it's already filtered by parent
   // Sort data
   const sortedData = useMemo(() => {
-    if (!sortConfig.key) return filteredData;
+    if (!sortConfig.key) return data;
     
-    return [...filteredData].sort((a, b) => {
+    return [...data].sort((a, b) => {
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
       
@@ -47,7 +35,7 @@ const DataTable = ({
       if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [filteredData, sortConfig]);
+  }, [data, sortConfig]);
 
   // Paginate data
   const totalPages = Math.ceil(sortedData.length / pageSize);
@@ -62,11 +50,6 @@ const DataTable = ({
       key,
       direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
     }));
-  };
-
-  const handleSearch = (value) => {
-    setSearchTerm(value);
-    setCurrentPage(1);
   };
 
   const renderCell = (row, column) => {
@@ -96,21 +79,7 @@ const DataTable = ({
 
   return (
     <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
-      {/* Search */}
-      {searchable && (
-        <div className="p-4 border-b border-gray-200">
-          <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder={searchPlaceholder}
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
-        </div>
-      )}
+      {/* Removed search section */}
 
       {/* Table */}
       <div className="overflow-x-auto">

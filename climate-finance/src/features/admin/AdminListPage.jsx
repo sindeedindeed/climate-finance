@@ -11,6 +11,7 @@ import Button from '../../components/ui/Button';
 import { ConfirmModal } from '../../components/ui/Modal';
 import { useAuth } from '../../context/AuthContext';
 import { getStatusConfig } from '../../utils/statusConfig';
+import SearchFilter from '../../components/ui/SearchFilter';
 
 const AdminListPage = ({
   title,
@@ -235,43 +236,18 @@ const AdminListPage = ({
           </Button>
         </div>
 
-        {/* Search and Filters */}
-        <div className="flex flex-col lg:flex-row gap-4">
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              placeholder={searchPlaceholder}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-4 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
-          
-          {filters.length > 0 && (
-            <div className="flex flex-wrap gap-3">
-              {filters.map((filter) => (
-                <select
-                  key={filter.key}
-                  value={activeFilters[filter.key]}
-                  onChange={(e) => handleFilterChange(filter.key, e.target.value)}
-                  className="px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                >
-                  {filter.options.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              ))}
-              
-              {(searchTerm || Object.values(activeFilters).some(v => v !== 'All')) && (
-                <Button variant="outline" size="sm" onClick={clearFilters}>
-                  Clear All
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
+        <SearchFilter
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder={searchPlaceholder}
+          filters={filters.map(filter => ({
+            key: filter.key,
+            value: activeFilters[filter.key] || filter.defaultValue || 'All',
+            onChange: (value) => handleFilterChange(filter.key, value),
+            options: filter.options
+          }))}
+          className="mb-4"
+        />
 
         {additionalFilters}
       </div>

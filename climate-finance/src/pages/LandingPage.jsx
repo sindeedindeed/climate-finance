@@ -229,9 +229,9 @@ const LandingPage = () => {
             filename="climate_finance_dashboard"
             title="Bangladesh Climate Finance Dashboard"
             subtitle="Overview of climate finance data and project statistics"
-            variant="primary"
-            className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
+            variant="export"
             exportFormats={['pdf', 'json']}
+            className="w-full sm:w-auto"
           />
         </div>
       </div>
@@ -252,7 +252,7 @@ const LandingPage = () => {
 
       {/* Stats Grid */}
       {statsData.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {statsData.map((stat, index) => (
             <div 
               key={index} 
@@ -270,7 +270,7 @@ const LandingPage = () => {
           ))}
         </div>
       ) : (
-        <div className="mb-8 max-w-7xl mx-auto">
+        <div className="mb-8">
           <Card padding={true}>
             <div className="text-center py-6">
               <p className="text-gray-500">No overview statistics available</p>

@@ -1,163 +1,264 @@
-import { useCallback } from 'react';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import 'jspdf-autotable';
+import { useState, useCallback } from 'react';
+import { saveAs } from 'file-saver';
+import { formatDate } from '../utils/formatDate';
+import { useTranslation } from 'react-i18next';
 
-export const usePDFExport = () => {
-  const exportToPDF = useCallback(async (data, filename = 'report', options = {}) => {
-    const {
-      title = 'Report',
-      subtitle = '',
-      orientation = 'portrait',
-      format = 'a4',
-      customTemplate = null
-    } = options;
+const usePDFExport = () => {
+  const [isExporting, setIsExporting] = useState(false);
+  const { t } = useTranslation();
 
-    try {
-      const pdf = new jsPDF(orientation, 'mm', format);
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      let yPosition = 20;
+  const exportPDF = useCallback(
+    async ({
+      data,
+      fileName,
+      title,
+      headers,
+      columnStyles,
+      rowStyles,
+      logo,
+      customStyles,
+      useI18n,
+    }) => {
+      setIsExporting(true);
+      const unit = 'pt';
+      const size = 'A4';
+      const orientation = 'landscape';
+      const marginLeft = 40;
+      const doc = new jsPDF(orientation, unit, size);
 
-      // Header
-      pdf.setFontSize(20);
-      pdf.setTextColor(124, 101, 193); // Purple color
-      pdf.text(title, 20, yPosition);
-      yPosition += 15;
+      doc.setFontSize(15);
 
-      if (subtitle) {
-        pdf.setFontSize(12);
-        pdf.setTextColor(107, 114, 128); // Gray color
-        pdf.text(subtitle, 20, yPosition);
-        yPosition += 10;
+      const pageWidth = doc.internal.pageSize.getWidth();
+
+      const titleWidth =
+        doc.getTextWidth(title) < pageWidth - marginLeft * 2
+          ? doc.getTextWidth(title)
+          : pageWidth - marginLeft * 2;
+
+      const titleX = (pageWidth - titleWidth) / 2;
+
+      doc.setTextColor(74, 74, 74);
+
+      doc.text(title, titleX, 50);
+
+      if (logo) {
+        const imageWidth = 50;
+        const imageHeight = 50;
+        const imageX = marginLeft;
+        const imageY = 15;
+        doc.addImage(logo, 'PNG', imageX, imageY, imageWidth, imageHeight);
       }
 
-      // Date
-      pdf.setFontSize(10);
-      pdf.setTextColor(107, 114, 128);
-      pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, yPosition);
-      yPosition += 20;
+      const headerStyles = {
+        halign: 'center',
+        fillColor: '#E1E5EA',
+        textColor: '#1A202C',
+        fontSize: 10,
+        fontStyle: 'bold',
+        padding: 5,
+      };
 
-      // Custom template if provided
-      if (customTemplate) {
-        yPosition = await customTemplate(pdf, data, yPosition, pageWidth, pageHeight);
-      } else {
-        // Default template
-        yPosition = await generateDefaultContent(pdf, data, yPosition, pageWidth, pageHeight);
+      const bodyStyles = {
+        textColor: '#4A5568',
+        fontSize: 9,
+        padding: 5,
+      };
+
+      const tableStyles = {
+        margin: {
+          top: 60,
+          left: marginLeft,
+        },
+      };
+
+      const styles = {
+        headerStyles: headerStyles,
+        bodyStyles: bodyStyles,
+        styles: tableStyles,
+        columnStyles: columnStyles,
+        rowStyles: rowStyles,
+        ...customStyles,
+      };
+
+      const content = {
+        startY: 50,
+        head: [headers],
+        body: data,
+        ...styles,
+      };
+
+      doc.autoTable(content);
+
+      if (typeof doc.putTotalPages === 'function') {
+        doc.putTotalPages('{total}');
       }
 
-      // Save the PDF
-      pdf.save(`${filename}_${new Date().toISOString().split('T')[0]}.pdf`);
-      return true;
-    } catch (error) {
-      console.error('PDF export failed:', error);
-      throw new Error('Failed to export PDF');
-    }
-  }, []);
+      // Footer
+      let str = 'Page ' + doc.internal.getNumberOfPages();
 
-  const generateDefaultContent = async (pdf, data, yPosition, pageWidth, pageHeight) => {
-    pdf.setFontSize(12);
-    pdf.setTextColor(0, 0, 0);
+      if (typeof doc.putTotalPages === 'function') {
+        str = str + ' of ' + '{total}';
+      }
 
-    // Handle different data types
-    if (Array.isArray(data)) {
-      data.forEach((item, index) => {
-        if (yPosition > pageHeight - 30) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-        
-        // Better formatting for array items
-        if (typeof item === 'object') {
-          pdf.setFontSize(14);
-          pdf.setTextColor(124, 101, 193);
-          pdf.text(`${index + 1}. ${item.title || item.name || `Item ${index + 1}`}`, 20, yPosition);
-          yPosition += 10;
-          
-          pdf.setFontSize(10);
-          pdf.setTextColor(0, 0, 0);
-          Object.entries(item).forEach(([key, value]) => {
-            if (yPosition > pageHeight - 20) {
-              pdf.addPage();
-              yPosition = 20;
-            }
-            const displayValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
-            const lines = pdf.splitTextToSize(`${key}: ${displayValue}`, pageWidth - 40);
-            pdf.text(lines, 25, yPosition);
-            yPosition += lines.length * 5;
-          });
-          yPosition += 5;
+      const pageCount = doc.internal.getNumberOfPages();
+
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        let pageSize = doc.internal.pageSize;
+        let pageWidth = pageSize.getWidth
+          ? pageSize.getWidth()
+          : pageSize.width;
+        let pageHeight = pageSize.getHeight
+          ? pageSize.getHeight()
+          : pageSize.height;
+
+        doc.setFontSize(10);
+        doc.setTextColor(74, 74, 74);
+        if (useI18n) {
+          doc.text(
+            `${t('Generated on')} ${formatDate(
+              new Date()
+            )} | ${t('Climate Finance')}`,
+            marginLeft,
+            pageHeight - 20
+          );
+          doc.text(
+            str,
+            pageWidth - marginLeft - 35,
+            pageHeight - 20
+          );
         } else {
-          pdf.text(`${index + 1}. ${String(item)}`, 20, yPosition);
-          yPosition += 10;
+          doc.text(
+            `Generated on ${formatDate(new Date())} | Climate Finance`,
+            marginLeft,
+            pageHeight - 20
+          );
+          doc.text(
+            str,
+            pageWidth - marginLeft - 35,
+            pageHeight - 20
+          );
         }
-      });
-    } else if (typeof data === 'object' && data !== null) {
-      Object.entries(data).forEach(([key, value]) => {
-        if (yPosition > pageHeight - 30) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-        
-        // Format section headers
-        pdf.setFontSize(12);
-        pdf.setTextColor(124, 101, 193);
-        pdf.text(`${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:`, 20, yPosition);
-        yPosition += 8;
-        
-        pdf.setFontSize(10);
-        pdf.setTextColor(0, 0, 0);
-        const displayValue = typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value);
-        const lines = pdf.splitTextToSize(displayValue, pageWidth - 40);
-        pdf.text(lines, 25, yPosition);
-        yPosition += lines.length * 5 + 5;
-      });
-    } else {
-      const lines = pdf.splitTextToSize(String(data), pageWidth - 40);
-      pdf.text(lines, 20, yPosition);
-      yPosition += lines.length * 5;
-    }
-
-    return yPosition;
-  };
-
-  const exportElementToPDF = useCallback(async (elementId, filename = 'report', options = {}) => {
-    try {
-      const element = document.getElementById(elementId);
-      if (!element) {
-        throw new Error('Element not found');
       }
 
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false
-      });
+      const pdfBlob = doc.output('blob');
 
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF(options.orientation || 'portrait');
-      const imgWidth = 190;
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 10;
+      saveAs(pdfBlob, `${fileName}.pdf`);
+      setIsExporting(false);
+    },
+    [t]
+  );
 
-      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+  const exportChartPDF = useCallback(
+    async ({
+      title,
+      fileName,
+      logo,
+      chartRef,
+      useI18n,
+    }) => {
+      setIsExporting(true);
+      const unit = 'pt';
+      const size = 'A4';
+      const orientation = 'portrait';
+      const marginLeft = 40;
+      const doc = new jsPDF(orientation, unit, size);
 
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      doc.setFontSize(15);
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+
+      const titleWidth =
+        doc.getTextWidth(title) < pageWidth - marginLeft * 2
+          ? doc.getTextWidth(title)
+          : pageWidth - marginLeft * 2;
+
+      const titleX = (pageWidth - titleWidth) / 2;
+
+      doc.setTextColor(74, 74, 74);
+
+      doc.text(title, titleX, 50);
+
+      if (logo) {
+        const imageWidth = 50;
+        const imageHeight = 50;
+        const imageX = marginLeft;
+        const imageY = 15;
+        doc.addImage(logo, 'PNG', imageX, imageY, imageWidth, imageHeight);
       }
 
-      pdf.save(`${filename}_${new Date().toISOString().split('T')[0]}.pdf`);
-      return true;
-    } catch (error) {
-      console.error('PDF export failed:', error);
-      throw new Error('Failed to export PDF');
-    }
-  }, []);
+      const chartImageBase64 = chartRef.current.toBase64Image();
 
-  return { exportToPDF, exportElementToPDF };
+      const imageHeight = 300;
+      const imageWidth = 450;
+      const imageX = (pageWidth - imageWidth) / 2;
+      const imageY = 70;
+
+      doc.addImage(chartImageBase64, 'PNG', imageX, imageY, imageWidth, imageHeight);
+
+      // Footer
+      let str = 'Page ' + doc.internal.getNumberOfPages();
+
+      if (typeof doc.putTotalPages === 'function') {
+        str = str + ' of ' + '{total}';
+      }
+
+      const pageCount = doc.internal.getNumberOfPages();
+
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        let pageSize = doc.internal.pageSize;
+        let pageWidth = pageSize.getWidth
+          ? pageSize.getWidth()
+          : pageSize.width;
+        let pageHeight = pageSize.getHeight
+          ? pageSize.getHeight()
+          : pageSize.height;
+
+        doc.setFontSize(10);
+        doc.setTextColor(74, 74, 74);
+        if (useI18n) {
+          doc.text(
+            `${t('Generated on')} ${formatDate(
+              new Date()
+            )} | ${t('Climate Finance')}`,
+            marginLeft,
+            pageHeight - 20
+          );
+          doc.text(
+            str,
+            pageWidth - marginLeft - 35,
+            pageHeight - 20
+          );
+        } else {
+          doc.text(
+            `Generated on ${formatDate(new Date())} | Climate Finance`,
+            marginLeft,
+            pageHeight - 20
+          );
+          doc.text(
+            str,
+            pageWidth - marginLeft - 35,
+            pageHeight - 20
+          );
+        }
+      }
+
+      if (typeof doc.putTotalPages === 'function') {
+        doc.putTotalPages('{total}');
+      }
+
+      const pdfBlob = doc.output('blob');
+
+      saveAs(pdfBlob, `${fileName}.pdf`);
+      setIsExporting(false);
+    },
+    [t]
+  );
+
+  return { exportPDF, exportChartPDF, isExporting };
 };
+
+export default usePDFExport;

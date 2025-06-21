@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Download, FileText, FileSpreadsheet } from 'lucide-react';
 import Button from './Button';
-import { usePDFExport } from '../../hooks/usePDFExport';
-import { useToast } from '../../context/ToastContext';
+import usePDFExport from '../../hooks/usePDFExport';
 
 const ExportButton = ({
   data,
@@ -21,7 +20,12 @@ const ExportButton = ({
   const [showOptions, setShowOptions] = useState(false);
   const dropdownRef = useRef(null);
   const { exportToPDF, exportElementToPDF } = usePDFExport();
-  const toast = useToast();
+
+  // Simple alert function to replace toast
+  const showAlert = (message, type = 'info') => {
+    const prefix = type === 'error' ? 'Error: ' : type === 'success' ? 'Success: ' : '';
+    alert(prefix + message);
+  };
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -42,11 +46,7 @@ const ExportButton = ({
 
   const handleExport = async (format) => {
     if (!data && !elementId) {
-      if (toast?.error) {
-        toast.error('No data available to export');
-      } else {
-        console.error('No data available to export');
-      }
+      showAlert('No data available to export', 'error');
       return;
     }
 
@@ -64,9 +64,7 @@ const ExportButton = ({
             customTemplate: customPDFTemplate
           });
         }
-        if (toast?.success) {
-          toast.success('PDF exported successfully');
-        }
+        showAlert('PDF exported successfully', 'success');
       } else if (format === 'csv') {
         // Add CSV export functionality
         if (!Array.isArray(data)) {
@@ -89,9 +87,7 @@ const ExportButton = ({
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         
-        if (toast?.success) {
-          toast.success('CSV exported successfully');
-        }
+        showAlert('CSV exported successfully', 'success');
       } else if (format === 'json') {
         const exportData = {
           ...data,
@@ -111,15 +107,11 @@ const ExportButton = ({
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         
-        if (toast?.success) {
-          toast.success('JSON exported successfully');
-        }
+        showAlert('JSON exported successfully', 'success');
       }
     } catch (error) {
       console.error('Export failed:', error);
-      if (toast?.error) {
-        toast.error(`Export failed: ${error.message}`);
-      }
+      showAlert(`Export failed: ${error.message}`, 'error');
     } finally {
       setIsExporting(false);
     }

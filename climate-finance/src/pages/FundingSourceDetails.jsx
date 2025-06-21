@@ -11,7 +11,6 @@ import {
   CheckCircle,
   Clock,
   Target,
-  Download,
   Globe,
   Banknote,
   Play,
@@ -22,6 +21,7 @@ import {
 import PageLayout from '../components/layouts/PageLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import ExportButton from '../components/ui/ExportButton';
 import Loading from '../components/ui/Loading';
 import ProgressBar from '../components/ui/ProgressBar';
 import FinancialSummaryCard from '../components/ui/FinancialSummaryCard';
@@ -159,28 +159,15 @@ const FundingSourceDetails = () => {
     return 0;
   })();
 
-  const handleExportReport = () => {
-    const reportData = {
-      source: source.name,
-      type: source.type,
-      totalCommitted: source.total_committed || source.grant_amount || 0,
-      totalDisbursed: source.total_disbursed || source.disbursement || 0,
-      disbursementRate: disbursementRate,
-      activeProjects: source.active_projects || 0,
-      sectors: source.sectors || [],
-      exportDate: new Date().toISOString()
-    };
-    
-    const dataStr = JSON.stringify(reportData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${source.name.replace(/\s+/g, '_')}_report_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  const exportData = {
+    source: source?.name,
+    type: source?.type,
+    totalCommitted: source?.total_committed || source?.grant_amount || 0,
+    totalDisbursed: source?.total_disbursed || source?.disbursement || 0,
+    disbursementRate: disbursementRate,
+    activeProjects: source?.active_projects || 0,
+    sectors: source?.sectors || [],
+    devPartner: source?.dev_partner
   };
 
   return (
@@ -204,15 +191,16 @@ const FundingSourceDetails = () => {
               </span>
               <span className="text-sm text-gray-500 font-medium">#{source.funding_source_id || source.id}</span>
             </div>
-            <Button 
-              variant="primary" 
-              size="sm" 
-              onClick={handleExportReport}
-              leftIcon={<Download size={14} />}
+            <ExportButton
+              data={exportData}
+              filename={`${source.name.replace(/\s+/g, '_')}_report`}
+              title={`${source.name} - Funding Source Report`}
+              subtitle={`Generated on ${new Date().toLocaleDateString()}`}
+              variant="primary"
+              size="sm"
               className="bg-primary-600 hover:bg-primary-700 text-white"
-            >
-              Export Report
-            </Button>
+              exportFormats={['pdf', 'json', 'csv']}
+            />
           </div>
 
           {/* Logo, Title and Description */}

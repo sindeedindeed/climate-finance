@@ -3,7 +3,6 @@ import { AlertTriangle, Send } from 'lucide-react';
 import Modal from './Modal';
 import Button from './Button';
 import FormField from './FormField';
-import { useToast } from '../../context/ToastContext';
 
 const ReportIssueModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
@@ -15,7 +14,6 @@ const ReportIssueModal = ({ isOpen, onClose }) => {
     priority: 'medium'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const toast = useToast();
 
   const issueTypes = [
     { value: '', label: 'Select issue type' },
@@ -46,7 +44,7 @@ const ReportIssueModal = ({ isOpen, onClose }) => {
     e.preventDefault();
     
     if (!formData.issueType || !formData.title || !formData.description) {
-      toast.error('Please fill in all required fields');
+      alert('Please fill in all required fields');
       return;
     }
 
@@ -65,10 +63,10 @@ const ReportIssueModal = ({ isOpen, onClose }) => {
         url: window.location.href
       });
 
-      toast.success('Issue reported successfully. Thank you for your feedback!');
+      alert('Issue reported successfully. Thank you for your feedback!');
       handleClose();
     } catch {
-      toast.error('Failed to submit issue. Please try again.');
+      alert('Failed to submit issue. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
-  Download,
   AlertCircle,
   RefreshCw,
   Calendar,
@@ -17,6 +16,7 @@ import {
 import PageLayout from '../components/layouts/PageLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import ExportButton from '../components/ui/ExportButton';
 import Loading from '../components/ui/Loading';
 import ProgressBar from '../components/ui/ProgressBar';
 import FinancialSummaryCard from '../components/ui/FinancialSummaryCard';
@@ -193,43 +193,6 @@ const ProjectDetails = () => {
     return proj.total_cost_usd || proj.totalFunding || proj.totalBudget || 0;
   };
 
-  const handleExportReport = () => {
-    const reportData = {
-      projectId: project.project_id,
-      title: project.title,
-      status: project.status,
-      description: project.objectives,
-      totalBudget: getTotalBudget(project),
-      disbursed: project.disbursement || 0,
-      progress: project.progress || 0,
-      location: getLocation(project),
-      timeline: getTimeline(project),
-      beneficiaries: project.beneficiaries,
-      exportDate: new Date().toISOString().split('T')[0],
-    };
-
-    const dataStr = JSON.stringify(reportData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${project.project_id}_report.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Active': return 'bg-green-100 text-green-700';
-      case 'Completed': return 'bg-blue-100 text-blue-700';
-      case 'Planning': return 'bg-yellow-100 text-yellow-700';
-      case 'On Hold': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
-    }
-  };
-
   const calculateProgress = () => {
     const committed = project.gef_grant || 0;
     const disbursed = project.disbursement || 0;
@@ -241,6 +204,31 @@ const ProjectDetails = () => {
   };
 
   const progressPercentage = calculateProgress();
+
+  const exportData = {
+    projectId: project?.project_id,
+    title: project?.title,
+    status: project?.status,
+    description: project?.objectives,
+    totalBudget: getTotalBudget(project),
+    disbursed: project?.disbursement || 0,
+    progress: progressPercentage,
+    location: getLocation(project),
+    timeline: getTimeline(project),
+    beneficiaries: project?.beneficiaries,
+    agencies: project?.projectAgencies?.map(a => a.name) || [],
+    fundingSources: project?.projectFundingSources?.map(f => f.name) || []
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Active': return 'bg-green-100 text-green-700';
+      case 'Completed': return 'bg-blue-100 text-blue-700';
+      case 'Planning': return 'bg-yellow-100 text-yellow-700';
+      case 'On Hold': return 'bg-red-100 text-red-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
 
   return (
     <PageLayout bgColor="bg-gray-50">
@@ -268,15 +256,16 @@ const ProjectDetails = () => {
               </span>
               <span className="text-sm text-gray-500 font-medium">#{project.project_id}</span>
             </div>
-            <Button
+            <ExportButton
+              data={exportData}
+              filename={`${project.project_id}_report`}
+              title={`${project.title} - Project Report`}
+              subtitle={`Generated on ${new Date().toLocaleDateString()}`}
               variant="primary"
               size="sm"
-              onClick={handleExportReport}
-              leftIcon={<Download size={14} />}
               className="bg-primary-600 hover:bg-primary-700 text-white"
-            >
-              Export Report
-            </Button>
+              exportFormats={['pdf', 'json', 'csv']}
+            />
           </div>
 
           {/* Title and Description */}

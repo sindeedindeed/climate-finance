@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Download, Building, Globe, ExternalLink, DollarSign, TrendingUp, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Building, Globe, ExternalLink, DollarSign, TrendingUp, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/layouts/PageLayout';
 import PageHeader from '../components/layouts/PageHeader';
@@ -11,6 +11,7 @@ import BarChartComponent from '../components/charts/BarChartComponent';
 import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
 import SearchFilter from '../components/ui/SearchFilter';
+import ExportButton from '../components/ui/ExportButton';
 import { formatCurrency } from '../utils/formatters';
 import { CHART_COLORS } from '../utils/constants';
 import { generateOrganizationLogo } from '../utils/svgPlaceholder';
@@ -19,7 +20,11 @@ import { projectApi, fundingSourceApi } from '../services/api';
 const FundingSources = () => {
   // State management
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('All');
+  const [activeFilters, setActiveFilters] = useState({
+    type: 'All',
+    region: 'All',
+    status: 'All'
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -32,94 +37,10 @@ const FundingSources = () => {
   const [fundingTrend, setFundingTrend] = useState([]);
   const [sectorAllocation, setSectorAllocation] = useState([]);
 
-  // Calculate fundingTypes AFTER fundingSourcesList is populated
-  const fundingTypes = React.useMemo(() => {
-    if (!Array.isArray(fundingSourcesList) || fundingSourcesList.length === 0) {
-      return ['All'];
-    }
-    return ['All', ...new Set(fundingSourcesList.map(source => source.type).filter(Boolean))];
-  }, [fundingSourcesList]);
-
   // Fetch all funding source data
   useEffect(() => {
     fetchAllFundingData();
   }, []);
-
-  // Calculate stats from actual data (fallback function)
-  const getStatsFromData = (sources) => {
-    if (!Array.isArray(sources) || sources.length === 0) {
-      return [];
-    }
-
-    const totalCommitted = sources.reduce((sum, source) => 
-      sum + (parseFloat(source.total_committed) || parseFloat(source.grant_amount) || 0), 0);
-    const totalDisbursed = sources.reduce((sum, source) => 
-      sum + (parseFloat(source.total_disbursed) || parseFloat(source.disbursement) || 0), 0);
-    const activeSources = sources.filter(source => 
-      source.status === 'Active' || !source.status).length;
-
-    return [
-      { 
-        title: "Total Climate Finance", 
-        value: totalCommitted, 
-        change: "Based on current data" 
-      },
-      { 
-        title: "Active Funding Sources", 
-        value: activeSources, 
-        change: `Across ${new Set(sources.map(s => s.type).filter(Boolean)).size} categories` 
-      },
-      { 
-        title: "Committed Funds", 
-        value: totalCommitted, 
-        change: `${sources.length} funding sources` 
-      },
-      { 
-        title: "Disbursed Funds", 
-        value: totalDisbursed, 
-        change: totalCommitted > 0 ? `${Math.round((totalDisbursed / totalCommitted) * 100)}% of committed funds` : "No disbursements" 
-      }
-    ];
-  };
-
-  // Calculate chart data from actual sources (fallback function)
-  const getChartDataFromSources = (sources) => {
-    if (!Array.isArray(sources) || sources.length === 0) {
-      return {
-        fundingByType: [],
-        sectorAllocation: []
-      };
-    }
-
-    // Group by type
-    const typeGroups = sources.reduce((acc, source) => {
-      const type = source.type || 'Unknown';
-      acc[type] = (acc[type] || 0) + (parseFloat(source.total_committed) || parseFloat(source.grant_amount) || 0);
-      return acc;
-    }, {});
-
-    const fundingByType = Object.entries(typeGroups).map(([name, value]) => ({
-      name,
-      value
-    }));
-
-    // Group by sector (if available)
-    const sectorGroups = sources.reduce((acc, source) => {
-      if (source.sectors && Array.isArray(source.sectors)) {
-        source.sectors.forEach(sector => {
-          acc[sector] = (acc[sector] || 0) + (parseFloat(source.total_committed) || parseFloat(source.grant_amount) || 0);
-        });
-      }
-      return acc;
-    }, {});
-
-    const sectorAllocation = Object.entries(sectorGroups).map(([name, value]) => ({
-      name,
-      value
-    }));
-
-    return { fundingByType, sectorAllocation };
-  };
 
   const fetchAllFundingData = async () => {
     try {
@@ -135,7 +56,7 @@ const FundingSources = () => {
         sectorAllocationResponse
       ] = await Promise.all([
         fundingSourceApi.getAll(),
-        projectApi.getFundingSourceOverview(), // ✅ Use the dedicated API endpoint
+        projectApi.getFundingSourceOverview(),
         projectApi.getFundingSourceByType(),
         projectApi.getFundingSourceTrend().catch(() => ({ status: false, data: [] })),
         projectApi.getFundingSourceSectorAllocation()
@@ -193,28 +114,23 @@ const FundingSources = () => {
           }
         ]);
       } else {
-        // Fallback to calculated stats from sources
-        const calculatedStats = getStatsFromData(sources);
-        setOverviewStats(calculatedStats);
+        setOverviewStats([]);
       }
 
       // Set chart data from API or calculate from sources
       if (fundingByTypeResponse?.status && fundingByTypeResponse.data) {
         setFundingByType(fundingByTypeResponse.data);
       } else {
-        const chartData = getChartDataFromSources(sources);
-        setFundingByType(chartData.fundingByType);
+        setFundingByType([]);
       }
 
       if (sectorAllocationResponse?.status && sectorAllocationResponse.data) {
-        // ✅ Fix: Map API data structure - backend returns {sector, gef_grant}
         setSectorAllocation(sectorAllocationResponse.data.map(item => ({
           name: item.sector,
           value: item.gef_grant
         })));
       } else {
-        const chartData = getChartDataFromSources(sources);
-        setSectorAllocation(chartData.sectorAllocation);
+        setSectorAllocation([]);
       }
 
       if (fundingTrendResponse?.status && Array.isArray(fundingTrendResponse.data) && fundingTrendResponse.data.length > 0) {
@@ -245,18 +161,21 @@ const FundingSources = () => {
   };
 
   // Better filtering with null checks
-  const filteredSources = React.useMemo(() => {
+  const filteredSources = useMemo(() => {
     if (!Array.isArray(fundingSourcesList)) return [];
     
     return fundingSourcesList.filter(source => {
       const matchesSearch = (source.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-                           (source.dev_partner?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+                           (source.dev_partner?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                           (source.funding_source_id?.toLowerCase() || '').includes(searchTerm.toLowerCase());
       
-      const matchesType = filterType === 'All' || source.type === filterType;
+      const matchesType = activeFilters.type === 'All' || source.type === activeFilters.type;
+      const matchesRegion = activeFilters.region === 'All' || source.region === activeFilters.region;
+      const matchesStatus = activeFilters.status === 'All' || source.status === activeFilters.status;
       
-      return matchesSearch && matchesType;
+      return matchesSearch && matchesType && matchesRegion && matchesStatus;
     });
-  }, [fundingSourcesList, searchTerm, filterType]);
+  }, [fundingSourcesList, searchTerm, activeFilters]);
 
   if (isLoading) {
     return (
@@ -315,40 +234,23 @@ const FundingSources = () => {
         title="Funding Sources"
         subtitle="Explore climate finance funding sources and their contributions"
         actions={
-          <Button
-            leftIcon={<Download size={16} />}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-            onClick={() => {
-              if (fundingSourcesList.length === 0) {
-                console.log('No data available to export');
-                return;
+          <ExportButton
+            data={{
+              fundingSources: filteredSources,
+              overview: overviewStats,
+              chartData: {
+                fundingByType,
+                fundingTrend,
+                sectorAllocation
               }
-              
-              const exportData = {
-                fundingSources: filteredSources,
-                overview: overviewStats,
-                chartData: {
-                  fundingByType,
-                  fundingTrend,
-                  sectorAllocation
-                },
-                exportDate: new Date().toISOString()
-              };
-              
-              const dataStr = JSON.stringify(exportData, null, 2);
-              const dataBlob = new Blob([dataStr], { type: 'application/json' });
-              const url = URL.createObjectURL(dataBlob);
-              const link = document.createElement('a');
-              link.href = url;
-              link.download = `funding_sources_${new Date().toISOString().split('T')[0]}.json`;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              URL.revokeObjectURL(url);
             }}
-          >
-            Export Data
-          </Button>
+            filename="funding_sources"
+            title="Climate Finance Funding Sources"
+            subtitle="Comprehensive data on funding sources and contributions"
+            variant="export"
+            exportFormats={['pdf', 'json']}
+            className="w-full sm:w-auto"
+          />
         }
       />
 
@@ -416,7 +318,7 @@ const FundingSources = () => {
                 title="Funding Trend"
                 data={fundingTrend}
                 xAxisKey="year"
-                yAxisKey="gef_grant" // ✅ Fixed: should match backend data structure
+                yAxisKey="gef_grant"
                 formatYAxis={true}
                 lineName="Funding Amount"
               />
@@ -460,31 +362,27 @@ const FundingSources = () => {
       {/* Funding Sources List */}
       <div className="animate-fade-in-up" style={{ animationDelay: '700ms' }}>
         <Card hover className="mb-6" padding={true}>
-          <div className="border-b border-gray-100 pb-8 mb-8">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 md:mb-0">Climate Finance Sources</h3>
-              
-              <SearchFilter
-                searchValue={searchTerm}
-                onSearchChange={setSearchTerm}
-                searchPlaceholder="Search funding sources..."
-                filters={[
-                  {
-                    value: filterType,
-                    onChange: setFilterType,
-                    options: fundingTypes.map(type => ({
-                      value: type,
-                      label: type === 'All' ? 'All Types' : type
-                    }))
-                  }
-                ]}
-                className="mt-4 md:mt-0"
-              />
-            </div>
-
-            <div className="text-sm text-gray-500 mt-2">
-              Showing {filteredSources.length} of {fundingSourcesList.length} funding sources
-            </div>
+          <div className="border-b border-gray-100 pb-6 mb-8">
+            <h3 className="text-lg font-semibold text-gray-800 mb-6">Climate Finance Sources</h3>
+            
+            <SearchFilter
+              data={fundingSourcesList}
+              searchValue={searchTerm}
+              onSearchChange={setSearchTerm}
+              searchPlaceholder="Search funding sources by name, partner, ID..."
+              entityType="fundingSources"
+              activeFilters={activeFilters}
+              onFiltersChange={setActiveFilters}
+              showAdvancedSearch={true}
+              onClearAll={() => {
+                setSearchTerm('');
+                setActiveFilters({
+                  type: 'All',
+                  region: 'All',
+                  status: 'All'
+                });
+              }}
+            />
           </div>
 
           {/* Sources Grid */}
@@ -606,7 +504,11 @@ const FundingSources = () => {
               <Button
                 onClick={() => {
                   setSearchTerm('');
-                  setFilterType('All');
+                  setActiveFilters({
+                    type: 'All',
+                    region: 'All',
+                    status: 'All'
+                  });
                 }}
                 variant="outline"
               >
