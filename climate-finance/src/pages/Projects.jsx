@@ -79,11 +79,10 @@ const Projects = () => {
         const data = overviewResponse.data;
         const currentYear = data.current_year || {};
         const calculateChange = (total, current) => {
-          if (!total || !current || total === current) return "No previous data";
           const previous = total - current;
-          if (previous <= 0) return "No comparison available";
-          const percentage = Math.round(((current / previous) - 1) * 100);
-          return percentage >= 0 ? `+${percentage}% from last year` : `${percentage}% from last year`;
+          if (!total || !current || previous <= 0 || current === 0) return "No comparison available";
+          const percentage = ((current / previous) - 1) * 100;
+          return percentage >= 0 ? `+${percentage.toFixed(2)}% from last year` : `${percentage.toFixed(2)}% from last year`;
         };
 
         setOverviewStats([

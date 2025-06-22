@@ -21,6 +21,7 @@ import { CHART_COLORS } from '../utils/constants';
 import { formatCurrency } from '../utils/formatters';
 import { projectApi } from '../services/api';
 import ExportButton from '../components/ui/ExportButton';
+import PageHeader from '../components/layouts/PageHeader';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -63,36 +64,44 @@ const LandingPage = () => {
         const data = overviewResponse.data;
         const currentYear = data.current_year || {};
         
-        // Helper function to calculate percentage change
-        const calculateChange = (total, current) => {
-          if (!total || !current || total === current) return "No previous data";
-          const previous = total - current;
-          if (previous <= 0) return "No comparison available";
-          const percentage = Math.round(((current / previous) - 1) * 100);
-          return percentage >= 0 ? `+${percentage}% from last year` : `${percentage}% from last year`;
+        // Helper function to calculate percentage change (standard formula)
+        const calculateChange = (current, previous) => {
+          if (previous === undefined || previous === null || previous === 0) return "No comparison available";
+          if (current === undefined || current === null) return "No comparison available";
+          const percentage = ((current - previous) / previous) * 100;
+          return percentage >= 0
+            ? `+${percentage.toFixed(2)}% from last year`
+            : `${percentage.toFixed(2)}% from last year`;
         };
         
         setOverviewStats([
           {
             title: "Total Climate Finance",
             value: formatCurrency(data.total_climate_finance || 0),
-            change: calculateChange(data.total_climate_finance, currentYear.total_climate_finance)
+            change: calculateChange(currentYear.total_climate_finance, data.total_climate_finance)
           },
           {
             title: "Active Projects",
             value: data.active_projects || 0,
-            change: calculateChange(data.active_projects, currentYear.active_projects)
+            change: (() => {
+              const curr = data.active_projects;
+              const prev = currentYear.active_projects;
+              if (prev === undefined || prev === null || curr === undefined || curr === null) return "No comparison available";
+              const diff = curr - prev;
+              if (diff === 0) return "No change from last year";
+              return diff > 0 ? `+${diff} from last year` : `${diff} from last year`;
+            })()
           },
           {
             title: "Total Investment",
             value: formatCurrency(data.total_investment || 0),
-            change: calculateChange(data.total_investment, currentYear.total_investment)
+            change: calculateChange(currentYear.total_investment, data.total_investment)
           },
           {
             title: "Completed Projects",
             value: data.completed_projects || 0,
             change: currentYear.completed_projects ? 
-              calculateChange(data.completed_projects, currentYear.completed_projects) : 
+              calculateChange(currentYear.completed_projects, data.completed_projects) : 
               "Based on all-time data"
           }
         ]);
@@ -193,7 +202,7 @@ const LandingPage = () => {
 
   if (loading) {
     return (
-      <PageLayout bgColor="bg-gray-50" maxWidth="max-w-6xl mx-auto">
+      <PageLayout bgColor="bg-gray-50">
         <div className="flex justify-center items-center min-h-64">
           <Loading size="lg" text="Loading dashboard..." />
         </div>
@@ -202,40 +211,33 @@ const LandingPage = () => {
   }
 
   return (
-    <PageLayout bgColor="bg-gray-50" maxWidth="max-w-6xl mx-auto">
-      {/* Header Section */}
-      <div className="mb-8">
-        <div className="mb-6">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            Climate Finance Dashboard
-          </h1>
-          <p className="text-gray-600 text-lg max-w-2xl">
-            Track, analyze and visualize climate finance flows in Bangladesh with 
-            real-time insights and comprehensive reporting.
-          </p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Button
-            variant="ghost"
-            leftIcon={<RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />}
-            onClick={handleRefresh}
-            disabled={refreshing}
-            loading={refreshing}
-          >
-            {refreshing ? 'Refreshing...' : 'Refresh Data'}
-          </Button>          
-          <ExportButton
-            data={getExportData()}
-            filename="climate_finance_dashboard"
-            title="Bangladesh Climate Finance Dashboard"
-            subtitle="Overview of climate finance data and project statistics"
-            variant="export"
-            exportFormats={['pdf', 'json']}
-            className="w-full sm:w-auto"
-          />
-        </div>
-      </div>
+    <PageLayout bgColor="bg-gray-50">
+      <PageHeader
+        title="Climate Finance Dashboard"
+        subtitle="Track, analyze and visualize climate finance flows in Bangladesh with real-time insights and comprehensive reporting."
+        actions={
+          <>
+            <Button
+              variant="ghost"
+              leftIcon={<RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />}
+              onClick={handleRefresh}
+              disabled={refreshing}
+              loading={refreshing}
+            >
+              {refreshing ? 'Refreshing...' : 'Refresh Data'}
+            </Button>
+            <ExportButton
+              data={getExportData()}
+              filename="climate_finance_dashboard"
+              title="Bangladesh Climate Finance Dashboard"
+              subtitle="Overview of climate finance data and project statistics"
+              variant="export"
+              exportFormats={['pdf', 'json']}
+              className="w-full sm:w-auto"
+            />
+          </>
+        }
+      />
 
       {error && (
         <Card padding={true} className="mb-6">

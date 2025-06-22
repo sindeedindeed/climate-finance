@@ -77,12 +77,12 @@ const FundingSources = () => {
         const currentYear = data.current_year || {};
         
         // Helper function to calculate percentage change
-        const calculateChange = (total, current) => {
+        const calculateChange = (total, current, usePercentage = false) => {
           if (!total || !current || total === current) return "No previous data";
           const previous = total - current;
           if (previous <= 0) return "No comparison available";
-          const percentage = Math.round(((current / previous) - 1) * 100);
-          return percentage >= 0 ? `+${percentage}% from last year` : `${percentage}% from last year`;
+          const percentage = ((current / previous) - 1) * 100;
+          return usePercentage ? `${percentage.toFixed(2)}% from last year` : (percentage >= 0 ? `+${percentage.toFixed(2)}% from last year` : `${percentage.toFixed(2)}% from last year`);
         };
         
         setOverviewStats([
@@ -90,27 +90,27 @@ const FundingSources = () => {
             title: "Total Climate Finance", 
             value: formatCurrency(data.total_climate_finance || 0), 
             change: currentYear.total_finance ? 
-              calculateChange(data.total_climate_finance, currentYear.total_finance) : 
+              calculateChange(data.total_climate_finance, currentYear.total_finance, true) : 
               "Based on all-time data"
           },
           { 
             title: "Active Funding Sources", 
             value: data.active_funding_source || 0, 
             change: currentYear.active_funding_source ? 
-              calculateChange(data.active_funding_source, currentYear.active_funding_source) :
+              calculateChange(data.active_funding_source, currentYear.active_funding_source, true) :
               `Across ${new Set(sources.map(s => s.type).filter(Boolean)).size} categories`
           },
           { 
             title: "Committed Funds", 
             value: formatCurrency(data.committed_funds || 0), 
             change: currentYear.committed_funds ? 
-              calculateChange(data.committed_funds, currentYear.committed_funds) :
+              calculateChange(data.committed_funds, currentYear.committed_funds, true) :
               `${sources.length} funding sources`
           },
           { 
             title: "Disbursed Funds", 
             value: formatCurrency(data.disbursed_funds || 0), 
-            change: data.committed_funds > 0 ? `${Math.round((data.disbursed_funds / data.committed_funds) * 100)}% of committed` : "No disbursements" 
+            change: data.committed_funds > 0 ? `${((data.disbursed_funds / data.committed_funds) * 100).toFixed(2)}% of committed` : "No disbursements" 
           }
         ]);
       } else {
@@ -267,7 +267,7 @@ const FundingSources = () => {
               >
                 <StatCard 
                   title={stat.title}
-                  value={stat.title === 'Active Funding Sources' ? stat.value : formatCurrency(stat.value)}
+                  value={stat.value}
                   change={stat.change}
                   color={index % 2 === 0 ? 'primary' : 'success'}
                   icon={icons[index]}
