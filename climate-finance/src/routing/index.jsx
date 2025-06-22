@@ -22,6 +22,7 @@ import UserFormPage from '../pages/UserFormPage';
 import AgencyFormPage from '../pages/AgencyFormPage';
 import LocationFormPage from '../pages/LocationFormPage';
 import FocalAreaFormPage from '../pages/FocalAreaFormPage';
+import AboutPage from '../pages/AboutPage';
 
 // Protected route wrapper that uses AuthContext
 function ProtectedRoute({ children, requireAuth = true }) {
@@ -36,7 +37,7 @@ function ProtectedRoute({ children, requireAuth = true }) {
 
 // Admin route wrapper
 function AdminRoute({ children }) {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   
   if (!isAuthenticated) {
     return <Navigate to="/admin/login" replace />;
@@ -71,6 +72,7 @@ const Routing = () => {
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<LandingPage />} />
+      <Route path="/about" element={<AboutPage />} />
       
       {/* Projects routes */}
       <Route path="/projects" element={<Projects />} />

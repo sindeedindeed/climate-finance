@@ -53,23 +53,6 @@ const filterData = (data, activeFilters) => {
       
       const itemValue = getNestedValue(item, key);
       
-      // Handle nested array filters for agencies, funding sources, locations, and focal areas
-      if (key === 'agency' && item.projectAgencies) {
-        return item.projectAgencies.some(agency => agency.name === value);
-      }
-      
-      if (key === 'funding_source' && item.projectFundingSources) {
-        return item.projectFundingSources.some(source => source.name === value);
-      }
-      
-      if (key === 'location' && item.projectLocations) {
-        return item.projectLocations.some(location => location.name === value);
-      }
-      
-      if (key === 'focal_area' && item.projectFocalAreas) {
-        return item.projectFocalAreas.some(area => area.name === value);
-      }
-      
       // If the field doesn't exist in the data, skip this filter
       if (itemValue === undefined || itemValue === null) {
         return true;

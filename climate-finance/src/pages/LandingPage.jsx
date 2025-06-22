@@ -13,6 +13,7 @@ import Card from '../components/ui/Card';
 import StatCard from '../components/ui/StatCard';
 import BarChartComponent from '../components/charts/BarChartComponent';
 import PieChartComponent from '../components/charts/PieChartComponent';
+import BangladeshMapComponent from '../components/charts/BangladeshMapComponent';
 import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
 import { useToast } from '../components/ui/Toast';
@@ -74,7 +75,7 @@ const LandingPage = () => {
         setOverviewStats([
           {
             title: "Total Climate Finance",
-            value: data.total_climate_finance || 0,
+            value: formatCurrency(data.total_climate_finance || 0),
             change: calculateChange(data.total_climate_finance, currentYear.total_climate_finance)
           },
           {
@@ -84,8 +85,8 @@ const LandingPage = () => {
           },
           {
             title: "Total Investment",
-            value: data.total_climate_finance || 0, // ✅ Fixed: Use total_climate_finance instead of total_investment
-            change: calculateChange(data.total_climate_finance, currentYear.total_climate_finance)
+            value: formatCurrency(data.total_investment || 0),
+            change: calculateChange(data.total_investment, currentYear.total_investment)
           },
           {
             title: "Completed Projects",
@@ -192,7 +193,7 @@ const LandingPage = () => {
 
   if (loading) {
     return (
-      <PageLayout bgColor="bg-gray-50">
+      <PageLayout bgColor="bg-gray-50" maxWidth="max-w-6xl mx-auto">
         <div className="flex justify-center items-center min-h-64">
           <Loading size="lg" text="Loading dashboard..." />
         </div>
@@ -201,7 +202,7 @@ const LandingPage = () => {
   }
 
   return (
-    <PageLayout bgColor="bg-gray-50">
+    <PageLayout bgColor="bg-gray-50" maxWidth="max-w-6xl mx-auto">
       {/* Header Section */}
       <div className="mb-8">
         <div className="mb-6">
@@ -261,7 +262,7 @@ const LandingPage = () => {
             >
               <StatCard
                 title={stat.title}
-                value={stat.title.includes('Finance') || stat.title.includes('Investment') ? formatCurrency(stat.value) : stat.value}
+                value={stat.value}
                 change={stat.change}
                 color={stat.color}
                 icon={stat.icon}
@@ -330,6 +331,15 @@ const LandingPage = () => {
             </div>
           )}
         </Card>
+      </div>
+
+      {/* Bangladesh Map */}
+      <div className="animate-fade-in-up" style={{ animationDelay: '750ms' }}>
+        <BangladeshMapComponent
+          data={regionalData}
+          title="Bangladesh Regional Climate Finance Distribution"
+          height={400}
+        />
       </div>
 
       {/* Quick Actions */}

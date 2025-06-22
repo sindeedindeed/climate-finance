@@ -39,10 +39,6 @@ const Projects = () => {
     status: 'All',
     type: 'All',
     division: 'All',
-    agency: 'All',
-    funding_source: 'All',
-    location: 'All',
-    focal_area: 'All',
     approval_fy: 'All'
   });
 
@@ -103,7 +99,7 @@ const Projects = () => {
           },
           {
             title: "Total Investment",
-            value: data.total_investment || 0,
+            value: formatCurrency(data.total_investment || 0),
             change: calculateChange(data.total_investment, currentYear.total_investment)
           },
           {
@@ -209,50 +205,53 @@ const Projects = () => {
     const types = Array.from(new Set(projectsList.map(p => p.type).filter(Boolean))).sort();
     const divisions = Array.from(new Set(projectsList.map(p => p.division).filter(Boolean))).sort();
     const approvalYears = Array.from(new Set(projectsList.map(p => p.approval_fy).filter(Boolean))).sort();
-    
-    // Extract agencies from projectAgencies array
-    const agencies = new Set();
-    projectsList.forEach(p => {
-      if (p.projectAgencies && Array.isArray(p.projectAgencies)) {
-        p.projectAgencies.forEach(agency => {
-          if (agency.name) agencies.add(agency.name);
-        });
-      }
-    });
-    const uniqueAgencies = Array.from(agencies).sort();
-    
-    // Extract funding sources from projectFundingSources array
-    const fundingSources = new Set();
-    projectsList.forEach(p => {
-      if (p.projectFundingSources && Array.isArray(p.projectFundingSources)) {
-        p.projectFundingSources.forEach(source => {
-          if (source.name) fundingSources.add(source.name);
-        });
-      }
-    });
-    const uniqueFundingSources = Array.from(fundingSources).sort();
-    
-    // Extract locations from projectLocations array
-    const locations = new Set();
-    projectsList.forEach(p => {
-      if (p.projectLocations && Array.isArray(p.projectLocations)) {
-        p.projectLocations.forEach(location => {
-          if (location.name) locations.add(location.name);
-        });
-      }
-    });
-    const uniqueLocations = Array.from(locations).sort();
-    
-    // Extract focal areas from projectFocalAreas array
-    const focalAreas = new Set();
-    projectsList.forEach(p => {
-      if (p.projectFocalAreas && Array.isArray(p.projectFocalAreas)) {
-        p.projectFocalAreas.forEach(area => {
-          if (area.name) focalAreas.add(area.name);
-        });
-      }
-    });
-    const uniqueFocalAreas = Array.from(focalAreas).sort();
+
+    const filters = [
+      {
+        key: 'status',
+        label: 'Status',
+        options: [
+          { value: 'All', label: 'All Statuses' },
+          { value: 'Active', label: 'Active' },
+          { value: 'Completed', label: 'Completed' },
+          { value: 'Planning', label: 'Planning' },
+          { value: 'On Hold', label: 'On Hold' },
+          { value: 'Cancelled', label: 'Cancelled' }
+        ]
+      },
+      ...(sectors.length > 0 ? [{
+        key: 'sector',
+        label: 'Sector',
+        options: [
+          { value: 'All', label: 'All Sectors' },
+          ...sectors.map(sector => ({ value: sector, label: sector }))
+        ]
+      }] : []),
+      ...(types.length > 0 ? [{
+        key: 'type',
+        label: 'Project Type',
+        options: [
+          { value: 'All', label: 'All Types' },
+          ...types.map(type => ({ value: type, label: type }))
+        ]
+      }] : []),
+      ...(divisions.length > 0 ? [{
+        key: 'division',
+        label: 'Division',
+        options: [
+          { value: 'All', label: 'All Divisions' },
+          ...divisions.map(division => ({ value: division, label: division }))
+        ]
+      }] : []),
+      ...(approvalYears.length > 0 ? [{
+        key: 'approval_fy',
+        label: 'Approval Year',
+        options: [
+          { value: 'All', label: 'All Years' },
+          ...approvalYears.map(year => ({ value: year, label: year }))
+        ]
+      }] : [])
+    ];
 
     return {
       searchFields: [
@@ -261,86 +260,9 @@ const Projects = () => {
         { key: 'objectives', label: 'Objectives', weight: 2 },
         { key: 'beneficiaries', label: 'Beneficiaries', weight: 1 }
       ],
-      filters: [
-        {
-          key: 'status',
-          label: 'Status',
-          options: [
-            { value: 'All', label: 'All Statuses' },
-            { value: 'Active', label: 'Active' },
-            { value: 'Completed', label: 'Completed' },
-            { value: 'Planning', label: 'Planning' },
-            { value: 'On Hold', label: 'On Hold' },
-            { value: 'Cancelled', label: 'Cancelled' }
-          ]
-        },
-        ...(sectors.length > 0 ? [{
-          key: 'sector',
-          label: 'Sector',
-          options: [
-            { value: 'All', label: 'All Sectors' },
-            ...sectors.map(sector => ({ value: sector, label: sector }))
-          ]
-        }] : []),
-        ...(types.length > 0 ? [{
-          key: 'type',
-          label: 'Project Type',
-          options: [
-            { value: 'All', label: 'All Types' },
-            ...types.map(type => ({ value: type, label: type }))
-          ]
-        }] : []),
-        ...(divisions.length > 0 ? [{
-          key: 'division',
-          label: 'Division',
-          options: [
-            { value: 'All', label: 'All Divisions' },
-            ...divisions.map(division => ({ value: division, label: division }))
-          ]
-        }] : []),
-        ...(uniqueAgencies.length > 0 ? [{
-          key: 'agency',
-          label: 'Agency',
-          options: [
-            { value: 'All', label: 'All Agencies' },
-            ...uniqueAgencies.map(agency => ({ value: agency, label: agency }))
-          ]
-        }] : []),
-        ...(uniqueFundingSources.length > 0 ? [{
-          key: 'funding_source',
-          label: 'Funding Source',
-          options: [
-            { value: 'All', label: 'All Funding Sources' },
-            ...uniqueFundingSources.map(source => ({ value: source, label: source }))
-          ]
-        }] : []),
-        ...(uniqueLocations.length > 0 ? [{
-          key: 'location',
-          label: 'Location',
-          options: [
-            { value: 'All', label: 'All Locations' },
-            ...uniqueLocations.map(location => ({ value: location, label: location }))
-          ]
-        }] : []),
-        ...(uniqueFocalAreas.length > 0 ? [{
-          key: 'focal_area',
-          label: 'Focal Area',
-          options: [
-            { value: 'All', label: 'All Focal Areas' },
-            ...uniqueFocalAreas.map(area => ({ value: area, label: area }))
-          ]
-        }] : []),
-        ...(approvalYears.length > 0 ? [{
-          key: 'approval_fy',
-          label: 'Approval Year',
-          options: [
-            { value: 'All', label: 'All Years' },
-            ...approvalYears.map(year => ({ value: year, label: year }))
-          ]
-        }] : [])
-      ]
+      filters: filters
     };
-  }, [projectsList.length]);
+  }, [projectsList]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -562,10 +484,6 @@ const Projects = () => {
                 status: 'All',
                 type: 'All',
                 division: 'All',
-                agency: 'All',
-                funding_source: 'All',
-                location: 'All',
-                focal_area: 'All',
                 approval_fy: 'All'
               });
             }}
@@ -700,10 +618,6 @@ const Projects = () => {
                   status: 'All',
                   type: 'All',
                   division: 'All',
-                  agency: 'All',
-                  funding_source: 'All',
-                  location: 'All',
-                  focal_area: 'All',
                   approval_fy: 'All'
                 });
               }}

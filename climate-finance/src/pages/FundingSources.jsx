@@ -88,7 +88,7 @@ const FundingSources = () => {
         setOverviewStats([
           { 
             title: "Total Climate Finance", 
-            value: data.total_climate_finance || 0, 
+            value: formatCurrency(data.total_climate_finance || 0), 
             change: currentYear.total_finance ? 
               calculateChange(data.total_climate_finance, currentYear.total_finance) : 
               "Based on all-time data"
@@ -102,14 +102,14 @@ const FundingSources = () => {
           },
           { 
             title: "Committed Funds", 
-            value: data.committed_funds || 0, 
+            value: formatCurrency(data.committed_funds || 0), 
             change: currentYear.committed_funds ? 
               calculateChange(data.committed_funds, currentYear.committed_funds) :
               `${sources.length} funding sources`
           },
           { 
             title: "Disbursed Funds", 
-            value: data.disbursed_funds || 0, 
+            value: formatCurrency(data.disbursed_funds || 0), 
             change: data.committed_funds > 0 ? `${Math.round((data.disbursed_funds / data.committed_funds) * 100)}% of committed` : "No disbursements" 
           }
         ]);

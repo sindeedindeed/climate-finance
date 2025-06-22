@@ -30,8 +30,7 @@ const Navbar = () => {
       label: 'Admin', 
       isActive: path.startsWith('/admin')
     },
-    { to: null, label: 'Reports', isDisabled: true },
-    { to: null, label: 'About', isDisabled: true }
+    { to: '/about', label: 'About', isActive: path === '/about' }
   ];
 
   return (
