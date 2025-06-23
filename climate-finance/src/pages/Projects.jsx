@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { projectApi } from '../services/api';
+import { projectApi, agencyApi, fundingSourceApi } from '../services/api';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
@@ -11,23 +11,16 @@ import PageLayout from '../components/layouts/PageLayout';
 import PageHeader from '../components/layouts/PageHeader';
 import SearchFilter from '../components/ui/SearchFilter';
 import Loading from '../components/ui/Loading';
+import ExportButton from '../components/ui/ExportButton';
 import {
   FolderOpen,
   Activity,
   DollarSign,
   CheckCircle,
-  Play,
-  Clock,
-  Pause,
-  Download,
-  Eye,
-  Calendar,
-  MapPin,
-  Users,
-  Building,
   AlertCircle,
   RefreshCw
 } from 'lucide-react';
+import MultiSelect from '../components/ui/MultiSelect';
 
 const Projects = () => {
   const navigate = useNavigate();
@@ -39,21 +32,46 @@ const Projects = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
-  
+
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSector, setSelectedSector] = useState('All');
-  const [selectedStatus, setSelectedStatus] = useState('All');
+  const [activeFilters, setActiveFilters] = useState({
+    sector: 'All',
+    status: 'All',
+    type: 'All',
+    division: 'All',
+    approval_fy: 'All',
+    agency_id: 'All',
+    funding_source_id: 'All'
+  });
+
+  // Add filtered projects state
+  const [filteredProjects, setFilteredProjects] = useState([]);
+
+  const [agencies, setAgencies] = useState([]);
+  const [fundingSources, setFundingSources] = useState([]);
 
   useEffect(() => {
     fetchAllProjectData();
   }, []);
 
-  const fetchAllProjectData = async () => {
+  useEffect(() => {
+    // Fetch agencies and funding sources
+    agencyApi.getAll().then(res => {
+      if (res?.status && Array.isArray(res.data)) setAgencies(res.data);
+      else setAgencies([]);
+    });
+    fundingSourceApi.getAll().then(res => {
+      if (res?.status && Array.isArray(res.data)) setFundingSources(res.data);
+      else setFundingSources([]);
+    });
+  }, []);
+
+  const fetchAllProjectData = async (query = '') => {
     try {
       setIsLoading(true);
       setError(null);
-
+      console.log('[Projects] Fetching projects with query:', query);
       const [
         projectsResponse,
         overviewResponse,
@@ -61,54 +79,57 @@ const Projects = () => {
         typeResponse,
         trendResponse
       ] = await Promise.all([
-        projectApi.getAll(),
-        projectApi.getProjectsOverviewStats(), // ✅ Fixed API call
+        projectApi.getAll(query),
+        projectApi.getProjectsOverviewStats(),
         projectApi.getByStatus(),
         projectApi.getByType(),
         projectApi.getTrend()
       ]);
-
-      // Process projects data
+      console.log('[Projects] API responses:', {
+        projectsResponse,
+        overviewResponse,
+        statusResponse,
+        typeResponse,
+        trendResponse
+      });
       if (projectsResponse?.status && Array.isArray(projectsResponse.data)) {
         setProjectsList(projectsResponse.data);
+        setFilteredProjects(projectsResponse.data);
       } else {
         setProjectsList([]);
-        console.warn('No projects data received from API');
+        setFilteredProjects([]);
+        console.warn('No projects data received from API', projectsResponse);
       }
 
-      // Process overview stats
       if (overviewResponse?.status && overviewResponse.data) {
         const data = overviewResponse.data;
         const currentYear = data.current_year || {};
-        
-        // Helper function to calculate percentage change
         const calculateChange = (total, current) => {
-          if (!total || !current || total === current) return "No previous data";
           const previous = total - current;
-          if (previous <= 0) return "No comparison available";
-          const percentage = Math.round(((current / previous) - 1) * 100);
-          return percentage >= 0 ? `+${percentage}% from last year` : `${percentage}% from last year`;
+          if (!total || !current || previous <= 0 || current === 0) return "No comparison available";
+          const percentage = ((current / previous) - 1) * 100;
+          return percentage >= 0 ? `+${percentage.toFixed(2)}% from last year` : `${percentage.toFixed(2)}% from last year`;
         };
-        
+
         setOverviewStats([
-          { 
-            title: "Total Projects", 
-            value: data.total_projects || 0, 
+          {
+            title: "Total Projects",
+            value: data.total_projects || 0,
             change: calculateChange(data.total_projects, currentYear.total_projects)
           },
-          { 
-            title: "Active Projects", 
-            value: data.active_projects || 0, 
+          {
+            title: "Active Projects",
+            value: data.active_projects || 0,
             change: calculateChange(data.active_projects, currentYear.active_projects)
           },
-          { 
-            title: "Total Investment", 
-            value: data.total_investment || 0, 
+          {
+            title: "Total Investment",
+            value: formatCurrency(data.total_investment || 0),
             change: calculateChange(data.total_investment, currentYear.total_investment)
           },
-          { 
-            title: "Completed Projects", 
-            value: data.completed_projects || 0, 
+          {
+            title: "Completed Projects",
+            value: data.completed_projects || 0,
             change: currentYear.completed_projects ? 
               calculateChange(data.completed_projects, currentYear.completed_projects) : 
               "Based on all-time data"
@@ -118,7 +139,6 @@ const Projects = () => {
         setOverviewStats([]);
       }
 
-      // Process status data
       if (statusResponse?.status && Array.isArray(statusResponse.data)) {
         setProjectsByStatus(statusResponse.data);
       } else {
@@ -126,7 +146,6 @@ const Projects = () => {
         console.warn('No status data received from API');
       }
 
-      // Process type data
       if (typeResponse?.status && Array.isArray(typeResponse.data)) {
         setProjectsByType(typeResponse.data);
       } else {
@@ -134,7 +153,6 @@ const Projects = () => {
         console.warn('No type data received from API');
       }
 
-      // Process trend data
       if (trendResponse?.status && Array.isArray(trendResponse.data)) {
         setProjectTrend(trendResponse.data);
       } else {
@@ -144,9 +162,10 @@ const Projects = () => {
 
       setRetryCount(0);
     } catch (error) {
-      console.error('Error fetching project data:', error);
+      console.error('[Projects] Error fetching project data:', error);
       setError(error.message || 'Failed to load project data. Please try again.');
       setProjectsList([]);
+      setFilteredProjects([]);
       setOverviewStats([]);
       setProjectsByStatus([]);
       setProjectsByType([]);
@@ -156,22 +175,18 @@ const Projects = () => {
     }
   };
 
-  const handleRetry = () => {
-    setRetryCount(prev => prev + 1);
-    fetchAllProjectData();
-  };
-
-  const getStatusIcon = (status) => {
-    return null;
-  };
-
-  const sectors = ['All', ...new Set(projectsList.map(p => p.sector).filter(Boolean))];
-  const statuses = ['All', ...new Set(projectsList.map(p => p.status).filter(Boolean))];
+  useEffect(() => {
+    // Build query string from all activeFilters (except 'All')
+    const params = Object.entries(activeFilters)
+      .filter(([, value]) => value && value !== 'All')
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+    const query = params.length > 0 ? `?${params.join('&')}` : '';
+    fetchAllProjectData(query);
+  }, [activeFilters]);
 
   const statsData = Array.isArray(overviewStats) ? overviewStats.map((stat, index) => {
     const colors = ['primary', 'success', 'warning', 'primary'];
     const icons = [<FolderOpen size={20} />, <Activity size={20} />, <DollarSign size={20} />, <CheckCircle size={20} />];
-    
     return {
       ...stat,
       color: colors[index] || 'primary',
@@ -179,14 +194,120 @@ const Projects = () => {
     };
   }) : [];
 
-  const filteredProjects = projectsList.filter(project => {
-    const matchesSearch = project.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.project_id?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSector = selectedSector === 'All' || project.sector === selectedSector;
-    const matchesStatus = selectedStatus === 'All' || project.status === selectedStatus;
+  // Set default filtered projects when projectsList changes
+  useEffect(() => {
+    if (projectsList.length > 0 && filteredProjects.length === 0) {
+      setFilteredProjects(projectsList);
+    }
+  }, [projectsList.length, filteredProjects.length]);
+
+  const handleFilteredData = useCallback((filtered) => {
+    // Early return to prevent unnecessary state updates
+    if (!Array.isArray(filtered)) {
+      return;
+    }
     
-    return matchesSearch && matchesSector && matchesStatus;
-  });
+    // Check if the filtered data is actually different
+    if (filtered.length === filteredProjects.length && 
+        filtered.every((item, index) => item === filteredProjects[index])) {
+      return;
+    }
+    
+    setFilteredProjects(filtered);
+  }, [filteredProjects]);
+
+  const getProjectsConfig = useMemo(() => {
+    if (!projectsList || projectsList.length === 0) {
+      return {
+        searchFields: [
+          { key: 'title', label: 'Project Title', weight: 3 },
+          { key: 'project_id', label: 'Project ID', weight: 3 },
+          { key: 'objectives', label: 'Objectives', weight: 2 },
+          { key: 'beneficiaries', label: 'Beneficiaries', weight: 1 }
+        ],
+        filters: []
+      };
+    }
+
+    // Create unique option arrays using the actual fields available
+    const sectors = Array.from(new Set(projectsList.map(p => p.sector).filter(Boolean))).sort();
+    const types = Array.from(new Set(projectsList.map(p => p.type).filter(Boolean))).sort();
+    const divisions = Array.from(new Set(projectsList.map(p => p.division).filter(Boolean))).sort();
+    const approvalYears = Array.from(new Set(projectsList.map(p => p.approval_fy).filter(Boolean))).sort();
+
+    const filters = [
+      {
+        key: 'status',
+        label: 'Status',
+        options: [
+          { value: 'All', label: 'All Statuses' },
+          { value: 'Active', label: 'Active' },
+          { value: 'Completed', label: 'Completed' },
+          { value: 'Planning', label: 'Planning' },
+          { value: 'On Hold', label: 'On Hold' },
+          { value: 'Cancelled', label: 'Cancelled' }
+        ]
+      },
+      ...(sectors.length > 0 ? [{
+        key: 'sector',
+        label: 'Sector',
+        options: [
+          { value: 'All', label: 'All Sectors' },
+          ...sectors.map(sector => ({ value: sector, label: sector }))
+        ]
+      }] : []),
+      ...(types.length > 0 ? [{
+        key: 'type',
+        label: 'Project Type',
+        options: [
+          { value: 'All', label: 'All Types' },
+          ...types.map(type => ({ value: type, label: type }))
+        ]
+      }] : []),
+      ...(divisions.length > 0 ? [{
+        key: 'division',
+        label: 'Division',
+        options: [
+          { value: 'All', label: 'All Divisions' },
+          ...divisions.map(division => ({ value: division, label: division }))
+        ]
+      }] : []),
+      ...(approvalYears.length > 0 ? [{
+        key: 'approval_fy',
+        label: 'Approval Year',
+        options: [
+          { value: 'All', label: 'All Years' },
+          ...approvalYears.map(year => ({ value: year, label: year }))
+        ]
+      }] : []),
+      {
+        key: 'agency_id',
+        label: 'Agency',
+        options: [
+          { value: 'All', label: 'All Agencies' },
+          ...agencies.map(a => ({ value: a.agency_id, label: a.name }))
+        ]
+      },
+      {
+        key: 'funding_source_id',
+        label: 'Funding Source',
+        options: [
+          { value: 'All', label: 'All Funding Sources' },
+          ...fundingSources.map(f => ({ value: f.funding_source_id, label: f.name }))
+        ]
+      },
+    ];
+
+    return {
+      searchFields: [
+        { key: 'title', label: 'Project Title', weight: 3 },
+        { key: 'project_id', label: 'Project ID', weight: 3 },
+        { key: 'objectives', label: 'Objectives', weight: 2 },
+        { key: 'beneficiaries', label: 'Beneficiaries', weight: 1 }
+      ],
+      filters: filters
+    };
+  }, [projectsList, agencies, fundingSources]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -201,6 +322,30 @@ const Projects = () => {
   const handleViewDetails = (e, projectId) => {
     e.stopPropagation();
     navigate(`/projects/${projectId}`);
+  };
+
+  const getExportData = () => {
+    if (filteredProjects.length === 0) {
+      return null;
+    }
+    
+    return {
+      projects: filteredProjects,
+      overview: overviewStats,
+      chartData: {
+        status: projectsByStatus,
+        type: projectsByType,
+        trend: projectTrend
+      },
+      filters: {
+        searchTerm,
+        activeFilters
+      },
+      summary: {
+        totalProjects: filteredProjects.length,
+        totalBudget: filteredProjects.reduce((sum, p) => sum + (p.total_cost_usd || 0), 0)
+      }
+    };
   };
 
   if (isLoading) {
@@ -229,7 +374,7 @@ const Projects = () => {
             <p className="text-gray-600 mb-6 max-w-md mx-auto">{error}</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button 
-                onClick={handleRetry}
+                onClick={() => fetchAllProjectData()}
                 leftIcon={<RefreshCw size={16} />}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
               >
@@ -256,48 +401,22 @@ const Projects = () => {
 
   return (
     <PageLayout bgColor="bg-gray-50">
-      <PageHeader
+      <PageHeader 
         title="Climate Projects"
         subtitle="Explore climate finance projects across Bangladesh"
         actions={
-          <Button
-            leftIcon={<Download size={16} />}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-            onClick={() => {
-              if (projectsList.length === 0) {
-                console.log('No data available to export');
-                return;
-              }
-              
-              const exportData = {
-                projects: filteredProjects,
-                overview: overviewStats,
-                chartData: {
-                  status: projectsByStatus,
-                  type: projectsByType,
-                  trend: projectTrend
-                },
-                exportDate: new Date().toISOString()
-              };
-              
-              const dataStr = JSON.stringify(exportData, null, 2);
-              const dataBlob = new Blob([dataStr], { type: 'application/json' });
-              const url = URL.createObjectURL(dataBlob);
-              const link = document.createElement('a');
-              link.href = url;
-              link.download = `climate_projects_${new Date().toISOString().split('T')[0]}.json`;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              URL.revokeObjectURL(url);
-            }}
-          >
-            Export Data
-          </Button>
+          <ExportButton
+            data={getExportData()}
+            filename="climate_projects"
+            title="Climate Finance Projects"
+            subtitle="Comprehensive list of climate projects in Bangladesh"
+            variant="export"
+            exportFormats={['pdf', 'json']}
+            className="w-full sm:w-auto"
+          />
         }
       />
 
-      {/* Stats Section */}
       {statsData.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {statsData.map((stat, index) => (
@@ -327,13 +446,12 @@ const Projects = () => {
         </div>
       )}
 
-      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div className="animate-fade-in-up" style={{ animationDelay: '400ms' }}>
           <Card hover padding={true}>
             {projectsByStatus.length > 0 ? (
               <PieChartComponent
-                title="Projects by Status"
+                title="Projects by Status" 
                 data={projectsByStatus}
                 height={300}
               />
@@ -373,8 +491,8 @@ const Projects = () => {
               <LineChartComponent
                 title="Project Trends"
                 data={projectTrend}
-                xAxisKey="year" // ✅ Fixed: was "xKey"
-                yAxisKey="projects" // ✅ Fixed: was "yKey", should match backend data structure
+                xAxisKey="year"
+                yAxisKey="projects"
                 height={300}
               />
             ) : (
@@ -389,41 +507,34 @@ const Projects = () => {
         </div>
       </div>
 
-      {/* Projects List */}
       <Card hover className="mb-6" padding={true}>
-        <div className="border-b border-gray-100 pb-8 mb-8">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 md:mb-0">Climate Finance Projects</h3>
-            
-            <SearchFilter
-              searchValue={searchTerm}
-              onSearchChange={setSearchTerm}
-              searchPlaceholder="Search projects..."
-              filters={[
-                {
-                  value: selectedSector,
-                  onChange: setSelectedSector,
-                  options: sectors.map(sector => ({
-                    value: sector,
-                    label: sector === 'All' ? 'All Sectors' : sector
-                  }))
-                },
-                {
-                  value: selectedStatus,
-                  onChange: setSelectedStatus,
-                  options: statuses.map(status => ({
-                    value: status,
-                    label: status === 'All' ? 'All Status' : status
-                  }))
-                }
-              ]}
-              className="mt-4 md:mt-0"
-            />
-          </div>
-
-          <div className="text-sm text-gray-500 mt-2">
-            Showing {filteredProjects.length} of {projectsList.length} projects
-          </div>
+        <div className="border-b border-gray-100 pb-6 mb-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-6">Climate Finance Projects</h3>
+          
+          <SearchFilter
+            data={projectsList}
+            onFilteredData={handleFilteredData}
+            searchValue={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchPlaceholder="Search projects by title, ID, objectives..."
+            entityType="projects"
+            customConfig={getProjectsConfig}
+            activeFilters={activeFilters}
+            onFiltersChange={setActiveFilters}
+            showAdvancedSearch={true}
+            onClearAll={() => {
+              setSearchTerm('');
+              setActiveFilters({
+                sector: 'All',
+                status: 'All',
+                type: 'All',
+                division: 'All',
+                approval_fy: 'All',
+                agency_id: 'All',
+                funding_source_id: 'All'
+              });
+            }}
+          />
         </div>
 
         {projectsList.length === 0 ? (
@@ -434,7 +545,7 @@ const Projects = () => {
               There are currently no projects in the system.
             </p>
             <Button
-              onClick={handleRetry}
+              onClick={() => fetchAllProjectData()}
               leftIcon={<RefreshCw size={16} />}
               variant="outline"
             >
@@ -445,17 +556,15 @@ const Projects = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredProjects.map((project, index) => (
               <div 
-                key={project.project_id}
+                key={project.project_id || `project-${index}`}
                 className="animate-fade-in-up"
                 style={{ animationDelay: `${(index % 9) * 100}ms` }}
               >
                 <div 
-                  key={project.project_id || index}
                   className="group bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-200 cursor-pointer h-full flex flex-col"
                   onClick={(e) => handleViewDetails(e, project.project_id)}
                 >
                   <div className="p-4 sm:p-6 flex flex-col h-full min-h-[320px]">
-                    {/* Header Section - Fixed Height */}
                     <div className="mb-4 min-h-[100px] flex flex-col justify-start">
                       <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors mb-2 line-clamp-2 text-base sm:text-lg leading-tight">
                         {project.title}
@@ -465,7 +574,6 @@ const Projects = () => {
                       </p>
                     </div>
 
-                    {/* Status Badges - Fixed Height */}
                     <div className="flex flex-wrap gap-2 mb-4 min-h-[32px] items-start">
                       <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}>
                         {project.status}
@@ -482,7 +590,6 @@ const Projects = () => {
                       )}
                     </div>
 
-                    {/* Content Section - Flexible Height */}
                     <div className="space-y-3 mb-4 flex-1">
                       {project.total_cost_usd && (
                         <div className="flex items-center justify-between text-sm">
@@ -521,13 +628,12 @@ const Projects = () => {
                       )}
                     </div>
 
-                    {/* Footer Section - Fixed at Bottom */}
                     <div className="mt-auto pt-4 border-t border-gray-100">
                       <div className="flex justify-between items-center">
                         <div className="text-xs text-gray-500 truncate mr-2">
                           ID: {project.project_id}
                         </div>
-                        <Button
+                        <Button 
                           size="sm"
                           variant="outline"
                           onClick={(e) => handleViewDetails(e, project.project_id)}
@@ -554,8 +660,15 @@ const Projects = () => {
             <Button
               onClick={() => {
                 setSearchTerm('');
-                setSelectedSector('All');
-                setSelectedStatus('All');
+                setActiveFilters({
+                  sector: 'All',
+                  status: 'All',
+                  type: 'All',
+                  division: 'All',
+                  approval_fy: 'All',
+                  agency_id: 'All',
+                  funding_source_id: 'All'
+                });
               }}
               variant="outline"
             >
@@ -564,6 +677,12 @@ const Projects = () => {
           </div>
         )}
       </Card>
+
+      {error && (
+        <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded mb-4">
+          <strong>Error:</strong> {error}
+        </div>
+      )}
     </PageLayout>
   );
 };

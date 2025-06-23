@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowRight,
-  Download,
   RefreshCw,
   DollarSign,
   TrendingUp,
@@ -14,12 +13,15 @@ import Card from '../components/ui/Card';
 import StatCard from '../components/ui/StatCard';
 import BarChartComponent from '../components/charts/BarChartComponent';
 import PieChartComponent from '../components/charts/PieChartComponent';
+import BangladeshMapComponent from '../components/charts/BangladeshMapComponent';
 import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
 import { useToast } from '../components/ui/Toast';
 import { CHART_COLORS } from '../utils/constants';
 import { formatCurrency } from '../utils/formatters';
 import { projectApi } from '../services/api';
+import ExportButton from '../components/ui/ExportButton';
+import PageHeader from '../components/layouts/PageHeader';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -33,6 +35,7 @@ const LandingPage = () => {
   const [projectsByStatus, setProjectsByStatus] = useState([]);
   const [projectsBySector, setProjectsBySector] = useState([]);
   const [regionalData, setRegionalData] = useState([]);
+  console.log("regionalData", regionalData);
 
   // Fetch all dashboard data
   useEffect(() => {
@@ -62,36 +65,44 @@ const LandingPage = () => {
         const data = overviewResponse.data;
         const currentYear = data.current_year || {};
         
-        // Helper function to calculate percentage change
-        const calculateChange = (total, current) => {
-          if (!total || !current || total === current) return "No previous data";
-          const previous = total - current;
-          if (previous <= 0) return "No comparison available";
-          const percentage = Math.round(((current / previous) - 1) * 100);
-          return percentage >= 0 ? `+${percentage}% from last year` : `${percentage}% from last year`;
+        // Helper function to calculate percentage change (standard formula)
+        const calculateChange = (current, previous) => {
+          if (previous === undefined || previous === null || previous === 0) return "No comparison available";
+          if (current === undefined || current === null) return "No comparison available";
+          const percentage = ((current - previous) / previous) * 100;
+          return percentage >= 0
+            ? `+${percentage.toFixed(2)}% from last year`
+            : `${percentage.toFixed(2)}% from last year`;
         };
         
         setOverviewStats([
           {
             title: "Total Climate Finance",
-            value: data.total_climate_finance || 0,
-            change: calculateChange(data.total_climate_finance, currentYear.total_climate_finance)
+            value: formatCurrency(data.total_climate_finance || 0),
+            change: calculateChange(currentYear.total_climate_finance, data.total_climate_finance)
           },
           {
             title: "Active Projects",
             value: data.active_projects || 0,
-            change: calculateChange(data.active_projects, currentYear.active_projects)
+            change: (() => {
+              const curr = data.active_projects;
+              const prev = currentYear.active_projects;
+              if (prev === undefined || prev === null || curr === undefined || curr === null) return "No comparison available";
+              const diff = curr - prev;
+              if (diff === 0) return "No change from last year";
+              return diff > 0 ? `+${diff} from last year` : `${diff} from last year`;
+            })()
           },
           {
             title: "Total Investment",
-            value: data.total_climate_finance || 0, // ✅ Fixed: Use total_climate_finance instead of total_investment
-            change: calculateChange(data.total_climate_finance, currentYear.total_climate_finance)
+            value: formatCurrency(data.total_investment || 0),
+            change: calculateChange(currentYear.total_investment, data.total_investment)
           },
           {
             title: "Completed Projects",
             value: data.completed_projects || 0,
             change: currentYear.completed_projects ? 
-              calculateChange(data.completed_projects, currentYear.completed_projects) : 
+              calculateChange(currentYear.completed_projects, data.completed_projects) : 
               "Based on all-time data"
           }
         ]);
@@ -115,11 +126,13 @@ const LandingPage = () => {
 
       // Set regional data for bar chart
       if (regionalResponse.status && Array.isArray(regionalResponse.data)) {
-        // ✅ Fix: Map API data structure - backend returns {location_name, adaptation_total, mitigation_total}
         setRegionalData(regionalResponse.data.map(item => ({
-          region: item.location_name,
-          adaptation: item.adaptation_total || 0,
-          mitigation: item.mitigation_total || 0
+          region: item.location_name
+            .replace(' Division', '')
+            .replace('Chittagong', 'Chattogram')
+            .replace('Barishal', 'Barisal'),
+          adaptation: Number(item.adaptation_total) || 0,
+          mitigation: Number(item.mitigation_total) || 0
         })));
       } else {
         setRegionalData([]);
@@ -154,33 +167,23 @@ const LandingPage = () => {
     }
   };
 
-  // Handle export
-  const handleExport = () => {
+  // Prepare export data
+  const getExportData = () => {
     if (overviewStats.length === 0) {
-      toast.error('No data available to export');
-      return;
+      return null;
     }
     
-    const exportData = {
+    return {
       overview: overviewStats,
       projectsByStatus,
       projectsBySector,
       regionalData,
-      exportDate: new Date().toISOString()
+      summary: {
+        totalProjects: overviewStats.find(s => s.title.includes('Projects'))?.value || 0,
+        totalFunding: overviewStats.find(s => s.title.includes('Finance'))?.value || 0,
+        activeSources: overviewStats.find(s => s.title.includes('Sources'))?.value || 0
+      }
     };
-    
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `climate_finance_dashboard_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    toast.success('Dashboard data exported successfully');
   };
 
   // Add icons to stats
@@ -212,38 +215,32 @@ const LandingPage = () => {
 
   return (
     <PageLayout bgColor="bg-gray-50">
-      {/* Header Section */}
-      <div className="mb-8">
-        <div className="mb-6">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            Climate Finance Dashboard
-          </h1>
-          <p className="text-gray-600 text-lg max-w-2xl">
-            Track, analyze and visualize climate finance flows in Bangladesh with 
-            real-time insights and comprehensive reporting.
-          </p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Button
-            variant="ghost"
-            leftIcon={<RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />}
-            onClick={handleRefresh}
-            disabled={refreshing}
-            loading={refreshing}
-          >
-            {refreshing ? 'Refreshing...' : 'Refresh Data'}
-          </Button>          
-          <Button
-            variant="primary"
-            leftIcon={<Download size={16} />}
-            onClick={handleExport}
-            className="bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg hover:shadow-purple-200 transition-all duration-200"
-          >
-            Export Report
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Climate Finance Dashboard"
+        subtitle="Track, analyze and visualize climate finance flows in Bangladesh with real-time insights and comprehensive reporting."
+        actions={
+          <>
+            <Button
+              variant="ghost"
+              leftIcon={<RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />}
+              onClick={handleRefresh}
+              disabled={refreshing}
+              loading={refreshing}
+            >
+              {refreshing ? 'Refreshing...' : 'Refresh Data'}
+            </Button>
+            <ExportButton
+              data={getExportData()}
+              filename="climate_finance_dashboard"
+              title="Bangladesh Climate Finance Dashboard"
+              subtitle="Overview of climate finance data and project statistics"
+              variant="export"
+              exportFormats={['pdf', 'json']}
+              className="w-full sm:w-auto"
+            />
+          </>
+        }
+      />
 
       {error && (
         <Card padding={true} className="mb-6">
@@ -261,7 +258,7 @@ const LandingPage = () => {
 
       {/* Stats Grid */}
       {statsData.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {statsData.map((stat, index) => (
             <div 
               key={index} 
@@ -270,7 +267,7 @@ const LandingPage = () => {
             >
               <StatCard
                 title={stat.title}
-                value={stat.title.includes('Finance') || stat.title.includes('Investment') ? formatCurrency(stat.value) : stat.value}
+                value={stat.value}
                 change={stat.change}
                 color={stat.color}
                 icon={stat.icon}
@@ -279,7 +276,7 @@ const LandingPage = () => {
           ))}
         </div>
       ) : (
-        <div className="mb-8 max-w-7xl mx-auto">
+        <div className="mb-8">
           <Card padding={true}>
             <div className="text-center py-6">
               <p className="text-gray-500">No overview statistics available</p>
@@ -339,6 +336,15 @@ const LandingPage = () => {
             </div>
           )}
         </Card>
+      </div>
+
+      {/* Bangladesh Map */}
+      <div className="animate-fade-in-up" style={{ animationDelay: '750ms' }}>
+        <BangladeshMapComponent
+          data={regionalData}
+          title="Regional Distribution Map"
+          height={400}
+        />
       </div>
 
       {/* Quick Actions */}

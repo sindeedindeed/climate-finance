@@ -37,7 +37,7 @@ export const getIcon = (iconName, size = 14) => {
 // Enhanced getStatusConfig that includes the icon component
 export const getStatusConfigWithIcon = (status, type = 'project') => {
   // Import the config from statusConfig
-  const { getStatusConfig } = require('./statusConfig');
+  const { getStatusConfig } = import('./statusConfig');
   const config = getStatusConfig(status, type);
   
   return {

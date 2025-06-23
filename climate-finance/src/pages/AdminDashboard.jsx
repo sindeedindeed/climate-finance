@@ -60,14 +60,14 @@ const AdminDashboard = () => {
           },
           {
             title: "Total Climate Finance",
-            value: data.total_climate_finance || 0,
+            value: formatCurrency(data.total_climate_finance || 0),
             change: "+15% this year",
             color: "warning",
             icon: <Banknote size={20} />
           },
           {
             title: "Adaptation Finance",
-            value: data.adaptation_finance || 0,
+            value: formatCurrency(data.adaptation_finance || 0),
             change: "+12% this year",
             color: "primary",
             icon: <DollarSign size={20} />
@@ -97,14 +97,14 @@ const AdminDashboard = () => {
         },
         {
           title: "Total Climate Finance",
-          value: 0,
+          value: formatCurrency(0),
           change: "No data available",
           color: "warning",
           icon: <Banknote size={20} />
         },
         {
           title: "Adaptation Finance",
-          value: 0,
+          value: formatCurrency(0),
           change: "No data available",
           color: "primary",
           icon: <DollarSign size={20} />
@@ -208,10 +208,7 @@ const AdminDashboard = () => {
           >
             <StatCard
               title={stat.title}
-              value={typeof stat.value === "number" && stat.title.includes("Finance") 
-                ? formatCurrency(stat.value) 
-                : stat.value
-              }
+              value={stat.value}
               change={stat.change}
               color={stat.color}
               icon={stat.icon}

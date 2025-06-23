@@ -45,7 +45,6 @@ const StatCard = ({ title, value, change, icon = null, color = 'primary' }) => {
         className: `${iconElement.props.className || ''} ${iconColorVariants[color]}`.trim(),
         style: { 
           color: colorMap[color],
-          fill: 'currentColor',
           stroke: 'currentColor',
           ...iconElement.props.style 
         }

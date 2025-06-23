@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const Navbar = () => {
   const location = useLocation();
   const path = location.pathname;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -30,8 +31,7 @@ const Navbar = () => {
       label: 'Admin', 
       isActive: path.startsWith('/admin')
     },
-    { to: null, label: 'Reports', isDisabled: true },
-    { to: null, label: 'About', isDisabled: true }
+    { to: '/about', label: 'About', isActive: path === '/about' }
   ];
 
   return (
@@ -41,7 +41,7 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center group" onClick={() => setIsMobileMenuOpen(false)}>
-              <h1 className="text-xl font-bold text-primary-700 group-hover:text-primary-600 transition-colors duration-200">
+              <h1 className="text-xl font-bold text-purple-700 group-hover:text-purple-600 transition-colors duration-200">
                 Climate Finance
               </h1>
             </Link>
@@ -64,19 +64,20 @@ const Navbar = () => {
                   to={link.to} 
                   className={`text-sm font-medium transition-colors duration-200 px-3 py-2 rounded-lg ${
                     link.isActive 
-                      ? 'text-primary-700 bg-primary-50'
-                      : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
+                      ? 'text-purple-700'
+                      : 'text-gray-600 hover:text-purple-600'
                   }`}
                 >
                   {link.label}
                 </Link>
               )
             ))}
+            <LanguageSwitcher />
           </nav>
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
             onClick={toggleMobileMenu}
             aria-label="Toggle navigation menu"
             aria-expanded={isMobileMenuOpen}
@@ -110,8 +111,8 @@ const Navbar = () => {
                 to={link.to} 
                 className={`block px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-200 ${
                   link.isActive 
-                    ? 'text-primary-700 bg-primary-50'
-                    : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
+                    ? 'text-purple-700'
+                    : 'text-gray-600 hover:text-purple-600'
                 }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
@@ -120,6 +121,9 @@ const Navbar = () => {
             )
           ))}
         </nav>
+        <div className="px-8 pb-4">
+          <LanguageSwitcher />
+        </div>
       </div>
     </header>
   );

@@ -2,7 +2,6 @@ import React from 'react';
 import { FolderTree } from 'lucide-react';
 import AdminListPage from '../features/admin/AdminListPage';
 import { projectApi } from '../services/api';
-import { formatCurrency, formatDate } from '../utils/formatters';
 
 const AdminProjects = () => {
   const columns = [

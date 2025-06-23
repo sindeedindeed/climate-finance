@@ -5,10 +5,7 @@ import Form from '../../components/ui/Form';
 import FormField from '../../components/ui/FormField';
 import ErrorState from '../../components/ui/ErrorState';
 import Loading from '../../components/ui/Loading';
-import { useAuth } from '../../context/AuthContext';
-
 const AdminFormPage = ({
-  title,
   entityName,
   apiService,
   fields,
@@ -22,8 +19,7 @@ const AdminFormPage = ({
 }) => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  
+
   const [formData, setFormData] = useState(defaultFormData);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
@@ -53,7 +49,7 @@ const AdminFormPage = ({
     if (isEditMode) {
       fetchData();
     }
-  }, [id, isEditMode]);
+  }, [id, isEditMode, fetchData]);
 
   const fetchData = async () => {
     try {

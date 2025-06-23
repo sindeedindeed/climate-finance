@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ArrowLeft, Save, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from './Button';
@@ -18,7 +18,6 @@ const Form = ({
   showBackButton = true, // Fix: Add showBackButton prop
   layout = 'single' // 'single' | 'grid' | 'sections'
 }) => {
-  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   const layoutClasses = {

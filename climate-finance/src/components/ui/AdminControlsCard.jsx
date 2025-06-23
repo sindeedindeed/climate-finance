@@ -1,7 +1,8 @@
 import React from 'react';
-import { Plus, Download, Filter, MoreVertical } from 'lucide-react';
+import { Plus, Download } from 'lucide-react';
 import Button from './Button';
 import Card from './Card';
+import SearchFilter from './SearchFilter';
 
 const AdminControlsCard = ({
   title,
@@ -17,14 +18,9 @@ const AdminControlsCard = ({
   filters = [],
   activeFilters = {},
   onFilterChange,
-  onClearFilters,
   additionalActions = [],
   children
 }) => {
-  const hasActiveFilters = Object.values(activeFilters).some(value => 
-    value && value !== 'All' && value !== ''
-  );
-
   return (
     <Card className="mb-6 p-6">
       {/* Header */}
@@ -80,64 +76,21 @@ const AdminControlsCard = ({
       </div>
 
       {/* Search and Filters */}
-      <div className="space-y-4">
-        {/* Search Bar */}
-        {onSearchChange && (
-          <div className="relative">
-            <input
-              type="text"
-              placeholder={searchPlaceholder}
-              value={searchValue}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full pl-4 pr-4 py-2.5 border border-gray-300 rounded-lg 
-                       focus:ring-2 focus:ring-purple-500 focus:border-transparent
-                       placeholder:text-gray-400"
-            />
-          </div>
-        )}
+      <SearchFilter
+        searchValue={searchValue}
+        onSearchChange={onSearchChange}
+        searchPlaceholder={searchPlaceholder}
+        filters={filters.map(filter => ({
+          key: filter.key,
+          value: activeFilters[filter.key] || filter.defaultValue || 'All',
+          onChange: (value) => onFilterChange?.(filter.key, value),
+          options: filter.options
+        }))}
+        className="mb-4"
+      />
 
-        {/* Filters */}
-        {filters.length > 0 && (
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Filter size={16} />
-              <span>Filter by:</span>
-            </div>
-
-            {filters.map((filter) => (
-              <select
-                key={filter.key}
-                value={activeFilters[filter.key] || filter.defaultValue || 'All'}
-                onChange={(e) => onFilterChange?.(filter.key, e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm
-                         focus:ring-2 focus:ring-purple-500 focus:border-transparent
-                         bg-white min-w-[120px]"
-              >
-                {filter.options.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            ))}
-
-            {/* Clear Filters */}
-            {hasActiveFilters && onClearFilters && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onClearFilters}
-                className="text-gray-600 hover:text-gray-800"
-              >
-                Clear All
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* Custom Children Content */}
-        {children}
-      </div>
+      {/* Custom Children Content */}
+      {children}
     </Card>
   );
 };
