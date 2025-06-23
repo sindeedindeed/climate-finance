@@ -604,6 +604,7 @@ Project.getOverviewStats = async () => {
     try {
         const query = `
             SELECT
+                (SELECT COUNT(*) FROM Project) AS total_projects,
                 (SELECT SUM(total_cost_usd) FROM Project) AS total_climate_finance,
                 (SELECT SUM(p.gef_grant)
                  FROM Project p
@@ -618,6 +619,7 @@ Project.getOverviewStats = async () => {
 
         const trendQuery = `
             SELECT
+                (SELECT COUNT(*) FROM Project WHERE approval_fy = EXTRACT(YEAR FROM CURRENT_DATE)) AS total_projects,
                 SUM(p.total_cost_usd) AS total_climate_finance,
 
                 (
