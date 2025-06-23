@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const Navbar = () => {
   const location = useLocation();
@@ -71,6 +72,7 @@ const Navbar = () => {
                 </Link>
               )
             ))}
+            <LanguageSwitcher />
           </nav>
 
           {/* Mobile Menu Button */}
@@ -119,6 +121,9 @@ const Navbar = () => {
             )
           ))}
         </nav>
+        <div className="px-8 pb-4">
+          <LanguageSwitcher />
+        </div>
       </div>
     </header>
   );
