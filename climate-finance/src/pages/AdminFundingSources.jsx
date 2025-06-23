@@ -2,7 +2,6 @@ import React from 'react';
 import { DollarSign } from 'lucide-react';
 import AdminListPage from '../features/admin/AdminListPage';
 import { fundingSourceApi } from '../services/api';
-import { formatCurrency } from '../utils/formatters';
 
 const AdminFundingSources = () => {
   const columns = [

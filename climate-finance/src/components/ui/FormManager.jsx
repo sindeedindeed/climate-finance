@@ -13,7 +13,6 @@ const FormManager = ({
   apiService,
   onSuccess,
   transformSubmitData = (data) => data,
-  transformLoadData = (data) => data,
   isLoading = false,
   error = null,
   backPath,

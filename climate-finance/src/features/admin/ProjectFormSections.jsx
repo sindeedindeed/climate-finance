@@ -6,7 +6,6 @@ import PeopleAffectedDisplay from '../../components/ui/PeopleAffectedDisplay';
 
 const ProjectFormSections = ({
   formData,
-  handleInputChange,
   handleMultiSelectChange,
   handleWashComponentChange,
   agencies,

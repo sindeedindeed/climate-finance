@@ -129,10 +129,10 @@ const ProjectFormPage = ({
       
       // Fetch all data in parallel
       const [locationsResponse, agenciesResponse, fundingSourcesResponse, focalAreasResponse] = await Promise.all([
-        locationApi.getAll().catch(err => ({ status: false, data: [] })),
-        agencyApi.getAll().catch(err => ({ status: false, data: [] })),
-        fundingSourceApi.getAll().catch(err => ({ status: false, data: [] })),
-        focalAreaApi.getAll().catch(err => ({ status: false, data: [] }))
+        locationApi.getAll().catch(() => ({ status: false, data: [] })),
+        agencyApi.getAll().catch(() => ({ status: false, data: [] })),
+        fundingSourceApi.getAll().catch(() => ({ status: false, data: [] })),
+        focalAreaApi.getAll().catch(() => ({ status: false, data: [] }))
       ]);
 
       // Set data or fallback to empty arrays if API calls fail

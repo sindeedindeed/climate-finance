@@ -70,14 +70,14 @@ const StatsGrid = ({
     }
 
     // Fallback to default icons by index
-    const defaultIcons = [
+    const fallbackIcons = [
       <DollarSign size={20} />,
       <Building size={20} />,
       <TrendingUp size={20} />,
       <CheckCircle size={20} />
     ];
     
-    return defaultIcons[index % defaultIcons.length];
+    return fallbackIcons[index % fallbackIcons.length];
   };
 
   const getColorByIndex = (index) => {

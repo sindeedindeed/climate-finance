@@ -1,7 +1,7 @@
 // Function to validate required props
 export const validateRequiredProps = (props, required, componentName) => {
   const missing = required.filter(prop => props[prop] === undefined);
-  if (missing.length > 0 && process.env.NODE_ENV === 'development') {
+  if (missing.length > 0) {
     console.warn(`${componentName}: Missing required props: ${missing.join(', ')}`);
   }
 };
@@ -9,7 +9,7 @@ export const validateRequiredProps = (props, required, componentName) => {
 // Function to clean object props (remove undefined/null)
 export const cleanProps = (props) => {
   return Object.fromEntries(
-    Object.entries(props).filter(([_, value]) => value !== undefined && value !== null)
+    Object.entries(props).filter((entry) => entry[1] !== undefined && entry[1] !== null)
   );
 };
 

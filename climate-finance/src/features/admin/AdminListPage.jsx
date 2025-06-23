@@ -99,11 +99,6 @@ const AdminListPage = ({
     setActiveFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  const clearFilters = () => {
-    setActiveFilters(filters.reduce((acc, filter) => ({ ...acc, [filter.key]: 'All' }), {}));
-    setSearchTerm('');
-  };
-
   // Handle delete
   const handleDelete = async (item) => {
     try {
@@ -127,7 +122,7 @@ const AdminListPage = ({
     // Otherwise, apply default rendering based on type
     return {
       ...col,
-      render: (value, row) => {
+      render: (value) => {
         if (col.type === 'status') {
           const config = getStatusConfig(value, col.statusType || 'project');
           return <Badge variant="custom" className={config.color} icon={config.icon}>{config.label}</Badge>;

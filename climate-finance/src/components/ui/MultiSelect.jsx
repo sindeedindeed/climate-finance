@@ -87,7 +87,7 @@ const MultiSelect = ({
             <span className="text-gray-500 text-sm">{placeholder}</span>
           ) : (
             <>
-              {displayedLabels.map((label, index) => {
+              {displayedLabels.map((label) => {
                 const option = options.find(opt => opt.label === label);
                 return (
                   <Badge

@@ -18,7 +18,6 @@ const AdminControlsCard = ({
   filters = [],
   activeFilters = {},
   onFilterChange,
-  onClearFilters,
   additionalActions = [],
   children
 }) => {

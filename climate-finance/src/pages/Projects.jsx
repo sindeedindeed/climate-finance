@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { projectApi } from '../services/api';
+import { projectApi, agencyApi, fundingSourceApi } from '../services/api';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
@@ -20,6 +20,7 @@ import {
   AlertCircle,
   RefreshCw
 } from 'lucide-react';
+import MultiSelect from '../components/ui/MultiSelect';
 
 const Projects = () => {
   const navigate = useNavigate();
@@ -39,21 +40,38 @@ const Projects = () => {
     status: 'All',
     type: 'All',
     division: 'All',
-    approval_fy: 'All'
+    approval_fy: 'All',
+    agency_id: 'All',
+    funding_source_id: 'All'
   });
 
   // Add filtered projects state
   const [filteredProjects, setFilteredProjects] = useState([]);
 
+  const [agencies, setAgencies] = useState([]);
+  const [fundingSources, setFundingSources] = useState([]);
+
   useEffect(() => {
     fetchAllProjectData();
   }, []);
 
-  const fetchAllProjectData = async () => {
+  useEffect(() => {
+    // Fetch agencies and funding sources
+    agencyApi.getAll().then(res => {
+      if (res?.status && Array.isArray(res.data)) setAgencies(res.data);
+      else setAgencies([]);
+    });
+    fundingSourceApi.getAll().then(res => {
+      if (res?.status && Array.isArray(res.data)) setFundingSources(res.data);
+      else setFundingSources([]);
+    });
+  }, []);
+
+  const fetchAllProjectData = async (query = '') => {
     try {
       setIsLoading(true);
       setError(null);
-
+      console.log('[Projects] Fetching projects with query:', query);
       const [
         projectsResponse,
         overviewResponse,
@@ -61,18 +79,26 @@ const Projects = () => {
         typeResponse,
         trendResponse
       ] = await Promise.all([
-        projectApi.getAll(),
+        projectApi.getAll(query),
         projectApi.getProjectsOverviewStats(),
         projectApi.getByStatus(),
         projectApi.getByType(),
         projectApi.getTrend()
       ]);
-
+      console.log('[Projects] API responses:', {
+        projectsResponse,
+        overviewResponse,
+        statusResponse,
+        typeResponse,
+        trendResponse
+      });
       if (projectsResponse?.status && Array.isArray(projectsResponse.data)) {
         setProjectsList(projectsResponse.data);
+        setFilteredProjects(projectsResponse.data);
       } else {
         setProjectsList([]);
-        console.warn('No projects data received from API');
+        setFilteredProjects([]);
+        console.warn('No projects data received from API', projectsResponse);
       }
 
       if (overviewResponse?.status && overviewResponse.data) {
@@ -136,9 +162,10 @@ const Projects = () => {
 
       setRetryCount(0);
     } catch (error) {
-      console.error('Error fetching project data:', error);
+      console.error('[Projects] Error fetching project data:', error);
       setError(error.message || 'Failed to load project data. Please try again.');
       setProjectsList([]);
+      setFilteredProjects([]);
       setOverviewStats([]);
       setProjectsByStatus([]);
       setProjectsByType([]);
@@ -148,10 +175,14 @@ const Projects = () => {
     }
   };
 
-  const handleRetry = () => {
-    setRetryCount(prev => prev + 1);
-    fetchAllProjectData();
-  };
+  useEffect(() => {
+    // Build query string from all activeFilters (except 'All')
+    const params = Object.entries(activeFilters)
+      .filter(([, value]) => value && value !== 'All')
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+    const query = params.length > 0 ? `?${params.join('&')}` : '';
+    fetchAllProjectData(query);
+  }, [activeFilters]);
 
   const statsData = Array.isArray(overviewStats) ? overviewStats.map((stat, index) => {
     const colors = ['primary', 'success', 'warning', 'primary'];
@@ -168,7 +199,7 @@ const Projects = () => {
     if (projectsList.length > 0 && filteredProjects.length === 0) {
       setFilteredProjects(projectsList);
     }
-  }, [projectsList.length]);
+  }, [projectsList.length, filteredProjects.length]);
 
   const handleFilteredData = useCallback((filtered) => {
     // Early return to prevent unnecessary state updates
@@ -186,7 +217,6 @@ const Projects = () => {
   }, [filteredProjects]);
 
   const getProjectsConfig = useMemo(() => {
-    // Early return if no projects to prevent unnecessary recalculation
     if (!projectsList || projectsList.length === 0) {
       return {
         searchFields: [
@@ -249,7 +279,23 @@ const Projects = () => {
           { value: 'All', label: 'All Years' },
           ...approvalYears.map(year => ({ value: year, label: year }))
         ]
-      }] : [])
+      }] : []),
+      {
+        key: 'agency_id',
+        label: 'Agency',
+        options: [
+          { value: 'All', label: 'All Agencies' },
+          ...agencies.map(a => ({ value: a.agency_id, label: a.name }))
+        ]
+      },
+      {
+        key: 'funding_source_id',
+        label: 'Funding Source',
+        options: [
+          { value: 'All', label: 'All Funding Sources' },
+          ...fundingSources.map(f => ({ value: f.funding_source_id, label: f.name }))
+        ]
+      },
     ];
 
     return {
@@ -261,7 +307,7 @@ const Projects = () => {
       ],
       filters: filters
     };
-  }, [projectsList]);
+  }, [projectsList, agencies, fundingSources]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -328,7 +374,7 @@ const Projects = () => {
             <p className="text-gray-600 mb-6 max-w-md mx-auto">{error}</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button 
-                onClick={handleRetry}
+                onClick={() => fetchAllProjectData()}
                 leftIcon={<RefreshCw size={16} />}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
               >
@@ -483,7 +529,9 @@ const Projects = () => {
                 status: 'All',
                 type: 'All',
                 division: 'All',
-                approval_fy: 'All'
+                approval_fy: 'All',
+                agency_id: 'All',
+                funding_source_id: 'All'
               });
             }}
           />
@@ -497,7 +545,7 @@ const Projects = () => {
               There are currently no projects in the system.
             </p>
             <Button
-              onClick={handleRetry}
+              onClick={() => fetchAllProjectData()}
               leftIcon={<RefreshCw size={16} />}
               variant="outline"
             >
@@ -617,7 +665,9 @@ const Projects = () => {
                   status: 'All',
                   type: 'All',
                   division: 'All',
-                  approval_fy: 'All'
+                  approval_fy: 'All',
+                  agency_id: 'All',
+                  funding_source_id: 'All'
                 });
               }}
               variant="outline"
@@ -627,6 +677,12 @@ const Projects = () => {
           </div>
         )}
       </Card>
+
+      {error && (
+        <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded mb-4">
+          <strong>Error:</strong> {error}
+        </div>
+      )}
     </PageLayout>
   );
 };
