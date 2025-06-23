@@ -2,13 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Download, FileText, FileSpreadsheet } from 'lucide-react';
 import Button from './Button';
 import usePDFExport from '../../hooks/usePDFExport';
+import { useToast } from './Toast';
 
 const ExportButton = ({
   data,
   filename = 'report',
   title = 'Report',
   subtitle = '',
-  elementId = null,
   variant = 'outline',
   size = 'sm',
   className = '',
@@ -19,13 +19,8 @@ const ExportButton = ({
   const [isExporting, setIsExporting] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const dropdownRef = useRef(null);
-  const { exportToPDF, exportElementToPDF } = usePDFExport();
-
-  // Simple alert function to replace toast
-  const showAlert = (message, type = 'info') => {
-    const prefix = type === 'error' ? 'Error: ' : type === 'success' ? 'Success: ' : '';
-    alert(prefix + message);
-  };
+  const { exportPDF } = usePDFExport();
+  const { success: showSuccess, error: showError } = useToast();
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -45,8 +40,8 @@ const ExportButton = ({
   }, [showOptions]);
 
   const handleExport = async (format) => {
-    if (!data && !elementId) {
-      showAlert('No data available to export', 'error');
+    if (!data) {
+      showError('No data available to export');
       return;
     }
 
@@ -55,16 +50,14 @@ const ExportButton = ({
 
     try {
       if (format === 'pdf') {
-        if (elementId) {
-          await exportElementToPDF(elementId, filename, { title, subtitle });
-        } else {
-          await exportToPDF(data, filename, {
-            title,
-            subtitle,
-            customTemplate: customPDFTemplate
-          });
-        }
-        showAlert('PDF exported successfully', 'success');
+        await exportPDF({
+          data,
+          fileName: filename,
+          title,
+          // You may want to add headers, columnStyles, etc. here if needed
+          customStyles: customPDFTemplate
+        });
+        showSuccess('PDF exported successfully');
       } else if (format === 'csv') {
         // Add CSV export functionality
         if (!Array.isArray(data)) {
@@ -87,7 +80,7 @@ const ExportButton = ({
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         
-        showAlert('CSV exported successfully', 'success');
+        showSuccess('CSV exported successfully');
       } else if (format === 'json') {
         const exportData = {
           ...data,
@@ -107,11 +100,11 @@ const ExportButton = ({
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         
-        showAlert('JSON exported successfully', 'success');
+        showSuccess('JSON exported successfully');
       }
     } catch (error) {
       console.error('Export failed:', error);
-      showAlert(`Export failed: ${error.message}`, 'error');
+      showError(`Export failed: ${error.message}`);
     } finally {
       setIsExporting(false);
     }
