@@ -35,6 +35,7 @@ const LandingPage = () => {
   const [projectsByStatus, setProjectsByStatus] = useState([]);
   const [projectsBySector, setProjectsBySector] = useState([]);
   const [regionalData, setRegionalData] = useState([]);
+  console.log("regionalData", regionalData);
 
   // Fetch all dashboard data
   useEffect(() => {
@@ -125,11 +126,13 @@ const LandingPage = () => {
 
       // Set regional data for bar chart
       if (regionalResponse.status && Array.isArray(regionalResponse.data)) {
-        // ✅ Fix: Map API data structure - backend returns {location_name, adaptation_total, mitigation_total}
         setRegionalData(regionalResponse.data.map(item => ({
-          region: item.location_name,
-          adaptation: item.adaptation_total || 0,
-          mitigation: item.mitigation_total || 0
+          region: item.location_name
+            .replace(' Division', '')
+            .replace('Chittagong', 'Chattogram')
+            .replace('Barishal', 'Barisal'),
+          adaptation: Number(item.adaptation_total) || 0,
+          mitigation: Number(item.mitigation_total) || 0
         })));
       } else {
         setRegionalData([]);
@@ -339,7 +342,7 @@ const LandingPage = () => {
       <div className="animate-fade-in-up" style={{ animationDelay: '750ms' }}>
         <BangladeshMapComponent
           data={regionalData}
-          title="Bangladesh Regional Climate Finance Distribution"
+          title="Regional Distribution Map"
           height={400}
         />
       </div>
