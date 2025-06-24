@@ -618,7 +618,7 @@ Project.getOverviewStats = async () => {
                 (SELECT COUNT(*) FROM Project WHERE status IN('Implemented')) AS completed_projects
         `;
 
-        const trendQuery = `
+        const currentYearQuery = `
             SELECT
                 (SELECT COUNT(*) FROM Project WHERE approval_fy = EXTRACT(YEAR FROM CURRENT_DATE)) AS total_projects,
                 SUM(p.total_cost_usd) AS total_climate_finance,
@@ -655,12 +655,51 @@ Project.getOverviewStats = async () => {
             WHERE p.approval_fy = EXTRACT(YEAR FROM CURRENT_DATE);
         `;
 
+        const previousYearQuery = `
+            SELECT
+                (SELECT COUNT(*) FROM Project WHERE approval_fy = EXTRACT(YEAR FROM CURRENT_DATE) - 1) AS total_projects,
+                SUM(p.total_cost_usd) AS total_climate_finance,
+
+                (
+                    SELECT COALESCE(SUM(p2.gef_grant), 0)
+                    FROM Project p2
+                    WHERE p2.type = 'Adaptation'
+                      AND p2.approval_fy = EXTRACT(YEAR FROM CURRENT_DATE) - 1
+                ) AS adaptation_finance,
+
+                (
+                    SELECT COALESCE(SUM(p3.gef_grant), 0)
+                    FROM Project p3
+                    WHERE p3.type = 'Mitigation'
+                      AND p3.approval_fy = EXTRACT(YEAR FROM CURRENT_DATE) - 1
+                ) AS mitigation_finance,
+
+                (
+                    SELECT COUNT(*)
+                    FROM Project
+                    WHERE now() BETWEEN beginning AND closing 
+                    AND approval_fy = EXTRACT(YEAR FROM CURRENT_DATE) - 1
+                ) AS active_projects,
+
+                (
+                    SELECT COUNT(*)
+                    FROM Project
+                    WHERE status IN('Implemented')
+                    AND approval_fy = EXTRACT(YEAR FROM CURRENT_DATE) - 1
+                ) AS completed_projects
+
+            FROM Project p
+            WHERE p.approval_fy = EXTRACT(YEAR FROM CURRENT_DATE) - 1;
+        `;
+
         const result = await client.query(query);
-        const trendResult = await client.query(trendQuery);
+        const currentYearResult = await client.query(currentYearQuery);
+        const previousYearResult = await client.query(previousYearQuery);
 
         return {
             ...result.rows[0],
-            current_year: trendResult.rows[0]
+            current_year: currentYearResult.rows[0],
+            previous_year: previousYearResult.rows[0]
         };
     } catch (err) {
         throw err;

@@ -68,8 +68,9 @@ const LandingPage = () => {
                 
                 console.log('API Response data:', data);
                 console.log('Current year data:', currentYear);
-                console.log('Adaptation finance - all time:', data.adaptation_finance, 'current year:', currentYear.adaptation_finance);
-                console.log('Mitigation finance - all time:', data.mitigation_finance, 'current year:', currentYear.mitigation_finance);
+                console.log('Previous year data:', data.previous_year);
+                console.log('Adaptation finance - all time:', data.adaptation_finance, 'current year:', currentYear.adaptation_finance, 'previous year:', data.previous_year?.adaptation_finance);
+                console.log('Mitigation finance - all time:', data.mitigation_finance, 'current year:', currentYear.mitigation_finance, 'previous year:', data.previous_year?.mitigation_finance);
 
                 // Helper function to calculate percentage change (standard formula)
                 const calculateChange = (current, previous) => {
@@ -102,7 +103,7 @@ const LandingPage = () => {
                         value: formatCurrency(data.adaptation_finance || 0),
                         change: calculateChange(
                             currentYear.adaptation_finance || 0,
-                            data.adaptation_finance || 0
+                            data.previous_year?.adaptation_finance || 0
                         ),
                     },
                     {
@@ -110,15 +111,15 @@ const LandingPage = () => {
                         value: formatCurrency(data.mitigation_finance || 0),
                         change: calculateChange(
                             currentYear.mitigation_finance || 0,
-                            data.mitigation_finance || 0
+                            data.previous_year?.mitigation_finance || 0
                         ),
                     },
                     {
                         title: "Active Projects",
                         value: data.active_projects || 0,
                         change: (() => {
-                            const curr = data.active_projects;
-                            const prev = currentYear.active_projects;
+                            const curr = currentYear.active_projects;
+                            const prev = data.previous_year?.active_projects;
                             if (
                                 prev === undefined ||
                                 prev === null ||
@@ -136,10 +137,10 @@ const LandingPage = () => {
                     {
                         title: "Completed Projects",
                         value: data.completed_projects || 0,
-                        change: currentYear.completed_projects !== undefined
+                        change: data.previous_year?.completed_projects !== undefined
                             ? calculateChange(
-                                  currentYear.completed_projects,
-                                  data.completed_projects
+                                  currentYear.completed_projects || 0,
+                                  data.previous_year.completed_projects || 0
                               )
                             : "Based on all-time data",
                     },
