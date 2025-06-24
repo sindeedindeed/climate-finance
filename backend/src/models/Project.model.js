@@ -614,7 +614,8 @@ Project.getOverviewStats = async () => {
                     FROM Project p
                     WHERE p.type = 'Mitigation'
                 ) AS mitigation_finance,
-                (SELECT COUNT(*) FROM Project WHERE now() BETWEEN beginning AND closing) AS active_projects
+                (SELECT COUNT(*) FROM Project WHERE now() BETWEEN beginning AND closing) AS active_projects,
+                (SELECT COUNT(*) FROM Project WHERE status IN('Implemented')) AS completed_projects
         `;
 
         const trendQuery = `
@@ -641,7 +642,14 @@ Project.getOverviewStats = async () => {
                     FROM Project
                     WHERE now() BETWEEN beginning AND closing 
                     AND approval_fy = EXTRACT(YEAR FROM CURRENT_DATE)
-                ) AS active_projects
+                ) AS active_projects,
+
+                (
+                    SELECT COUNT(*)
+                    FROM Project
+                    WHERE status IN('Implemented')
+                    AND approval_fy = EXTRACT(YEAR FROM CURRENT_DATE)
+                ) AS completed_projects
 
             FROM Project p
             WHERE p.approval_fy = EXTRACT(YEAR FROM CURRENT_DATE);
