@@ -42,15 +42,25 @@ const AgencyFormPage = ({ mode = 'add' }) => {
     }
   };
 
-  const transformSubmitData = (data) => ({
-    name: data.name?.trim(),
-    type: data.type
-  });
+  const transformSubmitData = (data) => {
+    console.log('Agency form data being sent:', data);
+    const transformed = {
+      name: data.name?.trim(),
+      type: data.type
+    };
+    console.log('Transformed agency data:', transformed);
+    return transformed;
+  };
 
-  const transformLoadData = (data) => ({
-    name: data.name || '',
-    type: data.type || ''
-  });
+  const transformLoadData = (data) => {
+    console.log('Agency data loaded from server:', data);
+    const transformed = {
+      name: data.name || '',
+      type: data.type || ''
+    };
+    console.log('Transformed agency data for form:', transformed);
+    return transformed;
+  };
 
   return (
     <AdminFormPage

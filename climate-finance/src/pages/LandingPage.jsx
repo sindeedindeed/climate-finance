@@ -341,6 +341,19 @@ const LandingPage = () => {
                 </div>
             )}
 
+
+            {/* Bangladesh Map */}
+            <div
+                className="animate-fade-in-up"
+                style={{ animationDelay: "750ms" }}
+            >
+                <BangladeshMapComponent
+                    data={regionalData}
+                    title="Regional Distribution Map"
+                    height={400}
+                />
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div
                     className="animate-fade-in-up"
@@ -415,18 +428,6 @@ const LandingPage = () => {
                         </div>
                     )}
                 </Card>
-            </div>
-
-            {/* Bangladesh Map */}
-            <div
-                className="animate-fade-in-up"
-                style={{ animationDelay: "750ms" }}
-            >
-                <BangladeshMapComponent
-                    data={regionalData}
-                    title="Regional Distribution Map"
-                    height={400}
-                />
             </div>
 
             {/* Quick Actions */}

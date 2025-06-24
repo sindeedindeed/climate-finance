@@ -1,7 +1,6 @@
 const express = require("express");
 const {addProject, getAllProjects, updateProject, deleteProject, getProjectById, getProjectsOverviewStats,
-    getProjectByStatus, getProjectBySector, getProjectTrend, getProjectByType, getFundingSourceOverview,
-    getFundingSourceTrend, getFundingSourceSectorAllocation, getFundingSource, getFundingSourceByType, getOverViewStats,
+    getProjectByStatus, getProjectBySector, getProjectTrend, getProjectByType, getOverViewStats,
     getRegionalDistribution
 } = require("../controllers/project.controller");
 
@@ -17,19 +16,16 @@ router.get('/projectsOverviewStats', getProjectsOverviewStats)
 router.get('/get-project-by-status', getProjectByStatus)
 router.get('/get-project-by-sector', getProjectBySector)
 router.get('/get-project-by-trend', getProjectTrend)
-//funding-source
 router.get('/get-project-by-type', getProjectByType)
-router.get('/get-funding-source-by-type', getFundingSourceByType)
-router.get('/get-funding-source-overview', getFundingSourceOverview)
-router.get('/get-funding-source-trend', getFundingSourceTrend)
-router.get('/get-funding-source-sector-allocation', getFundingSourceSectorAllocation)
-router.get('/get-funding-source', getFundingSource)
 //dashboard
 router.get('/get-overview-stat', getOverViewStats)
 router.get('/get-regional-distribution', getRegionalDistribution)
 
-
-
-
+// Funding Source Analytics (keep these in project routes for now)
+router.get('/get-funding-source-by-type', controller.getFundingSourceByType);
+router.get('/get-funding-source-overview', controller.getFundingSourceOverview);
+router.get('/get-funding-source-trend', controller.getFundingSourceTrend);
+router.get('/get-funding-source-sector-allocation', controller.getFundingSourceSectorAllocation);
+router.get('/get-funding-source', controller.getFundingSource);
 
 module.exports = router;

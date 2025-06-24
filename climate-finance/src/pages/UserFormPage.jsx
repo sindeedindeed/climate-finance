@@ -1,7 +1,7 @@
 import React from 'react';
 import { User } from 'lucide-react';
 import AdminFormPage from '../features/admin/AdminFormPage';
-import { userApi } from '../services/api';
+import { authApi } from '../services/api';
 
 const UserFormPage = ({ mode = 'add' }) => {
   const fields = [
@@ -120,7 +120,7 @@ const UserFormPage = ({ mode = 'add' }) => {
     <AdminFormPage
       title={mode === 'add' ? 'Add New User' : 'Edit User'}
       entityName="user"
-      apiService={userApi}
+      apiService={authApi}
       fields={fields}
       defaultFormData={defaultFormData}
       mode={mode}

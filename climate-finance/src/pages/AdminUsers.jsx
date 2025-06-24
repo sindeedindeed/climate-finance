@@ -1,7 +1,7 @@
 import React from 'react';
 import { User } from 'lucide-react';
 import AdminListPage from '../features/admin/AdminListPage';
-import { userApi } from '../services/api';
+import { authApi } from '../services/api';
 import Badge from '../components/ui/Badge';
 import { getStatusConfig } from '../utils/statusConfig';
 
@@ -58,7 +58,7 @@ const AdminUsers = () => {
     <AdminListPage
       title="User Management"
       subtitle="Manage admin users and permissions"
-      apiService={userApi}
+      apiService={authApi}
       entityName="user"
       columns={columns}
       searchPlaceholder="Search users..."
