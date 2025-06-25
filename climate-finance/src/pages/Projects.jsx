@@ -238,7 +238,7 @@ const Projects = () => {
     if (projectsList.length > 0 && filteredProjects.length === 0) {
       setFilteredProjects(projectsList);
     }
-  }, [projectsList.length, filteredProjects.length]);
+  }, [projectsList.length, filteredProjects.length, projectsList]);
 
   const getProjectsConfig = useMemo(() => {
     if (!projectsList || projectsList.length === 0) {
