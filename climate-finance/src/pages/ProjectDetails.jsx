@@ -205,6 +205,11 @@ const ProjectDetails = () => {
 
   const progressPercentage = calculateProgress();
 
+  // Calculate over-disbursement robustly
+  const disbursedNum = Number(project.disbursement) || 0;
+  const committedNum = Number(project.gef_grant) || 0;
+  const isOverDisbursed = disbursedNum > committedNum;
+
   const exportData = {
     projectId: project?.project_id,
     title: project?.title,
@@ -308,22 +313,18 @@ const ProjectDetails = () => {
           </div>
 
           {/* Mini Progress Bar */}
-          {project.gef_grant > 0 && project.disbursement > 0 && (
-            <div className="mb-6 p-4 bg-primary-50 rounded-xl border border-primary-100">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-gray-800">Disbursement Progress</span>
-                <span className="text-sm font-bold text-primary-700">{progressPercentage}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
-                <div
-                  className="bg-gradient-to-r from-primary-500 to-primary-600 h-3 rounded-full transition-all duration-700"
-                  style={{ width: `${Math.min(progressPercentage, 100)}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-sm text-gray-600 mt-2">
-                <span>{formatCurrency(project.disbursement)}</span>
-                <span>{formatCurrency(project.gef_grant)}</span>
-              </div>
+          {committedNum > 0 && (
+            <div className="mb-6">
+              <ProgressBar
+                label="Disbursement Progress"
+                percentage={Math.min(progressPercentage, 100)}
+                current={disbursedNum}
+                total={committedNum}
+                formatValue={formatCurrency}
+                color={isOverDisbursed ? "warning" : "purple"}
+                showValues={true}
+                warning={isOverDisbursed ? "Disbursed amount exceeds committed funds!" : ""}
+              />
             </div>
           )}
 

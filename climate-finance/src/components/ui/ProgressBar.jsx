@@ -8,7 +8,8 @@ const ProgressBar = ({
   formatValue = (value) => value,
   color = "purple",
   showValues = true,
-  className = ""
+  className = "",
+  warning = ""
 }) => {
   const colorClasses = {
     purple: {
@@ -30,6 +31,16 @@ const ProgressBar = ({
       gradient: "from-orange-500 to-orange-600",
       text: "text-orange-600",
       bg: "from-gray-50 to-orange-50"
+    },
+    primary: {
+      gradient: "from-primary-500 to-primary-600",
+      text: "text-primary-600",
+      bg: "from-gray-50 to-primary-50"
+    },
+    warning: {
+      gradient: "from-red-500 to-red-600",
+      text: "text-red-600",
+      bg: "from-gray-50 to-red-50"
     }
   };
 
@@ -58,6 +69,12 @@ const ProgressBar = ({
           style={{ width: `${Math.min(percentage, 100)}%` }}
         ></div>
       </div>
+      {warning && (
+        <div className="mt-2 text-xs text-red-600 font-semibold flex items-center gap-1">
+          <svg xmlns='http://www.w3.org/2000/svg' className='inline w-4 h-4' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z' /></svg>
+          {warning}
+        </div>
+      )}
     </div>
   );
 };
