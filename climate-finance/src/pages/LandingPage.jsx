@@ -8,6 +8,7 @@ import {
     Target,
     Activity,
     CheckCircle,
+    FolderTree,
 } from "lucide-react";
 import PageLayout from "../components/layouts/PageLayout";
 import Card from "../components/ui/Card";
@@ -99,20 +100,32 @@ const LandingPage = () => {
                 };
                 setOverviewStats([
                     {
-                        title: "Total Adaptation Finance",
-                        value: formatCurrency(data.adaptation_finance || 0),
+                        title: "Total Climate Finance",
+                        value: formatCurrency(data.total_climate_finance || 0),
                         change: calculateChange(
-                            currentYear.adaptation_finance || 0,
-                            data.previous_year?.adaptation_finance || 0
+                            currentYear.total_climate_finance || 0,
+                            data.previous_year?.total_climate_finance || 0
                         ),
                     },
                     {
-                        title: "Total Mitigation Finance",
-                        value: formatCurrency(data.mitigation_finance || 0),
-                        change: calculateChange(
-                            currentYear.mitigation_finance || 0,
-                            data.previous_year?.mitigation_finance || 0
-                        ),
+                        title: "Total Projects",
+                        value: data.total_projects || 0,
+                        change: (() => {
+                            const curr = currentYear.total_projects;
+                            const prev = data.previous_year?.total_projects;
+                            if (
+                                prev === undefined ||
+                                prev === null ||
+                                curr === undefined ||
+                                curr === null
+                            )
+                                return "No comparison available";
+                            const diff = curr - prev;
+                            if (diff === 0) return "No change from last year";
+                            return diff > 0
+                                ? `+${diff} from last year`
+                                : `${diff} from last year`;
+                        })(),
                     },
                     {
                         title: "Active Projects",
@@ -239,8 +252,8 @@ const LandingPage = () => {
     const statsData = overviewStats.map((stat, index) => {
         const colors = ["success", "warning", "primary", "success"];
         const icons = [
-            <Target size={20} />, // Adaptation Finance
-            <Activity size={20} />, // Mitigation Finance
+            <DollarSign size={20} />, // Total Climate Finance
+            <FolderTree size={20} />, // Total Projects
             <TrendingUp size={20} />, // Active Projects
             <CheckCircle size={20} />, // Completed Projects
         ];
