@@ -175,54 +175,6 @@ const Projects = () => {
     }
   };
 
-  // Client-side filtering instead of API calls
-  useEffect(() => {
-    if (projectsList.length === 0) return;
-
-    let filtered = [...projectsList];
-
-    // Apply filters
-    Object.entries(activeFilters).forEach(([key, value]) => {
-      if (value && value !== 'All') {
-        filtered = filtered.filter(project => {
-          const projectValue = project[key];
-          
-          // Handle different data types
-          if (typeof projectValue === 'string') {
-            return projectValue.toLowerCase() === value.toLowerCase();
-          }
-          
-          // Handle numeric values (like approval_fy)
-          if (typeof projectValue === 'number') {
-            return projectValue.toString() === value;
-          }
-          
-          // Handle null/undefined values
-          if (projectValue === null || projectValue === undefined) {
-            return false;
-          }
-          
-          return projectValue === value;
-        });
-      }
-    });
-
-    // Apply search term
-    if (searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(project => {
-        return (
-          (project.title && project.title.toLowerCase().includes(searchLower)) ||
-          (project.project_id && project.project_id.toLowerCase().includes(searchLower)) ||
-          (project.objectives && project.objectives.toLowerCase().includes(searchLower)) ||
-          (project.beneficiaries && project.beneficiaries.toLowerCase().includes(searchLower))
-        );
-      });
-    }
-
-    setFilteredProjects(filtered);
-  }, [projectsList, activeFilters, searchTerm]);
-
   const statsData = Array.isArray(overviewStats) ? overviewStats.map((stat, index) => {
     const colors = ['primary', 'success', 'warning', 'primary'];
     const icons = [<FolderOpen size={20} />, <Activity size={20} />, <DollarSign size={20} />, <CheckCircle size={20} />];
@@ -235,10 +187,10 @@ const Projects = () => {
 
   // Set default filtered projects when projectsList changes
   useEffect(() => {
-    if (projectsList.length > 0 && filteredProjects.length === 0) {
+    if (projectsList.length > 0) {
       setFilteredProjects(projectsList);
     }
-  }, [projectsList.length, filteredProjects.length, projectsList]);
+  }, [projectsList]);
 
   const getProjectsConfig = useMemo(() => {
     if (!projectsList || projectsList.length === 0) {
@@ -534,6 +486,7 @@ const Projects = () => {
           
           <SearchFilter
             data={projectsList}
+            onFilteredData={setFilteredProjects}
             searchValue={searchTerm}
             onSearchChange={setSearchTerm}
             searchPlaceholder="Search projects by title, ID, objectives..."
