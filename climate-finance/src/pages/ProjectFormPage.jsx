@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, Link, useParams } from 'react-router-dom';
-import { locationApi, agencyApi, fundingSourceApi, focalAreaApi, projectApi } from '../services/api';
+import { useNavigate, Link, useParams, useLocation } from 'react-router-dom';
+import { locationApi, agencyApi, fundingSourceApi, focalAreaApi, projectApi, pendingProjectApi } from '../services/api';
 import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
 import Card from '../components/ui/Card';
 import PageLayout from '../components/layouts/PageLayout';
 import ProjectFormSections from '../features/admin/ProjectFormSections';
-import { ArrowLeft, FolderTree } from 'lucide-react';
+import { ArrowLeft, FolderTree, CheckCircle } from 'lucide-react';
+import { useToast } from '../components/ui/Toast';
 
 const defaultFormData = {
   project_id: '',
@@ -34,7 +35,8 @@ const defaultFormData = {
     sanitation_percent: 0,
     public_admin_percent: 0
   },
-  disbursement: ''
+  disbursement: '',
+  submitter_email: '' // Added for public mode
 };
 
 const formatDateForInput = (dateStr) => {
@@ -50,7 +52,9 @@ const ProjectFormPage = ({
   pageSubtitle
 }) => {
   const { id } = useParams();
-  const { user } = useAuth();
+  const location = useLocation();
+  const { user, isAuthenticated } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [formData, setFormData] = useState(defaultFormData);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,9 +66,22 @@ const ProjectFormPage = ({
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState(null);
   const [errors, setErrors] = useState({});
+  const [success, setSuccess] = useState(false);
 
-  // Determine mode based on params if not explicitly provided
-  const actualMode = mode === 'edit' || id ? 'edit' : 'add';
+  // Determine mode based on params, authentication, and URL query
+  const urlParams = new URLSearchParams(location.search);
+  const urlMode = urlParams.get('mode');
+  
+  let actualMode = mode;
+  if (id) {
+    actualMode = 'edit';
+  } else if (urlMode === 'public') {
+    actualMode = 'public';
+  } else if (!isAuthenticated) {
+    actualMode = 'public';
+  } else if (mode === 'add') {
+    actualMode = 'add';
+  }
 
   // Fetch project data for edit mode
   useEffect(() => {
@@ -110,7 +127,8 @@ const ProjectFormPage = ({
             sanitation_percent: 0,
             public_admin_percent: 0
           },
-          disbursement: projectData.disbursement || ''
+          disbursement: projectData.disbursement || '',
+          submitter_email: projectData.submitter_email || ''
         });
       } else {
         throw new Error('Project not found');
@@ -211,6 +229,22 @@ const ProjectFormPage = ({
     
     if (!validateForm()) return;
     
+    // Additional validation for public mode
+    if (actualMode === 'public') {
+      if (!formData.submitter_email.trim()) {
+        setErrors(prev => ({ ...prev, submitter_email: 'Email is required for public submissions' }));
+        return;
+      }
+      if (!formData.submitter_email.includes('@')) {
+        setErrors(prev => ({ ...prev, submitter_email: 'Please enter a valid email address' }));
+        return;
+      }
+      if (!formData.objectives.trim()) {
+        setErrors(prev => ({ ...prev, objectives: 'Project objectives are required' }));
+        return;
+      }
+    }
+    
     setIsLoading(true);
     setError(null);
     
@@ -254,16 +288,30 @@ const ProjectFormPage = ({
         agency_ids: formData.agencies || [],
         location_ids: formData.locations || [],
         funding_source_ids: formData.funding_sources || [],
-        focal_area_ids: formData.focal_areas || []
+        focal_area_ids: formData.focal_areas || [],
+        submitter_email: formData.submitter_email
       };
 
-      if (actualMode === 'add') {
+      if (actualMode === 'public') {
+        // Submit to pending projects for public mode
+        const response = await pendingProjectApi.submit(projectData);
+        if (response.status) {
+          setSuccess(true);
+          toast({
+            title: 'Success',
+            message: 'Project submitted successfully! It will be visible once approved by an administrator.',
+            type: 'success'
+          });
+        } else {
+          throw new Error(response.message || 'Failed to submit project');
+        }
+      } else if (actualMode === 'add') {
         await projectApi.add(projectData);
+        navigate('/admin/projects');
       } else {
         await projectApi.update(id, projectData);
+        navigate('/admin/projects');
       }
-
-      navigate('/admin/projects');
     } catch (error) {
       console.error('Error saving project:', error);
       setError(error.message || 'Failed to save project. Please try again.');
@@ -277,6 +325,43 @@ const ProjectFormPage = ({
       <PageLayout bgColor="bg-gray-50">
         <div className="flex justify-center items-center min-h-64">
           <Loading size="lg" />
+        </div>
+      </PageLayout>
+    );
+  }
+
+  // Success state for public mode
+  if (success && actualMode === 'public') {
+    return (
+      <PageLayout bgColor="bg-gray-50">
+        <div className="max-w-2xl mx-auto">
+          <Card padding="p-8">
+            <div className="text-center">
+              <CheckCircle size={64} className="mx-auto text-green-600 mb-6" />
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                Project Submitted Successfully!
+              </h1>
+              <p className="text-gray-600 mb-6">
+                Thank you for submitting your project. It has been received and will be reviewed by our administrators. 
+                You will be notified at <strong>{formData.submitter_email}</strong> once the review is complete.
+              </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <p className="text-blue-800 text-sm">
+                  <strong>What happens next?</strong><br />
+                  • Your project will be reviewed by our team<br />
+                  • We may contact you for additional information<br />
+                  • Once approved, your project will be visible on our platform
+                </p>
+              </div>
+              <Button
+                variant="primary"
+                onClick={() => navigate(location.state?.from || '/')}
+                leftIcon={<ArrowLeft size={16} />}
+              >
+                Back to Previous Page
+              </Button>
+            </div>
+          </Card>
         </div>
       </PageLayout>
     );
@@ -308,25 +393,44 @@ const ProjectFormPage = ({
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
         <div className="flex items-center space-x-4">
-          <Link to="/admin/projects" className="text-purple-600 hover:text-purple-700 transition-colors duration-200">
-            <ArrowLeft className="w-6 h-6" />
-          </Link>
+          <Button
+            variant="ghost"
+            onClick={() => navigate(location.state?.from || (actualMode === 'public' ? '/' : '/admin/projects'))}
+            leftIcon={<ArrowLeft size={16} />}
+            className="text-purple-600 hover:text-purple-700"
+          >
+            Back
+          </Button>
           <div>
             <h2 className="text-2xl font-bold text-gray-800">
-              {pageTitle || (actualMode === 'add' ? 'Add New Project' : 'Edit Project')}
+              {pageTitle || (actualMode === 'public' ? 'Submit a Project' : actualMode === 'add' ? 'Add New Project' : 'Edit Project')}
             </h2>
             <p className="text-gray-500">
-              {pageSubtitle || (actualMode === 'add' ? 'Create a new climate finance project' : `Update project details${formData.title ? ` for ${formData.title}` : ''}`)}
+              {pageSubtitle || (actualMode === 'public' ? 'Share your climate finance project with our community. All submissions are reviewed by administrators before being published.' : actualMode === 'add' ? 'Create a new climate finance project' : `Update project details${formData.title ? ` for ${formData.title}` : ''}`)}
             </p>
           </div>
         </div>
-        <div className="flex items-center space-x-4 mt-4 md:mt-0">
-          <div className="text-right">
-            <p className="text-sm font-medium text-gray-900">{user?.fullName}</p>
-            <p className="text-xs text-gray-500">{user?.role}</p>
+        {actualMode !== 'public' && (
+          <div className="flex items-center space-x-4 mt-4 md:mt-0">
+            <div className="text-right">
+              <p className="text-sm font-medium text-gray-900">{user?.fullName}</p>
+              <p className="text-xs text-gray-500">{user?.role}</p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
+
+      {/* Info Message for Public Mode */}
+      {actualMode === 'public' && (
+        <Card padding="p-6" className="mb-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-blue-800 text-sm">
+              <strong>Important:</strong> All project submissions require administrator approval before being published. 
+              You will be notified via email once your project has been reviewed.
+            </p>
+          </div>
+        </Card>
+      )}
 
       {/* Form Card */}
       <Card padding={true}>
@@ -606,16 +710,50 @@ const ProjectFormPage = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Objectives</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Objectives {actualMode === 'public' && <span className="text-red-500">*</span>}
+                </label>
                 <textarea
                   name="objectives"
                   value={formData.objectives}
                   onChange={handleInputChange}
                   rows={3}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                  className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                    errors.objectives ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   placeholder="Describe the project objectives..."
+                  required={actualMode === 'public'}
                 />
+                {errors.objectives && (
+                  <p className="mt-1 text-sm text-red-600">{errors.objectives}</p>
+                )}
               </div>
+              
+              {/* Email field for public mode */}
+              {actualMode === 'public' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Your Email Address <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    name="submitter_email"
+                    value={formData.submitter_email}
+                    onChange={handleInputChange}
+                    className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
+                      errors.submitter_email ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter your email address"
+                    required
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    We'll notify you when your project is reviewed
+                  </p>
+                  {errors.submitter_email && (
+                    <p className="mt-1 text-sm text-red-600">{errors.submitter_email}</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -623,7 +761,7 @@ const ProjectFormPage = ({
           <div className="flex justify-end space-x-3 pt-6 border-t">
             <Button
               type="button"
-              onClick={() => navigate('/admin/projects')}
+              onClick={() => navigate(location.state?.from || (actualMode === 'public' ? '/' : '/admin/projects'))}
               variant="outline"
               disabled={isLoading}
             >
@@ -635,8 +773,8 @@ const ProjectFormPage = ({
               disabled={isLoading}
             >
               {isLoading 
-                ? (actualMode === 'add' ? 'Creating...' : 'Updating...') 
-                : (actualMode === 'add' ? 'Create Project' : 'Update Project')
+                ? (actualMode === 'public' ? 'Submitting...' : actualMode === 'add' ? 'Creating...' : 'Updating...') 
+                : (actualMode === 'public' ? 'Submit Project' : actualMode === 'add' ? 'Create Project' : 'Update Project')
               }
             </Button>
           </div>

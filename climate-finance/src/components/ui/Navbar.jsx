@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Plus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -12,6 +12,16 @@ const Navbar = () => {
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const getAddProjectPath = () => {
+    if (isAuthenticated) {
+      // For admins, go to admin project form
+      return '/admin/projects/new';
+    } else {
+      // For viewers, go to public submission form
+      return '/projects/new?mode=public';
+    }
   };
 
   const navLinks = [
@@ -72,6 +82,17 @@ const Navbar = () => {
                 </Link>
               )
             ))}
+            
+            {/* Add Project Button */}
+            <Link
+              to={getAddProjectPath()}
+              state={{ from: path }}
+              className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors duration-200"
+            >
+              <Plus size={16} className="mr-2" />
+              Add Project
+            </Link>
+            
             <LanguageSwitcher />
           </nav>
 
@@ -120,6 +141,19 @@ const Navbar = () => {
               </Link>
             )
           ))}
+          
+          {/* Mobile Add Project Button */}
+          <Link
+            to={getAddProjectPath()}
+            state={{ from: path }}
+            className="block px-4 py-3 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors duration-200"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <div className="flex items-center">
+              <Plus size={16} className="mr-2" />
+              Add Project
+            </div>
+          </Link>
         </nav>
         <div className="px-8 pb-4">
           <LanguageSwitcher />

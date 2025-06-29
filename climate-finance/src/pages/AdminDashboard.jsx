@@ -21,6 +21,7 @@ import {
     Banknote,
     RefreshCw,
     Activity,
+    CheckCircle,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -169,11 +170,19 @@ const AdminDashboard = () => {
             color: "bg-primary-600",
         },
         {
+            title: "Project Approval",
+            description: "Review and approve pending project submissions",
+            icon: <CheckCircle size={20} />,
+            path: "/admin/project-approval",
+            color: "bg-info-600",
+        },
+        {
             title: "User Management",
             description: "Manage admin users and permissions",
             icon: <Users size={20} />,
             path: "/admin/users",
             color: "bg-success-600",
+            disabled: user?.role === 'Project Manager',
         },
         {
             title: "Funding Sources",
@@ -266,25 +275,46 @@ const AdminDashboard = () => {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {menuItems.map((item, index) => (
-                        <Link
-                            key={index}
-                            to={item.path}
-                            className="group flex items-center p-4 rounded-xl border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200 hover:shadow-medium"
-                        >
+                        item.disabled ? (
                             <div
-                                className={`p-3 rounded-xl ${item.color} group-hover:scale-105 transition-transform duration-200`}
+                                key={index}
+                                className="group flex items-center p-4 rounded-xl border border-gray-200 bg-gray-50 cursor-not-allowed opacity-50"
                             >
-                                {item.icon}
-                            </div>
-                            <div className="ml-4">
-                                <div className="font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
-                                    {item.title}
+                                <div
+                                    className={`p-3 rounded-xl ${item.color} opacity-50`}
+                                >
+                                    {item.icon}
                                 </div>
-                                <p className="text-sm text-gray-600">
-                                    {item.description}
-                                </p>
+                                <div className="ml-4">
+                                    <div className="font-semibold text-gray-500">
+                                        {item.title}
+                                    </div>
+                                    <p className="text-sm text-gray-400">
+                                        {item.description}
+                                    </p>
+                                </div>
                             </div>
-                        </Link>
+                        ) : (
+                            <Link
+                                key={index}
+                                to={item.path}
+                                className="group flex items-center p-4 rounded-xl border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200 hover:shadow-medium"
+                            >
+                                <div
+                                    className={`p-3 rounded-xl ${item.color} group-hover:scale-105 transition-transform duration-200`}
+                                >
+                                    {item.icon}
+                                </div>
+                                <div className="ml-4">
+                                    <div className="font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
+                                        {item.title}
+                                    </div>
+                                    <p className="text-sm text-gray-600">
+                                        {item.description}
+                                    </p>
+                                </div>
+                            </Link>
+                        )
                     ))}
                 </div>
             </Card>

@@ -83,6 +83,37 @@ export const projectApi = {
   getRegionalDistribution: () => apiRequest('/project/get-regional-distribution'),
 };
 
+// Pending Project API endpoints
+export const pendingProjectApi = {
+  // Public submission
+  submit: (projectData) => {
+    if (!projectData) throw new Error('Project data is required');
+    return apiRequest('/pending-project/submit', {
+      method: 'POST',
+      body: JSON.stringify(projectData),
+    });
+  },
+  
+  // Admin operations
+  getAll: () => apiRequest('/pending-project/all'),
+  getById: (id) => {
+    if (!id) throw new Error('Pending project ID is required');
+    return apiRequest(`/pending-project/${id}`);
+  },
+  approve: (id) => {
+    if (!id) throw new Error('Pending project ID is required');
+    return apiRequest(`/pending-project/approve/${id}`, {
+      method: 'PUT',
+    });
+  },
+  reject: (id) => {
+    if (!id) throw new Error('Pending project ID is required');
+    return apiRequest(`/pending-project/reject/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
 // Location API endpoints
 export const locationApi = {
   getAll: () => apiRequest('/location/all'),

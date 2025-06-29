@@ -28,9 +28,10 @@ const UserFormPage = ({ mode = 'add' }) => {
       required: true,
       options: [
         { value: '', label: 'Select role' },
-        { value: 'Super Admin', label: 'Super Admin' },
-        { value: 'Project Manager', label: 'Project Manager' },
-        { value: 'Finance Admin', label: 'Finance Admin' }
+        { value: 'Super Admin', label: 'Super Admin (Full Access)' },
+        { value: 'Project Manager', label: 'Admin (Basic Access)' },
+        { value: 'Finance Admin', label: 'Admin (Basic Access)' },
+        { value: 'Data Manager', label: 'Admin (Basic Access)' }
       ],
       className: 'md:col-span-1'
     },

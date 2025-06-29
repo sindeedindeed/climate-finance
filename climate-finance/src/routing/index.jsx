@@ -18,6 +18,7 @@ import AdminAgencies from '../pages/AdminAgencies';
 import AdminFundingSources from '../pages/AdminFundingSources';
 import AdminLocations from '../pages/AdminLocations';
 import AdminFocalAreas from '../pages/AdminFocalAreas';
+import AdminProjectApproval from '../pages/AdminProjectApproval';
 import UserFormPage from '../pages/UserFormPage';
 import AgencyFormPage from '../pages/AgencyFormPage';
 import LocationFormPage from '../pages/LocationFormPage';
@@ -77,11 +78,7 @@ const Routing = () => {
       {/* Projects routes */}
       <Route path="/projects" element={<Projects />} />
       <Route path="/projects/:id" element={<ProjectDetails />} />
-      <Route path="/projects/new" element={
-        <ProtectedRoute>
-          <ProjectFormPage mode="add" />
-        </ProtectedRoute>
-      } />
+      <Route path="/projects/new" element={<ProjectFormPage mode="public" />} />
       <Route path="/projects/:id/edit" element={
         <ProtectedRoute>
           <ProjectFormPage mode="edit" />
@@ -215,6 +212,13 @@ const Routing = () => {
       <Route path="/admin/focal-areas/:id/edit" element={
         <AdminRoute>
           <FocalAreaFormPage mode="edit" />
+        </AdminRoute>
+      } />
+      
+      {/* Admin Project Approval */}
+      <Route path="/admin/project-approval" element={
+        <AdminRoute>
+          <AdminProjectApproval />
         </AdminRoute>
       } />
       
