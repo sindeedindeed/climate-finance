@@ -5,6 +5,7 @@ import Form from '../../components/ui/Form';
 import FormField from '../../components/ui/FormField';
 import ErrorState from '../../components/ui/ErrorState';
 import Loading from '../../components/ui/Loading';
+
 const AdminFormPage = ({
   entityName,
   apiService,
@@ -44,13 +45,7 @@ const AdminFormPage = ({
   const defaultBackPath = `/admin/${pluralize(entityName)}`;
   const finalBackPath = backPath || defaultBackPath;
 
-  // Fetch data for edit mode
-  useEffect(() => {
-    if (isEditMode) {
-      fetchData();
-    }
-  }, [id, isEditMode, fetchData]);
-
+  // Define fetchData before using it in useEffect
   const fetchData = async () => {
     try {
       setIsFetching(true);
@@ -64,6 +59,13 @@ const AdminFormPage = ({
       setIsFetching(false);
     }
   };
+
+  // Fetch data for edit mode
+  useEffect(() => {
+    if (isEditMode) {
+      fetchData();
+    }
+  }, [id, isEditMode]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;

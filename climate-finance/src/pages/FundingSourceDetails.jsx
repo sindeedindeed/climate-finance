@@ -159,6 +159,11 @@ const FundingSourceDetails = () => {
     return 0;
   })();
 
+  // Calculate over-disbursement robustly
+  const disbursedNum = Number(source.total_disbursed || source.disbursement || 0);
+  const committedNum = Number(source.total_committed || source.grant_amount || 0);
+  const isOverDisbursed = disbursedNum > committedNum;
+
   const exportData = {
     source: source?.name,
     type: source?.type,
@@ -252,22 +257,18 @@ const FundingSourceDetails = () => {
           </div>
 
           {/* Mini Progress Bar */}
-          {disbursementRate > 0 && (source.total_committed || source.grant_amount) > 0 && (
-            <div className="mb-6 p-4 bg-primary-50 rounded-xl border border-primary-100">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-gray-800">Disbursement Progress</span>
-                <span className="text-sm font-bold text-primary-700">{disbursementRate.toFixed(1)}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
-                <div
-                  className="bg-gradient-to-r from-primary-500 to-primary-600 h-3 rounded-full transition-all duration-700"
-                  style={{ width: `${Math.min(disbursementRate, 100)}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-sm text-gray-600 mt-2">
-                <span>{formatCurrency(source.total_disbursed || source.disbursement || 0)}</span>
-                <span>{formatCurrency(source.total_committed || source.grant_amount || 0)}</span>
-              </div>
+          {committedNum > 0 && (
+            <div className="mb-6">
+              <ProgressBar
+                label="Disbursement Progress"
+                percentage={Math.min(disbursementRate, 100)}
+                current={disbursedNum}
+                total={committedNum}
+                formatValue={formatCurrency}
+                color={isOverDisbursed ? "warning" : "purple"}
+                showValues={true}
+                warning={isOverDisbursed ? "Disbursed amount exceeds committed funds!" : ""}
+              />
             </div>
           )}
 

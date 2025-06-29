@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { projectApi, agencyApi, fundingSourceApi } from '../services/api';
 import { formatCurrency, formatDate } from '../utils/formatters';
@@ -67,11 +67,11 @@ const Projects = () => {
     });
   }, []);
 
-  const fetchAllProjectData = async (query = '') => {
+  const fetchAllProjectData = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      console.log('[Projects] Fetching projects with query:', query);
+      console.log('[Projects] Fetching projects data');
       const [
         projectsResponse,
         overviewResponse,
@@ -79,7 +79,7 @@ const Projects = () => {
         typeResponse,
         trendResponse
       ] = await Promise.all([
-        projectApi.getAll(query),
+        projectApi.getAll(),
         projectApi.getProjectsOverviewStats(),
         projectApi.getByStatus(),
         projectApi.getByType(),
@@ -175,15 +175,6 @@ const Projects = () => {
     }
   };
 
-  useEffect(() => {
-    // Build query string from all activeFilters (except 'All')
-    const params = Object.entries(activeFilters)
-      .filter(([, value]) => value && value !== 'All')
-      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
-    const query = params.length > 0 ? `?${params.join('&')}` : '';
-    fetchAllProjectData(query);
-  }, [activeFilters]);
-
   const statsData = Array.isArray(overviewStats) ? overviewStats.map((stat, index) => {
     const colors = ['primary', 'success', 'warning', 'primary'];
     const icons = [<FolderOpen size={20} />, <Activity size={20} />, <DollarSign size={20} />, <CheckCircle size={20} />];
@@ -196,25 +187,10 @@ const Projects = () => {
 
   // Set default filtered projects when projectsList changes
   useEffect(() => {
-    if (projectsList.length > 0 && filteredProjects.length === 0) {
+    if (projectsList.length > 0) {
       setFilteredProjects(projectsList);
     }
-  }, [projectsList.length, filteredProjects.length]);
-
-  const handleFilteredData = useCallback((filtered) => {
-    // Early return to prevent unnecessary state updates
-    if (!Array.isArray(filtered)) {
-      return;
-    }
-    
-    // Check if the filtered data is actually different
-    if (filtered.length === filteredProjects.length && 
-        filtered.every((item, index) => item === filteredProjects[index])) {
-      return;
-    }
-    
-    setFilteredProjects(filtered);
-  }, [filteredProjects]);
+  }, [projectsList]);
 
   const getProjectsConfig = useMemo(() => {
     if (!projectsList || projectsList.length === 0) {
@@ -233,6 +209,7 @@ const Projects = () => {
     const sectors = Array.from(new Set(projectsList.map(p => p.sector).filter(Boolean))).sort();
     const types = Array.from(new Set(projectsList.map(p => p.type).filter(Boolean))).sort();
     const divisions = Array.from(new Set(projectsList.map(p => p.division).filter(Boolean))).sort();
+    const statuses = Array.from(new Set(projectsList.map(p => p.status).filter(Boolean))).sort();
     const approvalYears = Array.from(new Set(projectsList.map(p => p.approval_fy).filter(Boolean))).sort();
 
     const filters = [
@@ -241,11 +218,7 @@ const Projects = () => {
         label: 'Status',
         options: [
           { value: 'All', label: 'All Statuses' },
-          { value: 'Active', label: 'Active' },
-          { value: 'Completed', label: 'Completed' },
-          { value: 'Planning', label: 'Planning' },
-          { value: 'On Hold', label: 'On Hold' },
-          { value: 'Cancelled', label: 'Cancelled' }
+          ...statuses.map(status => ({ value: status, label: status }))
         ]
       },
       ...(sectors.length > 0 ? [{
@@ -276,7 +249,7 @@ const Projects = () => {
         key: 'approval_fy',
         label: 'Approval Year',
         options: [
-          { value: 'All', label: 'All Years' },
+          { value: 'All', label: 'All Approval Years' },
           ...approvalYears.map(year => ({ value: year, label: year }))
         ]
       }] : []),
@@ -513,7 +486,7 @@ const Projects = () => {
           
           <SearchFilter
             data={projectsList}
-            onFilteredData={handleFilteredData}
+            onFilteredData={setFilteredProjects}
             searchValue={searchTerm}
             onSearchChange={setSearchTerm}
             searchPlaceholder="Search projects by title, ID, objectives..."
@@ -614,6 +587,24 @@ const Projects = () => {
                           <span className="text-gray-600 font-medium">Duration:</span>
                           <div className="text-gray-700 mt-1 text-xs">
                             {formatDate(project.beginning)} - {formatDate(project.closing)}
+                          </div>
+                        </div>
+                      )}
+
+                      {project.agencies && project.agencies.length > 0 && (
+                        <div className="text-sm">
+                          <span className="text-gray-600 font-medium">Agency:</span>
+                          <div className="text-gray-700 mt-1 line-clamp-2 text-xs">
+                            {project.agencies.map(agency => agency.name).join(', ')}
+                          </div>
+                        </div>
+                      )}
+
+                      {project.funding_sources && project.funding_sources.length > 0 && (
+                        <div className="text-sm">
+                          <span className="text-gray-600 font-medium">Funding Source:</span>
+                          <div className="text-gray-700 mt-1 line-clamp-2 text-xs">
+                            {project.funding_sources.map(fs => fs.name).join(', ')}
                           </div>
                         </div>
                       )}

@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useRef } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
 import { SEARCH_CONFIGS } from '../../constants/searchConfigs';
 
@@ -47,8 +47,13 @@ const getNestedValue = (obj, path) => {
 
 // Filter data based on active filters
 const filterData = (data, activeFilters) => {
+  console.log('[filterData] Starting filter with:', {
+    dataLength: data.length,
+    activeFilters
+  });
+  
   return data.filter(item => {
-    return Object.entries(activeFilters).every(([key, value]) => {
+    const passesAllFilters = Object.entries(activeFilters).every(([key, value]) => {
       if (!value || value === 'All') return true;
       
       const itemValue = getNestedValue(item, key);
@@ -60,11 +65,55 @@ const filterData = (data, activeFilters) => {
       
       // Handle case-insensitive matching for string values
       if (typeof itemValue === 'string' && typeof value === 'string') {
-        return itemValue.toLowerCase() === value.toLowerCase();
+        const matches = itemValue.toLowerCase() === value.toLowerCase();
+        if (!matches) {
+          console.log(`[filterData] Item ${item.project_id || item.id} failed filter ${key}:`, {
+            itemValue,
+            filterValue: value,
+            type: 'string comparison'
+          });
+        }
+        return matches;
       }
       
-      return itemValue === value;
+      // Handle numeric values (like IDs)
+      if (typeof itemValue === 'number' && typeof value === 'string') {
+        const matches = itemValue.toString() === value;
+        if (!matches) {
+          console.log(`[filterData] Item ${item.project_id || item.id} failed filter ${key}:`, {
+            itemValue,
+            filterValue: value,
+            type: 'number to string comparison'
+          });
+        }
+        return matches;
+      }
+      
+      // Handle string values that should be compared as numbers
+      if (typeof itemValue === 'string' && typeof value === 'string' && !isNaN(itemValue) && !isNaN(value)) {
+        const matches = itemValue === value;
+        if (!matches) {
+          console.log(`[filterData] Item ${item.project_id || item.id} failed filter ${key}:`, {
+            itemValue,
+            filterValue: value,
+            type: 'string number comparison'
+          });
+        }
+        return matches;
+      }
+      
+      const matches = itemValue === value;
+      if (!matches) {
+        console.log(`[filterData] Item ${item.project_id || item.id} failed filter ${key}:`, {
+          itemValue,
+          filterValue: value,
+          type: 'direct comparison'
+        });
+      }
+      return matches;
     });
+    
+    return passesAllFilters;
   });
 };
 
@@ -96,27 +145,38 @@ const SearchFilter = ({
     return SEARCH_CONFIGS[entityType] || SEARCH_CONFIGS.projects;
   }, [entityType, customConfig, filters]);
 
-  // Use ref to track previous results and prevent unnecessary updates
-  const previousResultRef = useRef(null);
-
   // Process data with search and filters
   useEffect(() => {
     let result = [...data]; // Create a copy to avoid mutation issues
     
+    console.log('[SearchFilter] Processing data:', {
+      dataLength: data.length,
+      activeFilters,
+      searchValue,
+      initialResultLength: result.length
+    });
+    
     // Apply filters first
     if (Object.keys(activeFilters).length > 0) {
       result = filterData(result, activeFilters);
+      console.log('[SearchFilter] After filtering:', {
+        resultLength: result.length,
+        activeFilters
+      });
     }
     
     // Apply search with scoring
     if (searchValue) {
       result = advancedSearch(result, searchValue, searchConfig);
+      console.log('[SearchFilter] After search:', {
+        resultLength: result.length,
+        searchValue
+      });
     }
     
-    // Only call onFilteredData if the result is actually different
-    const resultString = JSON.stringify(result.map(item => item.project_id || item.id || item.name));
-    if (previousResultRef.current !== resultString && onFilteredData) {
-      previousResultRef.current = resultString;
+    // Always call onFilteredData when data changes or when filters/search change
+    if (onFilteredData) {
+      console.log('[SearchFilter] Calling onFilteredData with', result.length, 'items');
       onFilteredData(result);
     }
   }, [data, searchValue, activeFilters, searchConfig, onFilteredData]);

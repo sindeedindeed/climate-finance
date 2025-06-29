@@ -10,7 +10,10 @@ export const formatCurrency = (amount) => {
   if (amount >= 1000000) {
     return `$${(amount / 1000000).toFixed(1)}M`;
   }
-  return `$${(amount / 1000).toFixed(1)}K`;
+  if (amount >= 10000) {
+    return `$${(amount / 1000).toFixed(1)}K`;
+  }
+  return `$${amount.toLocaleString()}`;
 };
 
 /**

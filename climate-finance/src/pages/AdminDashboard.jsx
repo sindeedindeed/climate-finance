@@ -21,6 +21,7 @@ import {
     Banknote,
     RefreshCw,
     Activity,
+    CheckCircle,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -43,33 +44,72 @@ const AdminDashboard = () => {
 
             if (response.status && response.data) {
                 const data = response.data;
-                console.log(data);
+                console.log('Admin Dashboard data:', data);
+                
+                // Helper function to calculate percentage change
+                const calculateChange = (current, previous) => {
+                    const currentNum = parseFloat(current) || 0;
+                    const previousNum = parseFloat(previous) || 0;
+                    
+                    if (previousNum === 0) {
+                        return "No previous data available";
+                    }
+                    if (currentNum === 0 && previousNum === 0) {
+                        return "No change from last year";
+                    }
+                    
+                    const percentage = ((currentNum - previousNum) / previousNum) * 100;
+                    return percentage >= 0
+                        ? `+${percentage.toFixed(2)}% from last year`
+                        : `${percentage.toFixed(2)}% from last year`;
+                };
+                
                 setDashboardStats([
                     {
                         title: "Total Projects",
                         value: data.total_projects || 0,
-                        change: "+2 this month",
+                        change: data.previous_year?.total_projects !== undefined
+                            ? calculateChange(
+                                  data.current_year?.total_projects || 0,
+                                  data.previous_year.total_projects || 0
+                              )
+                            : "Based on all-time data",
                         color: "primary",
                         icon: <FolderTree size={20} />,
                     },
                     {
                         title: "Active Projects",
                         value: data.active_projects || 0,
-                        change: "+1 this month",
+                        change: data.previous_year?.active_projects !== undefined
+                            ? calculateChange(
+                                  data.current_year?.active_projects || 0,
+                                  data.previous_year.active_projects || 0
+                              )
+                            : "Based on all-time data",
                         color: "success",
                         icon: <Activity size={20} />,
                     },
                     {
                         title: "Total Climate Finance",
                         value: formatCurrency(data.total_climate_finance || 0),
-                        change: "+15% this year",
+                        change: data.previous_year?.total_climate_finance !== undefined
+                            ? calculateChange(
+                                  data.current_year?.total_climate_finance || 0,
+                                  data.previous_year.total_climate_finance || 0
+                              )
+                            : "Based on all-time data",
                         color: "warning",
                         icon: <Banknote size={20} />,
                     },
                     {
                         title: "Adaptation Finance",
                         value: formatCurrency(data.adaptation_finance || 0),
-                        change: "+12% this year",
+                        change: data.previous_year?.adaptation_finance !== undefined
+                            ? calculateChange(
+                                  data.current_year?.adaptation_finance || 0,
+                                  data.previous_year.adaptation_finance || 0
+                              )
+                            : "Based on all-time data",
                         color: "primary",
                         icon: <DollarSign size={20} />,
                     },
@@ -130,11 +170,19 @@ const AdminDashboard = () => {
             color: "bg-primary-600",
         },
         {
+            title: "Project Approval",
+            description: "Review and approve pending project submissions",
+            icon: <CheckCircle size={20} />,
+            path: "/admin/project-approval",
+            color: "bg-info-600",
+        },
+        {
             title: "User Management",
             description: "Manage admin users and permissions",
             icon: <Users size={20} />,
             path: "/admin/users",
             color: "bg-success-600",
+            disabled: user?.role === 'Project Manager',
         },
         {
             title: "Funding Sources",
@@ -227,25 +275,46 @@ const AdminDashboard = () => {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {menuItems.map((item, index) => (
-                        <Link
-                            key={index}
-                            to={item.path}
-                            className="group flex items-center p-4 rounded-xl border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200 hover:shadow-medium"
-                        >
+                        item.disabled ? (
                             <div
-                                className={`p-3 rounded-xl ${item.color} group-hover:scale-105 transition-transform duration-200`}
+                                key={index}
+                                className="group flex items-center p-4 rounded-xl border border-gray-200 bg-gray-50 cursor-not-allowed opacity-50"
                             >
-                                {item.icon}
-                            </div>
-                            <div className="ml-4">
-                                <div className="font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
-                                    {item.title}
+                                <div
+                                    className={`p-3 rounded-xl ${item.color} opacity-50`}
+                                >
+                                    {item.icon}
                                 </div>
-                                <p className="text-sm text-gray-600">
-                                    {item.description}
-                                </p>
+                                <div className="ml-4">
+                                    <div className="font-semibold text-gray-500">
+                                        {item.title}
+                                    </div>
+                                    <p className="text-sm text-gray-400">
+                                        {item.description}
+                                    </p>
+                                </div>
                             </div>
-                        </Link>
+                        ) : (
+                            <Link
+                                key={index}
+                                to={item.path}
+                                className="group flex items-center p-4 rounded-xl border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200 hover:shadow-medium"
+                            >
+                                <div
+                                    className={`p-3 rounded-xl ${item.color} group-hover:scale-105 transition-transform duration-200`}
+                                >
+                                    {item.icon}
+                                </div>
+                                <div className="ml-4">
+                                    <div className="font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
+                                        {item.title}
+                                    </div>
+                                    <p className="text-sm text-gray-600">
+                                        {item.description}
+                                    </p>
+                                </div>
+                            </Link>
+                        )
                     ))}
                 </div>
             </Card>

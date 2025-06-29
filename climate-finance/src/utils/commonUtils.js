@@ -205,14 +205,14 @@ export const formatters = {
       });
 
       return formatter.format(dateObj);
-    } catch (error) {
+    } catch {
       return '-';
     }
   },
 
   // Percentage formatting
   percentage: (value, options = {}) => {
-    const { minimumFractionDigits = 1, maximumFractionDigits = 1 } = options;
+    const { maximumFractionDigits = 1 } = options;
 
     if (value === null || value === undefined || isNaN(value)) {
       return '-';

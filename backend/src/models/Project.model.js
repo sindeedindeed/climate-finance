@@ -103,60 +103,119 @@ Project.addProjectWithRelations = async (data) => {
 };
 
 Project.getAllProjects = async () => {
-    const query = `
-        SELECT 
-            p.project_id,
-            p.title,
-            p.type,
-            p.sector,
-            p.division,
-            p.status,
-            p.approval_fy,
-            p.beginning,
-            p.closing,
-            p.total_cost_usd,
-            p.gef_grant,
-            p.cofinancing,
-            p.disbursement,
-            p.wash_finance,
-            p.wash_finance_percent,
-            p.beneficiaries,
-            p.objectives,
-            wc.presence as wash_presence,
-            wc.water_supply_percent,
-            wc.sanitation_percent,
-            wc.public_admin_percent
-        FROM Project p
-        LEFT JOIN WASHComponent wc ON p.project_id = wc.project_id
-    `;
-    const { rows } = await pool.query(query);
-    
-    // Transform the results to include wash_component as an object
-    return rows.map(row => ({
-        project_id: row.project_id,
-        title: row.title,
-        type: row.type,
-        sector: row.sector,
-        division: row.division,
-        status: row.status,
-        approval_fy: row.approval_fy,
-        beginning: row.beginning,
-        closing: row.closing,
-        total_cost_usd: row.total_cost_usd,
-        gef_grant: row.gef_grant,
-        cofinancing: row.cofinancing,
-        disbursement: row.disbursement,
-        wash_finance: row.wash_finance,
-        wash_finance_percent: row.wash_finance_percent,
-        beneficiaries: row.beneficiaries,
-        objectives: row.objectives,
-        wash_component: {
-            presence: row.wash_presence || false,
-            water_supply_percent: row.water_supply_percent || 0,
-            sanitation_percent: row.sanitation_percent || 0,
-            public_admin_percent: row.public_admin_percent || 0
-        }
-    }));
+    const client = await pool.connect();
+    try {
+        // Get basic project data with WASH component
+        const projectQuery = `
+            SELECT 
+                p.project_id,
+                p.title,
+                p.type,
+                p.sector,
+                p.division,
+                p.status,
+                p.approval_fy,
+                p.beginning,
+                p.closing,
+                p.total_cost_usd,
+                p.gef_grant,
+                p.cofinancing,
+                p.disbursement,
+                p.wash_finance,
+                p.wash_finance_percent,
+                p.beneficiaries,
+                p.objectives,
+                wc.presence as wash_presence,
+                wc.water_supply_percent,
+                wc.sanitation_percent,
+                wc.public_admin_percent
+            FROM Project p
+            LEFT JOIN WASHComponent wc ON p.project_id = wc.project_id
+        `;
+        const projectResult = await client.query(projectQuery);
+        
+        // Get all project-agency relationships
+        const agencyQuery = `
+            SELECT pa.project_id, pa.agency_id, a.name as agency_name
+            FROM ProjectAgency pa
+            INNER JOIN Agency a ON pa.agency_id = a.agency_id
+        `;
+        const agencyResult = await client.query(agencyQuery);
+        
+        // Get all project-funding source relationships
+        const fundingSourceQuery = `
+            SELECT pfs.project_id, pfs.funding_source_id, fs.name as funding_source_name
+            FROM ProjectFundingSource pfs
+            INNER JOIN FundingSource fs ON pfs.funding_source_id = fs.funding_source_id
+        `;
+        const fundingSourceResult = await client.query(fundingSourceQuery);
+        
+        // Create lookup maps for quick access
+        const agencyMap = {};
+        const fundingSourceMap = {};
+        
+        agencyResult.rows.forEach(row => {
+            if (!agencyMap[row.project_id]) {
+                agencyMap[row.project_id] = [];
+            }
+            agencyMap[row.project_id].push({
+                agency_id: row.agency_id,
+                name: row.agency_name
+            });
+        });
+        
+        fundingSourceResult.rows.forEach(row => {
+            if (!fundingSourceMap[row.project_id]) {
+                fundingSourceMap[row.project_id] = [];
+            }
+            fundingSourceMap[row.project_id].push({
+                funding_source_id: row.funding_source_id,
+                name: row.funding_source_name
+            });
+        });
+        
+        // Transform the results to include related data
+        return projectResult.rows.map(row => {
+            const projectAgencies = agencyMap[row.project_id] || [];
+            const projectFundingSources = fundingSourceMap[row.project_id] || [];
+            
+            return {
+                project_id: row.project_id,
+                title: row.title,
+                type: row.type,
+                sector: row.sector,
+                division: row.division,
+                status: row.status,
+                approval_fy: row.approval_fy,
+                beginning: row.beginning,
+                closing: row.closing,
+                total_cost_usd: row.total_cost_usd,
+                gef_grant: row.gef_grant,
+                cofinancing: row.cofinancing,
+                disbursement: row.disbursement,
+                wash_finance: row.wash_finance,
+                wash_finance_percent: row.wash_finance_percent,
+                beneficiaries: row.beneficiaries,
+                objectives: row.objectives,
+                // Add agency and funding source data for filtering
+                agency_id: projectAgencies.length > 0 ? projectAgencies[0].agency_id : null,
+                funding_source_id: projectFundingSources.length > 0 ? projectFundingSources[0].funding_source_id : null,
+                // Keep full arrays for backward compatibility
+                agencies: projectAgencies,
+                funding_sources: projectFundingSources,
+                wash_component: {
+                    presence: row.wash_presence || false,
+                    water_supply_percent: row.water_supply_percent || 0,
+                    sanitation_percent: row.sanitation_percent || 0,
+                    public_admin_percent: row.public_admin_percent || 0
+                }
+            };
+        });
+    } catch (err) {
+        throw err;
+    } finally {
+        client.release();
+    }
 };
 
 Project.updateProject = async (id, data) => {
@@ -614,10 +673,11 @@ Project.getOverviewStats = async () => {
                     FROM Project p
                     WHERE p.type = 'Mitigation'
                 ) AS mitigation_finance,
-                (SELECT COUNT(*) FROM Project WHERE now() BETWEEN beginning AND closing) AS active_projects
+                (SELECT COUNT(*) FROM Project WHERE now() BETWEEN beginning AND closing) AS active_projects,
+                (SELECT COUNT(*) FROM Project WHERE status IN('Implemented')) AS completed_projects
         `;
 
-        const trendQuery = `
+        const currentYearQuery = `
             SELECT
                 (SELECT COUNT(*) FROM Project WHERE approval_fy = EXTRACT(YEAR FROM CURRENT_DATE)) AS total_projects,
                 SUM(p.total_cost_usd) AS total_climate_finance,
@@ -641,18 +701,64 @@ Project.getOverviewStats = async () => {
                     FROM Project
                     WHERE now() BETWEEN beginning AND closing 
                     AND approval_fy = EXTRACT(YEAR FROM CURRENT_DATE)
-                ) AS active_projects
+                ) AS active_projects,
+
+                (
+                    SELECT COUNT(*)
+                    FROM Project
+                    WHERE status IN('Implemented')
+                    AND approval_fy = EXTRACT(YEAR FROM CURRENT_DATE)
+                ) AS completed_projects
 
             FROM Project p
             WHERE p.approval_fy = EXTRACT(YEAR FROM CURRENT_DATE);
         `;
 
+        const previousYearQuery = `
+            SELECT
+                (SELECT COUNT(*) FROM Project WHERE approval_fy = EXTRACT(YEAR FROM CURRENT_DATE) - 1) AS total_projects,
+                SUM(p.total_cost_usd) AS total_climate_finance,
+
+                (
+                    SELECT COALESCE(SUM(p2.gef_grant), 0)
+                    FROM Project p2
+                    WHERE p2.type = 'Adaptation'
+                      AND p2.approval_fy = EXTRACT(YEAR FROM CURRENT_DATE) - 1
+                ) AS adaptation_finance,
+
+                (
+                    SELECT COALESCE(SUM(p3.gef_grant), 0)
+                    FROM Project p3
+                    WHERE p3.type = 'Mitigation'
+                      AND p3.approval_fy = EXTRACT(YEAR FROM CURRENT_DATE) - 1
+                ) AS mitigation_finance,
+
+                (
+                    SELECT COUNT(*)
+                    FROM Project
+                    WHERE now() BETWEEN beginning AND closing 
+                    AND approval_fy = EXTRACT(YEAR FROM CURRENT_DATE) - 1
+                ) AS active_projects,
+
+                (
+                    SELECT COUNT(*)
+                    FROM Project
+                    WHERE status IN('Implemented')
+                    AND approval_fy = EXTRACT(YEAR FROM CURRENT_DATE) - 1
+                ) AS completed_projects
+
+            FROM Project p
+            WHERE p.approval_fy = EXTRACT(YEAR FROM CURRENT_DATE) - 1;
+        `;
+
         const result = await client.query(query);
-        const trendResult = await client.query(trendQuery);
+        const currentYearResult = await client.query(currentYearQuery);
+        const previousYearResult = await client.query(previousYearQuery);
 
         return {
             ...result.rows[0],
-            current_year: trendResult.rows[0]
+            current_year: currentYearResult.rows[0],
+            previous_year: previousYearResult.rows[0]
         };
     } catch (err) {
         throw err;

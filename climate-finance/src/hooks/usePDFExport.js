@@ -2,11 +2,9 @@ import jsPDF from 'jspdf';
 import { useState, useCallback } from 'react';
 import { saveAs } from 'file-saver';
 import { formatDate } from '../utils/formatDate';
-import { useTranslation } from 'react-i18next';
 
 const usePDFExport = () => {
   const [isExporting, setIsExporting] = useState(false);
-  const { t } = useTranslation();
 
   const exportPDF = useCallback(
     async ({
@@ -158,7 +156,7 @@ const usePDFExport = () => {
         doc.setTextColor(74, 74, 74);
         if (useI18n) {
           doc.text(
-            `${t('Generated on')} ${formatDate(new Date())} | ${t('Climate Finance')}`,
+            `${('Generated on')} ${formatDate(new Date())} | ${('Climate Finance')}`,
             marginLeft,
             pageHeight - 20
           );
@@ -185,7 +183,7 @@ const usePDFExport = () => {
       saveAs(pdfBlob, `${fileName}.pdf`);
       setIsExporting(false);
     },
-    [t]
+    []
   );
 
   return { exportPDF, isExporting };

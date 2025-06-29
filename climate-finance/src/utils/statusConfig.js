@@ -100,7 +100,7 @@ export const AGENCY_TYPE_CONFIG = {
   }
 };
 
-// User roles
+// User roles - Mapping backend roles to frontend display
 export const USER_ROLE_CONFIG = {
   'super-admin': {
     label: 'Super Admin',
@@ -108,14 +108,24 @@ export const USER_ROLE_CONFIG = {
     iconName: 'Users'
   },
   'project-manager': {
-    label: 'Project Manager',
+    label: 'Admin',
     color: 'bg-blue-100 text-blue-800',
     iconName: 'Target'
   },
   'finance-admin': {
-    label: 'Finance Admin',
-    color: 'bg-green-100 text-green-800',
-    iconName: 'Banknote'
+    label: 'Admin',
+    color: 'bg-blue-100 text-blue-800',
+    iconName: 'Target'
+  },
+  'data-manager': {
+    label: 'Admin',
+    color: 'bg-blue-100 text-blue-800',
+    iconName: 'Target'
+  },
+  'viewer': {
+    label: 'Viewer',
+    color: 'bg-gray-100 text-gray-800',
+    iconName: 'Eye'
   }
 };
 

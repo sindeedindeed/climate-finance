@@ -160,7 +160,7 @@ const StatCard = ({ title, value, change, icon = null, color = 'primary' }) => {
                   ${isPositive ? 'bg-success-500' : 'bg-error-500'}
                 `}
                 style={{ 
-                  width: `${Math.min(Math.abs(parseFloat(change)), 100)}%`,
+                  width: `${Math.min(parseFloat(change.match(/(\d+(?:\.\d+)?)%/)?.[1] || 0), 100)}%`,
                   transitionDelay: '500ms'
                 }}
               />

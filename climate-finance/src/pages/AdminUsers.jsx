@@ -1,7 +1,7 @@
 import React from 'react';
 import { User } from 'lucide-react';
 import AdminListPage from '../features/admin/AdminListPage';
-import { userApi } from '../services/api';
+import { authApi } from '../services/api';
 import Badge from '../components/ui/Badge';
 import { getStatusConfig } from '../utils/statusConfig';
 
@@ -47,9 +47,10 @@ const AdminUsers = () => {
       defaultValue: 'All',
       options: [
         { value: 'All', label: 'All Roles' },
-        { value: 'Super Admin', label: 'Super Admin' },
-        { value: 'Project Manager', label: 'Project Manager' },
-        { value: 'Finance Admin', label: 'Finance Admin' }
+        { value: 'Super Admin', label: 'Super Admin (Full Access)' },
+        { value: 'Project Manager', label: 'Admin (Basic Access)' },
+        { value: 'Finance Admin', label: 'Admin (Basic Access)' },
+        { value: 'Data Manager', label: 'Admin (Basic Access)' }
       ]
     }
   ];
@@ -58,7 +59,7 @@ const AdminUsers = () => {
     <AdminListPage
       title="User Management"
       subtitle="Manage admin users and permissions"
-      apiService={userApi}
+      apiService={authApi}
       entityName="user"
       columns={columns}
       searchPlaceholder="Search users..."

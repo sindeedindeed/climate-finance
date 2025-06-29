@@ -4,7 +4,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const routes = require("./routes");
 const errorHandler = require("./middlewares/error.middleware");
-const {connectDB} = require("./config/db");
+const { connectDB } = require("./config/db");
 
 const app = express();
 

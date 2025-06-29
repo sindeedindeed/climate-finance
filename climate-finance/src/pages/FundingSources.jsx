@@ -15,7 +15,7 @@ import ExportButton from '../components/ui/ExportButton';
 import { formatCurrency } from '../utils/formatters';
 import { CHART_COLORS } from '../utils/constants';
 import { generateOrganizationLogo } from '../utils/svgPlaceholder';
-import { projectApi, fundingSourceApi } from '../services/api';
+import { fundingSourceApi } from '../services/api';
 
 const FundingSources = () => {
   // State management
@@ -56,10 +56,10 @@ const FundingSources = () => {
         sectorAllocationResponse
       ] = await Promise.all([
         fundingSourceApi.getAll(),
-        projectApi.getFundingSourceOverview(),
-        projectApi.getFundingSourceByType(),
-        projectApi.getFundingSourceTrend().catch(() => ({ status: false, data: [] })),
-        projectApi.getFundingSourceSectorAllocation()
+        fundingSourceApi.getFundingSourceOverview(),
+        fundingSourceApi.getFundingSourceByType(),
+        fundingSourceApi.getFundingSourceTrend().catch(() => ({ status: false, data: [] })),
+        fundingSourceApi.getFundingSourceSectorAllocation()
       ]);
       
       let sources = [];

@@ -78,16 +78,40 @@ export const projectApi = {
   getOverviewStats: () => apiRequest('/project/get-overview-stat'),
   getProjectsOverviewStats: () => apiRequest('/project/projectsOverviewStats'),
 
-  // Funding Source Analytics
-  getFundingSourceByType: () => apiRequest('/project/get-funding-source-by-type'),
-  getFundingSourceOverview: () => apiRequest('/project/get-funding-source-overview'),
-  getFundingSourceTrend: () => apiRequest('/project/get-funding-source-trend'),
-  getFundingSourceSectorAllocation: () => apiRequest('/project/get-funding-source-sector-allocation'),
-  getFundingSource: () => apiRequest('/project/get-funding-source'),
-
   // Dashboard Data
   getDashboardOverviewStats: () => apiRequest('/project/get-overview-stat'),
   getRegionalDistribution: () => apiRequest('/project/get-regional-distribution'),
+};
+
+// Pending Project API endpoints
+export const pendingProjectApi = {
+  // Public submission
+  submit: (projectData) => {
+    if (!projectData) throw new Error('Project data is required');
+    return apiRequest('/pending-project/submit', {
+      method: 'POST',
+      body: JSON.stringify(projectData),
+    });
+  },
+  
+  // Admin operations
+  getAll: () => apiRequest('/pending-project/all'),
+  getById: (id) => {
+    if (!id) throw new Error('Pending project ID is required');
+    return apiRequest(`/pending-project/${id}`);
+  },
+  approve: (id) => {
+    if (!id) throw new Error('Pending project ID is required');
+    return apiRequest(`/pending-project/approve/${id}`, {
+      method: 'PUT',
+    });
+  },
+  reject: (id) => {
+    if (!id) throw new Error('Pending project ID is required');
+    return apiRequest(`/pending-project/reject/${id}`, {
+      method: 'DELETE',
+    });
+  },
 };
 
 // Location API endpoints
@@ -178,6 +202,12 @@ export const fundingSourceApi = {
       method: 'DELETE',
     });
   },
+  // Funding Source Analytics (reverted to use project routes)
+  getFundingSourceByType: () => apiRequest('/project/get-funding-source-by-type'),
+  getFundingSourceOverview: () => apiRequest('/project/get-funding-source-overview'),
+  getFundingSourceTrend: () => apiRequest('/project/get-funding-source-trend'),
+  getFundingSourceSectorAllocation: () => apiRequest('/project/get-funding-source-sector-allocation'),
+  getFundingSource: () => apiRequest('/project/get-funding-source'),
 };
 
 // Focal Area API endpoints
@@ -210,37 +240,16 @@ export const focalAreaApi = {
   },
 };
 
-// User API endpoints
-export const userApi = {
-  getAll: () => {
-    return apiRequest('/auth/get-all-user').then(response => {
-      // Handle the specific response format for user API
-      if (response.status && response.message) {
-        // If message is a single user object, wrap it in an array
-        if (response.message && !Array.isArray(response.message)) {
-          return {
-            status: true,
-            data: [response.message]
-          };
-        }
-        // If message is already an array, use it as data
-        if (Array.isArray(response.message)) {
-          return {
-            status: true,
-            data: response.message
-          };
-        }
-      }
-      return response;
+// Auth API endpoints
+export const authApi = {
+  register: (userData) => {
+    if (!userData || !userData.email || !userData.password) {
+      throw new Error('Email and password are required');
+    }
+    return apiRequest('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
     });
-  },
-  getById: (id) => {
-    if (!id) throw new Error('User ID is required');
-    return apiRequest(`/auth/user/${id}`);
-  },
-  add: (userData) => {
-    // Alias for register to maintain consistency with other APIs
-    return userApi.register(userData);
   },
   login: (credentials) => {
     if (!credentials || !credentials.email || !credentials.password) {
@@ -251,33 +260,30 @@ export const userApi = {
       body: JSON.stringify(credentials),
     });
   },
-  register: (userData) => {
-    if (!userData) {
-      throw new Error('User data is required');
-    }
-    
-    // Validate required fields for registration
-    const requiredFields = ['username', 'email', 'password', 'role', 'department'];
-    const missingFields = requiredFields.filter(field => !userData[field]?.trim());
-    
-    if (missingFields.length > 0) {
-      throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
-    }
-    
-    if (userData.password.length < 8) {
-      throw new Error('Password must be at least 8 characters long');
-    }
-    
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(userData.email)) {
-      throw new Error('Please enter a valid email address');
-    }
-    
-    return apiRequest('/auth/register', {
-      method: 'POST',
+  getAllUsers: () => apiRequest('/auth/get-all-user'),
+  getUserById: (id) => {
+    if (!id) throw new Error('User ID is required');
+    return apiRequest(`/auth/user/${id}`);
+  },
+  updateUser: (id, userData) => {
+    if (!id) throw new Error('User ID is required');
+    if (!userData) throw new Error('User data is required');
+    return apiRequest(`/auth/user/${id}`, {
+      method: 'PUT',
       body: JSON.stringify(userData),
     });
+  },
+  deleteUser: (id) => {
+    if (!id) throw new Error('User ID is required');
+    return apiRequest(`/auth/user/${id}`, {
+      method: 'DELETE',
+    });
+  },
+  // Compatibility methods for AdminFormPage and AdminListPage
+  getAll: () => apiRequest('/auth/get-all-user'),
+  getById: (id) => {
+    if (!id) throw new Error('User ID is required');
+    return apiRequest(`/auth/user/${id}`);
   },
   update: (id, userData) => {
     if (!id) throw new Error('User ID is required');
@@ -291,6 +297,15 @@ export const userApi = {
     if (!id) throw new Error('User ID is required');
     return apiRequest(`/auth/user/${id}`, {
       method: 'DELETE',
+    });
+  },
+  add: (userData) => {
+    if (!userData || !userData.email || !userData.password) {
+      throw new Error('Email and password are required');
+    }
+    return apiRequest('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
     });
   },
 };

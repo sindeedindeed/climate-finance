@@ -1,5 +1,5 @@
 import React from 'react';
-import { FolderTree } from 'lucide-react';
+import { FolderTree, CheckCircle } from 'lucide-react';
 import AdminListPage from '../features/admin/AdminListPage';
 import { projectApi } from '../services/api';
 
@@ -79,15 +79,34 @@ const AdminProjects = () => {
   ];
 
   return (
-    <AdminListPage
-      title="Project Management"
-      subtitle="Add, edit, and manage climate projects"
-      apiService={projectApi}
-      entityName="project"
-      columns={columns}
-      searchPlaceholder="Search projects..."
-      filters={filters}
-    />
+    <div>
+      {/* Approval Status Notice */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div className="flex items-start">
+          <CheckCircle size={20} className="text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+          <div className="text-sm text-blue-800">
+            <p className="font-medium mb-1">Project Approval System</p>
+            <p>
+              Projects added through the admin interface are automatically approved. 
+              For public submissions requiring approval, visit the{' '}
+              <a href="/admin/project-approval" className="underline hover:text-blue-900">
+                Project Approval page
+              </a>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <AdminListPage
+        title="Project Management"
+        subtitle="Add, edit, and manage climate projects"
+        apiService={projectApi}
+        entityName="project"
+        columns={columns}
+        searchPlaceholder="Search projects..."
+        filters={filters}
+      />
+    </div>
   );
 };
 

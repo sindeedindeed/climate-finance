@@ -3,7 +3,17 @@ export default {
   content: [
     './index.html',
     './src/**/*.{js,jsx,ts,tsx}',
-  ],  theme: {
+  ],
+  safelist: [
+    'from-primary-500',
+    'to-primary-600',
+    'text-primary-600',
+    'from-gray-50',
+    'to-primary-50',
+    'bg-primary-50',
+    'border-primary-100'
+  ],
+  theme: {
     screens: {
       'sm': '640px',
       'md': '768px',

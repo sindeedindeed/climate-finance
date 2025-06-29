@@ -7,6 +7,8 @@ import {
     TrendingUp,
     Target,
     Activity,
+    CheckCircle,
+    FolderTree,
 } from "lucide-react";
 import PageLayout from "../components/layouts/PageLayout";
 import Card from "../components/ui/Card";
@@ -64,18 +66,34 @@ const LandingPage = () => {
             if (overviewResponse.status && overviewResponse.data) {
                 const data = overviewResponse.data;
                 const currentYear = data.current_year || {};
+                
+                console.log('API Response data:', data);
+                console.log('Current year data:', currentYear);
+                console.log('Previous year data:', data.previous_year);
+                console.log('Adaptation finance - all time:', data.adaptation_finance, 'current year:', currentYear.adaptation_finance, 'previous year:', data.previous_year?.adaptation_finance);
+                console.log('Mitigation finance - all time:', data.mitigation_finance, 'current year:', currentYear.mitigation_finance, 'previous year:', data.previous_year?.mitigation_finance);
 
                 // Helper function to calculate percentage change (standard formula)
                 const calculateChange = (current, previous) => {
-                    if (
-                        previous === undefined ||
-                        previous === null ||
-                        previous === 0
-                    )
-                        return "No comparison available";
-                    if (current === undefined || current === null)
-                        return "No comparison available";
-                    const percentage = ((current - previous) / previous) * 100;
+                    console.log('calculateChange called with:', { current, previous, currentType: typeof current, previousType: typeof previous });
+                    
+                    // Convert to numbers for proper comparison
+                    const currentNum = parseFloat(current) || 0;
+                    const previousNum = parseFloat(previous) || 0;
+                    
+                    console.log('Converted to numbers:', { currentNum, previousNum });
+                    
+                    if (previousNum === 0) {
+                        console.log('Returning "No previous data available" - previous is 0');
+                        return "No previous data available";
+                    }
+                    if (currentNum === 0 && previousNum === 0) {
+                        console.log('Returning "No change from last year" - both current and previous are 0');
+                        return "No change from last year";
+                    }
+                    
+                    const percentage = ((currentNum - previousNum) / previousNum) * 100;
+                    console.log('Calculated percentage:', percentage, 'from formula: ((', currentNum, '-', previousNum, ') /', previousNum, ') * 100');
                     return percentage >= 0
                         ? `+${percentage.toFixed(2)}% from last year`
                         : `${percentage.toFixed(2)}% from last year`;
@@ -85,16 +103,16 @@ const LandingPage = () => {
                         title: "Total Climate Finance",
                         value: formatCurrency(data.total_climate_finance || 0),
                         change: calculateChange(
-                            currentYear.total_climate_finance,
-                            data.total_climate_finance
+                            currentYear.total_climate_finance || 0,
+                            data.previous_year?.total_climate_finance || 0
                         ),
                     },
                     {
-                        title: "Active Projects",
-                        value: data.active_projects || 0,
+                        title: "Total Projects",
+                        value: data.total_projects || 0,
                         change: (() => {
-                            const curr = data.active_projects;
-                            const prev = currentYear.active_projects;
+                            const curr = currentYear.total_projects;
+                            const prev = data.previous_year?.total_projects;
                             if (
                                 prev === undefined ||
                                 prev === null ||
@@ -110,20 +128,32 @@ const LandingPage = () => {
                         })(),
                     },
                     {
-                        title: "Total Investment",
-                        value: formatCurrency(data.total_climate_finance || 0),
-                        change: calculateChange(
-                            currentYear.total_climate_finance,
-                            data.total_climate_finance
-                        ),
+                        title: "Active Projects",
+                        value: data.active_projects || 0,
+                        change: (() => {
+                            const curr = currentYear.active_projects;
+                            const prev = data.previous_year?.active_projects;
+                            if (
+                                prev === undefined ||
+                                prev === null ||
+                                curr === undefined ||
+                                curr === null
+                            )
+                                return "No comparison available";
+                            const diff = curr - prev;
+                            if (diff === 0) return "No change from last year";
+                            return diff > 0
+                                ? `+${diff} from last year`
+                                : `${diff} from last year`;
+                        })(),
                     },
                     {
                         title: "Completed Projects",
                         value: data.completed_projects || 0,
-                        change: currentYear.completed_projects
+                        change: data.previous_year?.completed_projects !== undefined
                             ? calculateChange(
-                                  currentYear.completed_projects,
-                                  data.completed_projects
+                                  currentYear.completed_projects || 0,
+                                  data.previous_year.completed_projects || 0
                               )
                             : "Based on all-time data",
                     },
@@ -220,12 +250,12 @@ const LandingPage = () => {
 
     // Add icons to stats
     const statsData = overviewStats.map((stat, index) => {
-        const colors = ["primary", "success", "warning", "primary"];
+        const colors = ["success", "warning", "primary", "success"];
         const icons = [
-            <DollarSign size={20} />,
-            <Activity size={20} />,
-            <TrendingUp size={20} />,
-            <Target size={20} />,
+            <DollarSign size={20} />, // Total Climate Finance
+            <FolderTree size={20} />, // Total Projects
+            <TrendingUp size={20} />, // Active Projects
+            <CheckCircle size={20} />, // Completed Projects
         ];
 
         return {
@@ -324,6 +354,19 @@ const LandingPage = () => {
                 </div>
             )}
 
+
+            {/* Bangladesh Map */}
+            <div
+                className="animate-fade-in-up"
+                style={{ animationDelay: "750ms" }}
+            >
+                <BangladeshMapComponent
+                    data={regionalData}
+                    title="Regional Distribution Map"
+                    height={400}
+                />
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div
                     className="animate-fade-in-up"
@@ -398,18 +441,6 @@ const LandingPage = () => {
                         </div>
                     )}
                 </Card>
-            </div>
-
-            {/* Bangladesh Map */}
-            <div
-                className="animate-fade-in-up"
-                style={{ animationDelay: "750ms" }}
-            >
-                <BangladeshMapComponent
-                    data={regionalData}
-                    title="Regional Distribution Map"
-                    height={400}
-                />
             </div>
 
             {/* Quick Actions */}
