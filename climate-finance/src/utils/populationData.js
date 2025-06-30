@@ -1,97 +1,40 @@
 /**
- * Population data for Bangladesh regions and districts
- * Based on approximate data from Bangladesh Bureau of Statistics
+ * Population data for Bangladesh regions (matching admin location region names)
+ * Source: Bangladesh Population and Housing Census 2022, Adjusted Population (BBS)
  */
 
 export const populationData = {
-  'Central': {
-    population: 45000000,
-    districts: {
-      'Dhaka': 9500000,
-      'Gazipur': 5000000,
-      'Manikganj': 1500000,
-      'Munshiganj': 1600000,
-      'Narayanganj': 3200000,
-      'Narsingdi': 2400000,
-      'Tangail': 3900000,
-      'Faridpur': 2000000,
-      'Gopalganj': 1200000,
-      'Madaripur': 1300000,
-      'Rajbari': 1100000,
-      'Shariatpur': 1200000
-    }
+  'Southeast': {
+    population: 34178612,
+    districts: {}
   },
-  'Northeast': {
-    population: 15000000,
-    districts: {
-      'Sylhet': 3500000,
-      'Moulvibazar': 2000000,
-      'Habiganj': 2100000,
-      'Sunamganj': 2600000,
-      'Netrokona': 2300000,
-      'Kishoreganj': 3000000
-    }
-  },
-  'Northwest': {
-    population: 20000000,
-    districts: {
-      'Rangpur': 3000000,
-      'Rajshahi': 2600000,
-      'Kurigram': 2200000,
-      'Gaibandha': 2500000,
-      'Lalmonirhat': 1300000,
-      'Nilphamari': 1900000,
-      'Thakurgaon': 1400000,
-      'Panchagarh': 1100000,
-      'Dinajpur': 3200000,
-      'Bogura': 3500000,
-      'Joypurhat': 900000,
-      'Naogaon': 2700000,
-      'Natore': 1700000,
-      'Chapainawabganj': 1700000,
-      'Pabna': 2600000,
-      'Sirajganj': 3100000
-    }
+  'North': {
+    population: 18020071,
+    districts: {}
   },
   'Southwest': {
-    population: 18000000,
-    districts: {
-      'Khulna': 2400000,
-      'Bagerhat': 1500000,
-      'Satkhira': 2000000,
-      'Jessore': 2800000,
-      'Jhenaidah': 1800000,
-      'Magura': 900000,
-      'Narail': 700000,
-      'Chuadanga': 1200000,
-      'Kushtia': 1900000,
-      'Meherpur': 700000
-    }
+    population: 17813218,
+    districts: {}
   },
   'South': {
-    population: 12000000,
-    districts: {
-      'Barisal': 2400000,
-      'Patuakhali': 1600000,
-      'Barguna': 900000,
-      'Bhola': 1800000,
-      'Jhalokati': 700000,
-      'Pirojpur': 1200000,
-      'Bandarban': 400000,
-      'Rangamati': 600000,
-      'Khagrachhari': 700000
-    }
+    population: 9325820,
+    districts: {}
   },
-  'Southeast': {
-    population: 10000000,
-    districts: {
-      'Chittagong': 8200000,
-      'Coxs Bazar': 2400000,
-      'Feni': 1500000,
-      'Lakshmipur': 1800000,
-      'Noakhali': 3200000,
-      'Cumilla': 5400000
-    }
+  'North-Central': {
+    population: 12637472,
+    districts: {}
+  },
+  'Northwest': {
+    population: 20794019,
+    districts: {}
+  },
+  'Northeast': {
+    population: 11415113,
+    districts: {}
+  },
+  'Central': {
+    population: 45644586,
+    districts: {}
   }
 };
 

@@ -140,22 +140,6 @@ const AdminProjects = () => {
 
   return (
     <div>
-      {/* Approval Status Notice - Fixed padding to match header */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-        <div className="flex items-start">
-          <CheckCircle size={20} className="text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
-          <div className="text-sm text-blue-800">
-            <p className="font-medium mb-1">Project Approval System</p>
-            <p>
-              Projects added through the admin interface are automatically approved. 
-              For public submissions requiring approval, visit the{' '}
-              <a href="/admin/project-approval" className="underline hover:text-blue-900">
-                Project Approval page
-              </a>.
-            </p>
-          </div>
-        </div>
-      </div>
 
       <AdminListPage
         title="Project Management"
