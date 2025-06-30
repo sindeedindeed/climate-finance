@@ -37,7 +37,6 @@ const LandingPage = () => {
     const [projectsByStatus, setProjectsByStatus] = useState([]);
     const [projectsBySector, setProjectsBySector] = useState([]);
     const [regionalData, setRegionalData] = useState([]);
-    console.log("regionalData", regionalData);
 
     // Fetch all dashboard data
     useEffect(() => {
