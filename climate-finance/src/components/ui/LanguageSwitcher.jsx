@@ -5,9 +5,9 @@ const LanguageSwitcher = () => {
     const [language, setLanguage] = useState("en");
 
     useEffect(() => {
-        // Detect current language from cookie
-        const match = document.cookie.match(/googtrans=\/en\/(\w+)/);
-        const currentLang = match?.[1] || "en";
+        // Detect current language from cookie with improved regex
+        const cookieMatch = document.cookie.match(/googtrans=\/en\/(\w+)/);
+        const currentLang = cookieMatch?.[1] || "en";
         setLanguage(currentLang);
 
         // Google Translate init function
@@ -39,7 +39,15 @@ const LanguageSwitcher = () => {
 
     const toggleLanguage = () => {
         const newLang = language === "en" ? "bn" : "en";
-        document.cookie = `googtrans=/en/${newLang};path=/;domain=${window.location.hostname}`;
+        
+        if (newLang === "en") {
+            // Remove the translation cookie when switching back to English
+            document.cookie = "googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=" + window.location.hostname;
+        } else {
+            // Set the translation cookie for Bangla
+            document.cookie = `googtrans=/en/${newLang};path=/;domain=${window.location.hostname}`;
+        }
+        
         setLanguage(newLang);
         window.location.reload(); // Reload required for Google Translate to apply
     };

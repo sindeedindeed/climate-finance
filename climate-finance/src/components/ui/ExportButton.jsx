@@ -152,7 +152,7 @@ const ExportButton = ({
                 className={className}
                 {...props}
             >
-                {isExporting ? "Exporting..." : "Export"}
+                {isExporting ? "Exporting..." : "Download"}
             </Button>
         );
     }
@@ -169,7 +169,7 @@ const ExportButton = ({
                 className={className}
                 {...props}
             >
-                {isExporting ? "Exporting..." : "Export"}
+                {isExporting ? "Exporting..." : "Download"}
             </Button>
 
             {showOptions && (

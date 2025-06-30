@@ -12,7 +12,7 @@ const ActionHeader = ({
   const defaultActions = [
     {
       key: 'export',
-      label: 'Export',
+      label: 'Download',
       icon: <Download size={16} />,
       variant: 'outline'
     },

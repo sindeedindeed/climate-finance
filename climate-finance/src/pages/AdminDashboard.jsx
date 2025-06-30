@@ -46,22 +46,27 @@ const AdminDashboard = () => {
                 const data = response.data;
                 console.log('Admin Dashboard data:', data);
                 
-                // Helper function to calculate percentage change
-                const calculateChange = (current, previous) => {
-                    const currentNum = parseFloat(current) || 0;
-                    const previousNum = parseFloat(previous) || 0;
-                    
-                    if (previousNum === 0) {
-                        return "No previous data available";
+                // Helper function for financial metrics (using funding source calculation method)
+                const calculateFinancialChange = (total, current) => {
+                    if (!total || !current || total === current) return "No previous data";
+                    const previous = total - current;
+                    if (previous <= 0) return "No comparison available";
+                    const percentage = ((current / previous) - 1) * 100;
+                    return percentage >= 0 ? `+${percentage.toFixed(2)}% from last year` : `0% from last year`;
+                };
+
+                // Helper function for project count changes (absolute difference)
+                const calculateProjectChange = (current, previous) => {
+                    const curr = current;
+                    const prev = previous;
+                    if (prev === undefined || prev === null || curr === undefined || curr === null) {
+                        return "No comparison available";
                     }
-                    if (currentNum === 0 && previousNum === 0) {
-                        return "No change from last year";
-                    }
-                    
-                    const percentage = ((currentNum - previousNum) / previousNum) * 100;
-                    return percentage >= 0
-                        ? `+${percentage.toFixed(2)}% from last year`
-                        : `${percentage.toFixed(2)}% from last year`;
+                    const diff = curr - prev;
+                    if (diff === 0) return "No change from last year";
+                    return diff > 0
+                        ? `+${diff} from last year`
+                        : `0% from last year`;
                 };
                 
                 setDashboardStats([
@@ -69,7 +74,7 @@ const AdminDashboard = () => {
                         title: "Total Projects",
                         value: data.total_projects || 0,
                         change: data.previous_year?.total_projects !== undefined
-                            ? calculateChange(
+                            ? calculateProjectChange(
                                   data.current_year?.total_projects || 0,
                                   data.previous_year.total_projects || 0
                               )
@@ -81,7 +86,7 @@ const AdminDashboard = () => {
                         title: "Active Projects",
                         value: data.active_projects || 0,
                         change: data.previous_year?.active_projects !== undefined
-                            ? calculateChange(
+                            ? calculateProjectChange(
                                   data.current_year?.active_projects || 0,
                                   data.previous_year.active_projects || 0
                               )
@@ -92,24 +97,24 @@ const AdminDashboard = () => {
                     {
                         title: "Total Climate Finance",
                         value: formatCurrency(data.total_climate_finance || 0),
-                        change: data.previous_year?.total_climate_finance !== undefined
-                            ? calculateChange(
-                                  data.current_year?.total_climate_finance || 0,
-                                  data.previous_year.total_climate_finance || 0
-                              )
-                            : "Based on all-time data",
+                        change: data.current_year?.total_climate_finance ? 
+                            calculateFinancialChange(
+                                data.total_climate_finance || 0,
+                                data.current_year.total_climate_finance || 0
+                            ) : 
+                            "Based on all-time data",
                         color: "warning",
                         icon: <Banknote size={20} />,
                     },
                     {
                         title: "Adaptation Finance",
                         value: formatCurrency(data.adaptation_finance || 0),
-                        change: data.previous_year?.adaptation_finance !== undefined
-                            ? calculateChange(
-                                  data.current_year?.adaptation_finance || 0,
-                                  data.previous_year.adaptation_finance || 0
-                              )
-                            : "Based on all-time data",
+                        change: data.current_year?.adaptation_finance ? 
+                            calculateFinancialChange(
+                                data.adaptation_finance || 0,
+                                data.current_year.adaptation_finance || 0
+                            ) : 
+                            "Based on all-time data",
                         color: "primary",
                         icon: <DollarSign size={20} />,
                     },

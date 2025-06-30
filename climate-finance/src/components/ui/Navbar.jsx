@@ -64,7 +64,7 @@ const Navbar = () => {
                     </div>
 
                     {/* Desktop Navigation */}
-                    <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
+                    <nav className="hidden lg:flex items-center space-x-6 lg:space-x-8">
                         {navLinks.map((link, index) =>
                             link.isDisabled ? (
                                 <span
@@ -104,7 +104,7 @@ const Navbar = () => {
 
                     {/* Mobile Menu Button */}
                     <button
-                        className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
                         onClick={toggleMobileMenu}
                         aria-label="Toggle navigation menu"
                         aria-expanded={isMobileMenuOpen}
@@ -120,7 +120,7 @@ const Navbar = () => {
 
             {/* Mobile Navigation - Improved */}
             <div
-                className={`md:hidden transition-all duration-300 ease-in-out ${
+                className={`lg:hidden transition-all duration-300 ease-in-out ${
                     isMobileMenuOpen
                         ? "max-h-96 opacity-100"
                         : "max-h-0 opacity-0"
