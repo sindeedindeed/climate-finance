@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Label } from 'recharts';
 import { CHART_COLORS, TOOLTIP_STYLES } from '../../utils/constants';
 import { formatCurrency } from '../../utils/formatters';
@@ -72,7 +72,33 @@ const PieChartComponent = ({
   const useDonutStyle = donut || data.length > 5;
   
   // For charts with many segments, using a donut style can improve label placement
-  const innerRadius = useDonutStyle ? 50 : 0;  return (
+  const innerRadius = useDonutStyle ? 50 : 0;
+
+  // Add CSS to remove outlines from pie chart segments
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .recharts-pie-sector {
+        outline: none !important;
+      }
+      .recharts-pie-sector:focus {
+        outline: none !important;
+      }
+      .recharts-pie-sector:hover {
+        outline: none !important;
+      }
+      .recharts-pie-sector:active {
+        outline: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
+  return (
     <div className="w-full overflow-hidden">
       <h3 className="text-lg font-semibold text-gray-800 mb-4">{title}</h3>
       <ResponsiveContainer width="100%" height={300}>
@@ -88,9 +114,14 @@ const PieChartComponent = ({
             nameKey={nameKey}
             labelLine={false}
             label={renderCustomizedLabel}
+            pointerEvents="none"
           >
             {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+              <Cell 
+                key={`cell-${index}`} 
+                fill={CHART_COLORS[index % CHART_COLORS.length]}
+                style={{ outline: 'none' }}
+              />
             ))}
           </Pie>
           <Tooltip 
