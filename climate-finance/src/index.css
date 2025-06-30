@@ -26,6 +26,15 @@ body {
   width: 100%;
 }
 
+.noto-sans-bengali {
+  font-family: "Noto Sans Bengali", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+}
+
+
 @media (max-width: 768px) {
   .layout-container {
     max-width: 95vw;

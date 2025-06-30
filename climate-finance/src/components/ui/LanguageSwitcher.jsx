@@ -53,7 +53,9 @@ const LanguageSwitcher = () => {
     };
 
     return (
-        <div className="relative z-[1000] min-w-[100px] flex items-center">
+        <div
+            className={`relative z-[1000] min-w-[100px] flex items-center ${language === 'bn' ? 'noto-sans-bengali' : ''}`}>
+
             <Button
                 className="w-full"
                 onClick={toggleLanguage}
@@ -64,7 +66,7 @@ const LanguageSwitcher = () => {
             {/* Hidden Google Translate container */}
             <div
                 id="google_translate_element"
-                style={{ display: "none" }}
+                style={{display: "none"}}
             ></div>
 
             {/* Style overrides to prevent banner overlay */}
