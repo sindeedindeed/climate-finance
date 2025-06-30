@@ -33,26 +33,26 @@ const Footer = () => {
                                 <img
                                     src="./acme.svg"
                                     alt="Acme AI"
-                                    width={30}
-                                    height={30}
+                                    width={40}
+                                    height={40}
                                 />
                                 <img
                                     src="./cprd.jpg"
                                     alt="CPRD"
-                                    width={30}
-                                    height={30}
+                                    width={70}
+                                    height={70}
                                 />
                                 <img
                                     src="./wri.png"
                                     alt="WRI"
-                                    width={30}
-                                    height={30}
+                                    width={70}
+                                    height={70}
                                 />
                                 <img
                                     src="./wateraid.png"
                                     alt="Wateraid"
-                                    width={50}
-                                    height={30}
+                                    width={60}
+                                    height={60}
                                 />
                             </div>
                         </div>

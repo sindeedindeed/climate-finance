@@ -154,6 +154,12 @@ const BangladeshMapComponent = ({
 
     // Center of Bangladesh
     const center = [23.685, 90.3563];
+    
+    // Define bounds to limit panning - covering Bangladesh and surrounding areas
+    const maxBounds = [
+        [20.0, 88.0], // Southwest corner (south, west)
+        [27.0, 93.0]  // Northeast corner (north, east)
+    ];
 
     return (
         <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -171,6 +177,8 @@ const BangladeshMapComponent = ({
                         minHeight: 350,
                     }}
                     scrollWheelZoom={false}
+                    maxBounds={maxBounds}
+                    maxBoundsViscosity={1.0}
                 >
                     <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

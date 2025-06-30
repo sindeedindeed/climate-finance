@@ -43,7 +43,7 @@ const AdminControlsCard = ({
               onClick={onExport}
               leftIcon={<Download size={16} />}
             >
-              Export
+              Download
             </Button>
           )}
 
