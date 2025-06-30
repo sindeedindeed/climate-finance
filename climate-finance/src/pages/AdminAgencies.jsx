@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Building2, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AdminListPage from '../features/admin/AdminListPage';
@@ -7,6 +7,30 @@ import { agencyApi } from '../services/api';
 const AdminAgencies = () => {
   const navigate = useNavigate();
   const [error, setError] = useState(null);
+  const [agenciesList, setAgenciesList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch agencies data for dynamic filters
+  useEffect(() => {
+    const fetchAgencies = async () => {
+      try {
+        setIsLoading(true);
+        const response = await agencyApi.getAll();
+        if (response?.status && Array.isArray(response.data)) {
+          setAgenciesList(response.data);
+        } else {
+          setAgenciesList([]);
+        }
+      } catch (error) {
+        console.error('Error fetching agencies for filters:', error);
+        setAgenciesList([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAgencies();
+  }, []);
 
   const columns = [
     {
@@ -27,18 +51,26 @@ const AdminAgencies = () => {
     }
   ];
 
-  const filters = [
-    {
-      key: 'type',
-      defaultValue: 'All',
-      options: [
-        { value: 'All', label: 'All Types' },
-        { value: 'Implementing', label: 'Implementing' },
-        { value: 'Executing', label: 'Executing' },
-        { value: 'Accredited', label: 'Accredited' }
-      ]
+  // Generate dynamic filters from actual agency data
+  const filters = useMemo(() => {
+    if (!agenciesList || agenciesList.length === 0) {
+      return [];
     }
-  ];
+
+    // Create unique option arrays using the actual fields available
+    const types = Array.from(new Set(agenciesList.map(a => a.type).filter(Boolean))).sort();
+
+    return [
+      {
+        key: 'type',
+        defaultValue: 'All',
+        options: [
+          { value: 'All', label: 'All Types' },
+          ...types.map(type => ({ value: type, label: type }))
+        ]
+      }
+    ];
+  }, [agenciesList]);
 
   const handleAddAgency = () => {
     navigate('/admin/agencies/new');
@@ -66,6 +98,17 @@ const AdminAgencies = () => {
   const clearError = () => {
     setError(null);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading agency data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

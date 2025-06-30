@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import PageLayout from '../../components/layouts/PageLayout';
@@ -31,6 +31,7 @@ const AdminListPage = ({
   const navigate = useNavigate();
   
   const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,6 +39,21 @@ const AdminListPage = ({
     filters.reduce((acc, filter) => ({ ...acc, [filter.key]: filter.defaultValue || 'All' }), {})
   );
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
+
+  // Create custom config for SearchFilter
+  const customConfig = useMemo(() => {
+    if (!filters || filters.length === 0) {
+      return {
+        searchFields: columns.map(col => ({ key: col.searchKey || col.key, label: col.header, weight: 1 })),
+        filters: []
+      };
+    }
+
+    return {
+      searchFields: columns.map(col => ({ key: col.searchKey || col.key, label: col.header, weight: 1 })),
+      filters: filters
+    };
+  }, [filters, columns]);
 
   // Fetch data
   useEffect(() => {
@@ -55,48 +71,39 @@ const AdminListPage = ({
         // All APIs now return: { status: true, data: [...] }
         if (Array.isArray(response.data)) {
           setData(response.data);
+          setFilteredData(response.data);
         } else {
           console.warn('No data received from API or invalid format:', response);
           setData([]);
+          setFilteredData([]);
         }
       } else if (Array.isArray(response)) {
         // Fallback for direct array response
         setData(response);
+        setFilteredData(response);
       } else {
         console.warn('No data received from API or invalid format:', response);
         setData([]);
+        setFilteredData([]);
       }
     } catch (err) {
       console.error('Error fetching data:', err);
       setError(err.message || `Failed to fetch ${entityName}s`);
       setData([]);
+      setFilteredData([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Filter data - Fix: Add safety check
-  const filteredData = Array.isArray(data) ? data.filter(item => {
-    // Search filter
-    if (searchTerm) {
-      const searchFields = columns.map(col => col.searchKey || col.key);
-      const matchesSearch = searchFields.some(field => 
-        item[field]?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      if (!matchesSearch) return false;
-    }
-
-    // Custom filters
-    return filters.every(filter => {
-      const filterValue = activeFilters[filter.key];
-      if (!filterValue || filterValue === 'All') return true;
-      return item[filter.key] === filterValue;
-    });
-  }) : [];
-
   // Handle filter changes
-  const handleFilterChange = (key, value) => {
-    setActiveFilters(prev => ({ ...prev, [key]: value }));
+  const handleFilterChange = (newFilters) => {
+    setActiveFilters(newFilters);
+  };
+
+  // Handle search changes
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
   };
 
   // Handle delete
@@ -232,15 +239,14 @@ const AdminListPage = ({
         </div>
 
         <SearchFilter
+          data={data}
+          onFilteredData={setFilteredData}
           searchValue={searchTerm}
-          onSearchChange={setSearchTerm}
+          onSearchChange={handleSearchChange}
           searchPlaceholder={searchPlaceholder}
-          filters={filters.map(filter => ({
-            key: filter.key,
-            value: activeFilters[filter.key] || filter.defaultValue || 'All',
-            onChange: (value) => handleFilterChange(filter.key, value),
-            options: filter.options
-          }))}
+          customConfig={customConfig}
+          activeFilters={activeFilters}
+          onFiltersChange={handleFilterChange}
           className="mb-4"
         />
 
