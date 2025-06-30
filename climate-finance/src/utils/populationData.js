@@ -4,38 +4,38 @@
  */
 
 export const populationData = {
-  'Southeast': {
-    population: 34178612,
-    districts: {}
-  },
-  'North': {
-    population: 18020071,
-    districts: {}
-  },
-  'Southwest': {
-    population: 17813218,
-    districts: {}
-  },
-  'South': {
-    population: 9325820,
-    districts: {}
-  },
-  'North-Central': {
-    population: 12637472,
-    districts: {}
-  },
-  'Northwest': {
-    population: 20794019,
-    districts: {}
-  },
-  'Northeast': {
-    population: 11415113,
-    districts: {}
-  },
-  'Central': {
-    population: 45644586,
-    districts: {}
-  }
+    Southeast: {
+        population: 34178612,
+        districts: {},
+    },
+    North: {
+        population: 18020071,
+        districts: {},
+    },
+    Southwest: {
+        population: 17813218,
+        districts: {},
+    },
+    South: {
+        population: 9325820,
+        districts: {},
+    },
+    "North-Central": {
+        population: 12637472,
+        districts: {},
+    },
+    Northwest: {
+        population: 20794019,
+        districts: {},
+    },
+    Northeast: {
+        population: 11415113,
+        districts: {},
+    },
+    Central: {
+        population: 45644586,
+        districts: {},
+    },
 };
 
 /**
@@ -45,49 +45,51 @@ export const populationData = {
  * @returns {Object} - Object with total affected, breakdown by region, and details
  */
 export const calculatePeopleAffected = (locations, impactPercentage = 10) => {
-  if (!locations || locations.length === 0) {
-    return {
-      totalAffected: 0,
-      regionBreakdown: {},
-      details: []
-    };
-  }
-
-  let totalAffected = 0;
-  const regionBreakdown = {};
-  const details = [];
-
-  locations.forEach(location => {
-    const regionData = populationData[location.region];
-    if (regionData) {
-      // Check if it's a specific district or use region total
-      const districtPopulation = regionData.districts[location.name];
-      const basePopulation = districtPopulation || regionData.population;
-      
-      const affected = Math.round(basePopulation * (impactPercentage / 100));
-      
-      totalAffected += affected;
-      
-      if (!regionBreakdown[location.region]) {
-        regionBreakdown[location.region] = 0;
-      }
-      regionBreakdown[location.region] += affected;
-      
-      details.push({
-        locationName: location.name,
-        region: location.region,
-        population: basePopulation,
-        affected: affected,
-        percentage: impactPercentage
-      });
+    if (!locations || locations.length === 0) {
+        return {
+            totalAffected: 0,
+            regionBreakdown: {},
+            details: [],
+        };
     }
-  });
 
-  return {
-    totalAffected,
-    regionBreakdown,
-    details
-  };
+    let totalAffected = 0;
+    const regionBreakdown = {};
+    const details = [];
+
+    locations.forEach((location) => {
+        const regionData = populationData[location.region];
+        if (regionData) {
+            // Check if it's a specific district or use region total
+            const districtPopulation = regionData.districts[location.name];
+            const basePopulation = districtPopulation || regionData.population;
+
+            const affected = Math.round(
+                basePopulation * (impactPercentage / 100)
+            );
+
+            totalAffected += affected;
+
+            if (!regionBreakdown[location.region]) {
+                regionBreakdown[location.region] = 0;
+            }
+            regionBreakdown[location.region] += affected;
+
+            details.push({
+                locationName: location.name,
+                region: location.region,
+                population: basePopulation,
+                affected: affected,
+                percentage: impactPercentage,
+            });
+        }
+    });
+
+    return {
+        totalAffected,
+        regionBreakdown,
+        details,
+    };
 };
 
 /**
@@ -97,10 +99,10 @@ export const calculatePeopleAffected = (locations, impactPercentage = 10) => {
  * @returns {number} - Population of the location
  */
 export const getLocationPopulation = (locationName, region) => {
-  const regionData = populationData[region];
-  if (!regionData) return 0;
-  
-  return regionData.districts[locationName] || regionData.population;
+    const regionData = populationData[region];
+    if (!regionData) return 0;
+
+    return regionData.districts[locationName] || regionData.population;
 };
 
 /**
@@ -109,10 +111,10 @@ export const getLocationPopulation = (locationName, region) => {
  * @returns {string} - Formatted number string
  */
 export const formatPopulation = (num) => {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M';
-  } else if (num >= 1000) {
-    return (num / 1000).toFixed(0) + 'K';
-  }
-  return num.toString();
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1) + "M";
+    } else if (num >= 1000) {
+        return (num / 1000).toFixed(0) + "K";
+    }
+    return num.toString();
 };

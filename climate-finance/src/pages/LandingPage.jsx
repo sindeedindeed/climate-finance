@@ -132,7 +132,7 @@ const LandingPage = () => {
                     );
                     return percentage >= 0
                         ? `+${percentage.toFixed(2)}% from last year`
-                        : `${percentage.toFixed(2)}% from last year`;
+                        : `0% from last year`;
                 };
                 setOverviewStats([
                     {
@@ -160,7 +160,7 @@ const LandingPage = () => {
                             if (diff === 0) return "No change from last year";
                             return diff > 0
                                 ? `+${diff} from last year`
-                                : `${diff} from last year`;
+                                : `0% from last year`;
                         })(),
                     },
                     {
@@ -180,7 +180,7 @@ const LandingPage = () => {
                             if (diff === 0) return "No change from last year";
                             return diff > 0
                                 ? `+${diff} from last year`
-                                : `${diff} from last year`;
+                                : `0% from last year`;
                         })(),
                     },
                     {
