@@ -248,7 +248,7 @@ const FundingSources = () => {
             title="Climate Finance Funding Sources"
             subtitle="Comprehensive data on funding sources and contributions"
             variant="export"
-            exportFormats={['pdf', 'json']}
+            exportFormats={['pdf', 'json', 'csv']}
             className="w-full sm:w-auto"
           />
         }
