@@ -45,8 +45,9 @@ const LanguageSwitcher = () => {
     };
 
     return (
-        <div className="relative z-[1000] px-2 py-2 min-w-[100px] flex items-center gap-4">
+        <div className="relative z-[1000] min-w-[100px] flex items-center">
             <Button
+                className="w-full"
                 onClick={toggleLanguage}
                 children={language === "en" ? "English" : "Bangla"}
                 leftIcon={"⇆"}
