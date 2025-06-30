@@ -1,60 +1,90 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import Button from "./Button";
 
 const LanguageSwitcher = () => {
-  useEffect(() => {
-    window.googleTranslateElementInit = () => {
-      new window.google.translate.TranslateElement(
-        { pageLanguage: 'en', includedLanguages: 'bn,en', layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE },
-        'google_translate_element'
-      );
+    const [language, setLanguage] = useState("en");
+
+    useEffect(() => {
+        // Detect current language from cookie
+        const match = document.cookie.match(/googtrans=\/en\/(\w+)/);
+        const currentLang = match?.[1] || "en";
+        setLanguage(currentLang);
+
+        // Google Translate init function
+        window.googleTranslateElementInit = () => {
+            new window.google.translate.TranslateElement(
+                {
+                    pageLanguage: "en",
+                    includedLanguages: "bn,en",
+                    layout: window.google.translate.TranslateElement
+                        .InlineLayout.SIMPLE,
+                    autoDisplay: false,
+                },
+                "google_translate_element"
+            );
+        };
+
+        // Load script if not already present
+        if (!document.getElementById("google-translate-script")) {
+            const script = document.createElement("script");
+            script.id = "google-translate-script";
+            script.src =
+                "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+            script.async = true;
+            document.body.appendChild(script);
+        } else if (window.google && window.google.translate) {
+            window.googleTranslateElementInit();
+        }
+    }, []);
+
+    const toggleLanguage = () => {
+        const newLang = language === "en" ? "bn" : "en";
+        document.cookie = `googtrans=/en/${newLang};path=/;domain=${window.location.hostname}`;
+        setLanguage(newLang);
+        window.location.reload(); // Reload required for Google Translate to apply
     };
 
-    if (document.getElementById('google-translate-script')) {
-      if (window.google && window.google.translate) {
-        window.googleTranslateElementInit();
-      }
-    } else {
-      const script = document.createElement('script');
-      script.id = 'google-translate-script';
-      script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-      script.async = true;
-      document.body.appendChild(script);
-    }
-  }, []);
+    return (
+        <div className="relative z-[1000] px-2 py-2 min-w-[100px] flex items-center gap-4">
+            <Button
+                onClick={toggleLanguage}
+                children={language === "en" ? "English" : "Bangla"}
+                leftIcon={"⇆"}
+            />
 
-  return (
-    <div style={{ position: 'relative', zIndex: 1000, background: 'white', borderRadius: '9999px', padding: '2px 12px', minWidth: 120, display: 'flex', alignItems: 'center' }}>
-      <div id="google_translate_element" style={{ minWidth: 100 }}></div>
-      <style>{`
+            {/* Hidden Google Translate container */}
+            <div
+                id="google_translate_element"
+                style={{ display: "none" }}
+            ></div>
+
+            {/* Style overrides to prevent banner overlay */}
+            <style>{`
         .goog-te-banner-frame {
           display: none !important;
+          height: 0 !important;
+          visibility: hidden !important;
         }
-        .goog-te-gadget-simple {
-          background-color: #f8f8f8 !important;
-          border: 1px solid #ddd !important;
-          border-radius: 5px !important;
-          padding: 10px !important;
-          font-family: Arial, sans-serif !important;
-          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1) !important;
+
+        body {
+          top: 0px !important;
+          position: static !important;
         }
-        .goog-te-gadget-icon {
+
+        .skiptranslate {
           display: none !important;
         }
-        .goog-te-gadget-simple .goog-te-menu-value {
-          color: #333 !important;
+
+        .goog-te-gadget {
+          font-size: 0 !important;
         }
-        .goog-te-gadget-simple .goog-te-menu-value span {
+
+        .goog-logo-link {
           display: none !important;
-        }
-        .goog-te-gadget-simple .goog-te-menu-value:hover {
-          background-color: #e2e2e2 !important;
-        }
-        .goog-te-gadget-simple .goog-te-menu2 {
-          max-width: none !important;
         }
       `}</style>
-    </div>
-  );
+        </div>
+    );
 };
 
 export default LanguageSwitcher;
