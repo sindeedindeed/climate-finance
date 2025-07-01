@@ -40,12 +40,12 @@ const LanguageSwitcher = () => {
             setIsGoogleTranslateLoaded(true);
         };
 
-        // Load script dynamically
+        // Load script dynamically with HTTPS for production
         if (!document.getElementById("google-translate-script")) {
             const script = document.createElement("script");
             script.id = "google-translate-script";
             script.src =
-                "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+                "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
             script.async = true;
             document.body.appendChild(script);
         }
@@ -54,28 +54,67 @@ const LanguageSwitcher = () => {
     const toggleLanguage = () => {
         const newLang = language === "en" ? "bn" : "en";
 
-        // Fix domain logic - don't set domain for localhost
+        // Fix domain logic for Vercel and other deployments
         const hostname = window.location.hostname;
         const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
         
+        // Get appropriate domain for cookie - simplified for Vercel
+        const getCookieDomain = () => {
+            if (isLocalhost) return null; // No domain for localhost
+            
+            // For Vercel deployments, don't set domain at all to avoid cross-domain issues
+            if (hostname.includes('.vercel.app')) {
+                return null; // Let browser handle domain automatically
+            }
+            
+            // For custom domains
+            const parts = hostname.split('.');
+            if (parts.length <= 2) {
+                return null; // Let browser handle simple domains
+            } else {
+                return "." + parts.slice(-2).join(".");
+            }
+        };
+        
+        const cookieDomain = getCookieDomain();
+        
+        // Debug logging
+        console.log('Language toggle debug:', {
+            hostname,
+            cookieDomain,
+            newLang,
+            currentCookie: document.cookie
+        });
+        
+        // Debug logging for Vercel deployment
+        console.log('Language toggle debug:', {
+            hostname,
+            cookieDomain,
+            newLang,
+            currentCookie: document.cookie
+        });
+        
         // Set or clear translation cookie with proper format
         if (newLang === "en") {
-            // Clear cookie - use same format for clearing
-            if (isLocalhost) {
-                document.cookie = `googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-            } else {
-                const domain = "." + hostname.split(".").slice(-2).join(".");
-                document.cookie = `googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=${domain}`;
+            // Clear cookie - try multiple approaches for Vercel
+            document.cookie = `googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+            if (cookieDomain) {
+                document.cookie = `googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=${cookieDomain}`;
             }
+            // Also try to clear with SameSite for Vercel
+            document.cookie = `googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
         } else {
-            // Set cookie
-            if (isLocalhost) {
-                document.cookie = `googtrans=/en/${newLang}; path=/`;
-            } else {
-                const domain = "." + hostname.split(".").slice(-2).join(".");
-                document.cookie = `googtrans=/en/${newLang}; path=/; domain=${domain}`;
+            // Set cookie - try multiple approaches for Vercel
+            document.cookie = `googtrans=/en/${newLang}; path=/`;
+            if (cookieDomain) {
+                document.cookie = `googtrans=/en/${newLang}; path=/; domain=${cookieDomain}`;
             }
+            // Also try to set with SameSite for Vercel
+            document.cookie = `googtrans=/en/${newLang}; path=/; SameSite=Lax`;
         }
+        
+        // Debug: Check if cookie was actually set
+        console.log('Cookie after setting:', document.cookie);
 
         setLanguage(newLang);
         
