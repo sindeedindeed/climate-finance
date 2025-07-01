@@ -34,6 +34,10 @@ body {
   font-variation-settings: "wdth" 100;
 }
 
+.recharts-pie-sector:focus {
+  outline: none;
+}
+
 
 @media (max-width: 768px) {
   .layout-container {

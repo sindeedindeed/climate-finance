@@ -165,7 +165,7 @@ const Navbar = () => {
                         </div>
                     </Link>
                 </nav>
-                <div className="px-4">
+                <div className="px-4 pb-4">
                     <LanguageSwitcher />
                 </div>
             </div>

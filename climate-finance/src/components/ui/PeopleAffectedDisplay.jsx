@@ -80,13 +80,20 @@ const PeopleAffectedDisplay = ({
 
       {/* Location Details */}
       {showDetails && affectedData.details.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-blue-200">
-          <div className="text-xs text-gray-600">
-            <strong>Note:</strong> Estimates based on {impactPercentage}% of local population. 
-            Actual impact may vary based on project scope and implementation.
+          <div className="mt-3 pt-3 border-t border-blue-200">
+            <div className="text-xs text-gray-600">
+              <strong>Note:</strong> Estimates are based on {impactPercentage}% of the local population. Population data has been collected from the <a
+                href="https://bbs.gov.bd/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline hover:text-blue-800"
+            >
+              Bangladesh Bureau of Statistics (BBS)
+            </a>. Actual impact may vary depending on project scope and implementation.
+            </div>
           </div>
-        </div>
       )}
+
     </div>
   );
 };

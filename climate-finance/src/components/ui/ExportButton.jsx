@@ -152,7 +152,7 @@ const ExportButton = ({
                 className={className}
                 {...props}
             >
-                {isExporting ? "Exporting..." : "Download"}
+                {isExporting ? "Downloading..." : "Download"}
             </Button>
         );
     }
@@ -169,18 +169,18 @@ const ExportButton = ({
                 className={className}
                 {...props}
             >
-                {isExporting ? "Exporting..." : "Download"}
+                {isExporting ? "Downloading..." : "Download"}
             </Button>
 
             {showOptions && (
-                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[140px]">
+                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[160px]">
                     {exportFormats.includes("pdf") && (
                         <button
                             onClick={() => handleExport("pdf")}
                             className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg"
                         >
                             <FileText size={14} />
-                            Export PDF
+                            Download PDF
                         </button>
                     )}
                     {exportFormats.includes("csv") && (
@@ -189,7 +189,7 @@ const ExportButton = ({
                             className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                         >
                             <FileSpreadsheet size={14} />
-                            Export CSV
+                            Download CSV
                         </button>
                     )}
                     {exportFormats.includes("json") && (
@@ -198,7 +198,7 @@ const ExportButton = ({
                             className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 last:rounded-b-lg"
                         >
                             <FileText size={14} />
-                            Export JSON
+                            Download JSON
                         </button>
                     )}
                 </div>
