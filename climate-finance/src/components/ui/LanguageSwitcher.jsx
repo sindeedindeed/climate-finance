@@ -1,3 +1,5 @@
+'use client'; // Add this if using Next.js App Router
+
 import React, { useEffect, useState } from "react";
 import Button from "./Button";
 
@@ -5,26 +7,25 @@ const LanguageSwitcher = () => {
     const [language, setLanguage] = useState("en");
 
     useEffect(() => {
-        // Detect current language from cookie with improved regex
+        // Get language from cookie
         const cookieMatch = document.cookie.match(/googtrans=\/en\/(\w+)/);
         const currentLang = cookieMatch?.[1] || "en";
         setLanguage(currentLang);
 
-        // Google Translate init function
+        // Define the global init function BEFORE loading the script
         window.googleTranslateElementInit = () => {
             new window.google.translate.TranslateElement(
                 {
                     pageLanguage: "en",
                     includedLanguages: "bn,en",
-                    layout: window.google.translate.TranslateElement
-                        .InlineLayout.SIMPLE,
+                    layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
                     autoDisplay: false,
                 },
                 "google_translate_element"
             );
         };
 
-        // Load script if not already present
+        // Load script dynamically
         if (!document.getElementById("google-translate-script")) {
             const script = document.createElement("script");
             script.id = "google-translate-script";
@@ -32,44 +33,46 @@ const LanguageSwitcher = () => {
                 "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
             script.async = true;
             document.body.appendChild(script);
-        } else if (window.google && window.google.translate) {
-            window.googleTranslateElementInit();
         }
     }, []);
 
     const toggleLanguage = () => {
         const newLang = language === "en" ? "bn" : "en";
-        
+
+        // Use proper domain for deployed environments
+        const domain = window.location.hostname.includes("localhost")
+            ? "localhost"
+            : "." + window.location.hostname.split(".").slice(-2).join(".");
+
+        // Set or clear translation cookie
         if (newLang === "en") {
-            // Remove the translation cookie when switching back to English
-            document.cookie = "googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=" + window.location.hostname;
+            document.cookie = `googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=${domain}`;
         } else {
-            // Set the translation cookie for Bangla
-            document.cookie = `googtrans=/en/${newLang};path=/;domain=${window.location.hostname}`;
+            document.cookie = `googtrans=/en/${newLang}; path=/; domain=${domain}`;
         }
-        
+
         setLanguage(newLang);
-        window.location.reload(); // Reload required for Google Translate to apply
+        window.location.reload(); // Required for translate to reapply
     };
 
     return (
         <div
-            className={`relative z-[1000] min-w-[100px] flex items-center ${language === 'bn' ? 'noto-sans-bengali' : ''}`}>
-
+            className={`relative z-[1000] min-w-[100px] flex items-center ${
+                language === "bn" ? "noto-sans-bengali" : ""
+            }`}
+        >
             <Button
                 className="w-full"
                 onClick={toggleLanguage}
-                children={language === "en" ? "English" : "Bangla"}
-                leftIcon={"⇆"}
-            />
+                leftIcon="⇆"
+            >
+                {language === "en" ? "English" : "বাংলা"}
+            </Button>
 
-            {/* Hidden Google Translate container */}
-            <div
-                id="google_translate_element"
-                style={{display: "none"}}
-            ></div>
+            {/* Hidden Google Translate element */}
+            <div id="google_translate_element" style={{ display: "none" }}></div>
 
-            {/* Style overrides to prevent banner overlay */}
+            {/* Force-hide unwanted Google Translate UI elements */}
             <style>{`
         .goog-te-banner-frame {
           display: none !important;

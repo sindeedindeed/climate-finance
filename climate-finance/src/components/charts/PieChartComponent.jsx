@@ -88,9 +88,13 @@ const PieChartComponent = ({
             nameKey={nameKey}
             labelLine={false}
             label={renderCustomizedLabel}
+            activeShape={null}
+            isAnimationActive={false}
+            activeIndex={-1}
+            onClick={() => {}}
           >
             {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+              <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} tabIndex={-1}/>
             ))}
           </Pie>
           <Tooltip 
