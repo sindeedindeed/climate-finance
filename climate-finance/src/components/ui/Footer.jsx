@@ -61,7 +61,6 @@ const Footer = () => {
                             </p>
                             <div
                                 className="text-sm text-gray-500 justify-center items-center md:justify-start flex flex-row gap-x-4">
-                                <p>Developed by </p>
                                 {partners.map((partner) => (
                                     <a
                                         key={partner.alt}
@@ -108,7 +107,7 @@ const Footer = () => {
                                 </Button>
                             </div>
                             <div className="text-sm text-gray-500 justify-center items-center md:justify-start flex flex-row gap-x-4">
-                                <p>Made by</p>
+                                <p>Developed by</p>
                                 <a
                                     key={partners[0].alt}
                                     href={partners[0].href}
