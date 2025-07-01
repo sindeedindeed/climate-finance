@@ -16,6 +16,10 @@ import { formatCurrency } from '../utils/formatters';
 import { CHART_COLORS } from '../utils/constants';
 import { generateOrganizationLogo } from '../utils/svgPlaceholder';
 import { fundingSourceApi } from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
+import { translateChartData, getChartTitle, getChartTranslation } from '../utils/chartTranslations';
+
+
 
 const FundingSources = () => {
   // State management
@@ -36,6 +40,9 @@ const FundingSources = () => {
   const [fundingByType, setFundingByType] = useState([]);
   const [fundingTrend, setFundingTrend] = useState([]);
   const [sectorAllocation, setSectorAllocation] = useState([]);
+
+  // Language context
+  const { language } = useLanguage();
 
   // Fetch all funding source data
   useEffect(() => {
@@ -294,8 +301,8 @@ const FundingSources = () => {
           <Card hover padding={true}>
             {fundingByType.length > 0 ? (
               <PieChartComponent
-                title="Funding by Source Type"
-                data={fundingByType}
+                title={getChartTitle(language, 'fundingByType')}
+                data={translateChartData(fundingByType, language, 'type')}
                 valueKey="value"
                 nameKey="name"
               />
@@ -426,7 +433,7 @@ const FundingSources = () => {
                         <div className="flex flex-wrap gap-2">
                           {source.type && (
                             <span className="inline-flex px-2.5 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">
-                              {source.type}
+                              {getChartTranslation(language, 'source', source.type) || source.type}
                             </span>
                           )}
                         </div>

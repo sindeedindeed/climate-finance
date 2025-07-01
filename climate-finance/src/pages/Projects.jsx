@@ -21,6 +21,10 @@ import {
   RefreshCw
 } from 'lucide-react';
 import MultiSelect from '../components/ui/MultiSelect';
+import { useLanguage } from '../context/LanguageContext';
+import { translateChartData, getChartTitle } from '../utils/chartTranslations';
+
+
 
 const Projects = () => {
   const navigate = useNavigate();
@@ -50,6 +54,8 @@ const Projects = () => {
 
   const [agencies, setAgencies] = useState([]);
   const [fundingSources, setFundingSources] = useState([]);
+
+  const { language } = useLanguage();
 
   useEffect(() => {
     fetchAllProjectData();
@@ -321,6 +327,10 @@ const Projects = () => {
     };
   };
 
+  // Translate category labels for status and type
+  const translatedProjectsByStatus = translateChartData(projectsByStatus, language, 'status');
+  const translatedProjectsByType = translateChartData(projectsByType, language, 'type');
+
   if (isLoading) {
     return (
       <PageLayout bgColor="bg-gray-50">
@@ -424,8 +434,8 @@ const Projects = () => {
           <Card hover padding={true}>
             {projectsByStatus.length > 0 ? (
               <PieChartComponent
-                title="Projects by Status" 
-                data={projectsByStatus}
+                title={getChartTitle(language, 'projectsByStatus')}
+                data={translatedProjectsByStatus}
                 height={300}
               />
             ) : (
@@ -443,8 +453,8 @@ const Projects = () => {
           <Card hover padding={true}>
             {projectsByType.length > 0 ? (
               <PieChartComponent
-                title="Projects by Type"
-                data={projectsByType}
+                title={getChartTitle(language, 'projectsByType')}
+                data={translatedProjectsByType}
                 height={300}
               />
             ) : (

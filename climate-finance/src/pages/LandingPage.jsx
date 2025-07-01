@@ -24,6 +24,10 @@ import { formatCurrency } from "../utils/formatters";
 import { projectApi } from "../services/api";
 import ExportButton from "../components/ui/ExportButton";
 import PageHeader from "../components/layouts/PageHeader";
+import { useLanguage } from '../context/LanguageContext';
+import { translateChartData, getChartTitle } from '../utils/chartTranslations';
+
+
 
 const LandingPage = () => {
     const navigate = useNavigate();
@@ -31,6 +35,7 @@ const LandingPage = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState(null);
     const { toast } = useToast();
+    const { language } = useLanguage();
 
     // API data states
     const [overviewStats, setOverviewStats] = useState([]);
@@ -302,6 +307,9 @@ const LandingPage = () => {
         };
     });
 
+    const translatedProjectsBySector = translateChartData(projectsBySector, language, 'sector');
+    const translatedProjectsByStatus = translateChartData(projectsByStatus, language, 'status');
+
     if (loading) {
         return (
             <PageLayout bgColor="bg-gray-50">
@@ -411,8 +419,8 @@ const LandingPage = () => {
                     <Card hover padding={true}>
                         {projectsBySector.length > 0 ? (
                             <PieChartComponent
-                                title="Projects by Sector"
-                                data={projectsBySector}
+                                title={getChartTitle(language, 'projectsBySector')}
+                                data={translatedProjectsBySector}
                             />
                         ) : (
                             <div className="h-[300px] flex items-center justify-center">
@@ -430,8 +438,8 @@ const LandingPage = () => {
                     <Card hover padding={true}>
                         {projectsByStatus.length > 0 ? (
                             <PieChartComponent
-                                title="Projects by Status"
-                                data={projectsByStatus}
+                                title={getChartTitle(language, 'projectsByStatus')}
+                                data={translatedProjectsByStatus}
                             />
                         ) : (
                             <div className="h-[300px] flex items-center justify-center">
