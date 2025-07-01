@@ -5,12 +5,26 @@ import Button from "./Button";
 
 const LanguageSwitcher = () => {
     const [language, setLanguage] = useState("en");
+    const [isGoogleTranslateLoaded, setIsGoogleTranslateLoaded] = useState(false);
 
     useEffect(() => {
-        // Get language from cookie
-        const cookieMatch = document.cookie.match(/googtrans=\/en\/(\w+)/);
-        const currentLang = cookieMatch?.[1] || "en";
+        // Get language from cookie with improved parsing
+        const getCookieValue = (name) => {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        };
+        
+        const googtransCookie = getCookieValue('googtrans');
+        const currentLang = googtransCookie ? googtransCookie.split('/')[2] || "en" : "en";
         setLanguage(currentLang);
+
+        // Check if Google Translate is already loaded
+        if (window.google && window.google.translate) {
+            setIsGoogleTranslateLoaded(true);
+            return;
+        }
 
         // Define the global init function BEFORE loading the script
         window.googleTranslateElementInit = () => {
@@ -23,6 +37,7 @@ const LanguageSwitcher = () => {
                 },
                 "google_translate_element"
             );
+            setIsGoogleTranslateLoaded(true);
         };
 
         // Load script dynamically
@@ -39,20 +54,47 @@ const LanguageSwitcher = () => {
     const toggleLanguage = () => {
         const newLang = language === "en" ? "bn" : "en";
 
-        // Use proper domain for deployed environments
-        const domain = window.location.hostname.includes("localhost")
-            ? "localhost"
-            : "." + window.location.hostname.split(".").slice(-2).join(".");
-
-        // Set or clear translation cookie
+        // Fix domain logic - don't set domain for localhost
+        const hostname = window.location.hostname;
+        const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
+        
+        // Set or clear translation cookie with proper format
         if (newLang === "en") {
-            document.cookie = `googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=${domain}`;
+            // Clear cookie - use same format for clearing
+            if (isLocalhost) {
+                document.cookie = `googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+            } else {
+                const domain = "." + hostname.split(".").slice(-2).join(".");
+                document.cookie = `googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=${domain}`;
+            }
         } else {
-            document.cookie = `googtrans=/en/${newLang}; path=/; domain=${domain}`;
+            // Set cookie
+            if (isLocalhost) {
+                document.cookie = `googtrans=/en/${newLang}; path=/`;
+            } else {
+                const domain = "." + hostname.split(".").slice(-2).join(".");
+                document.cookie = `googtrans=/en/${newLang}; path=/; domain=${domain}`;
+            }
         }
 
         setLanguage(newLang);
-        window.location.reload(); // Required for translate to reapply
+        
+        // Try to trigger translation programmatically if Google Translate is loaded
+        if (isGoogleTranslateLoaded && window.google && window.google.translate) {
+            const translateElement = window.google.translate.TranslateElement;
+            if (translateElement) {
+                // Trigger immediate translation if possible
+                setTimeout(() => {
+                    window.location.reload();
+                }, 50);
+                return;
+            }
+        }
+        
+        // Fallback: reload page with small delay to ensure cookie setting
+        setTimeout(() => {
+            window.location.reload();
+        }, 100);
     };
 
     return (
