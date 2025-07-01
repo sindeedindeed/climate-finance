@@ -16,6 +16,10 @@ import { formatCurrency } from '../utils/formatters';
 import { CHART_COLORS } from '../utils/constants';
 import { generateOrganizationLogo } from '../utils/svgPlaceholder';
 import { fundingSourceApi } from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
+import { translateChartData, getChartTitle } from '../utils/chartTranslations';
+
+
 
 const FundingSources = () => {
   // State management
@@ -36,6 +40,9 @@ const FundingSources = () => {
   const [fundingByType, setFundingByType] = useState([]);
   const [fundingTrend, setFundingTrend] = useState([]);
   const [sectorAllocation, setSectorAllocation] = useState([]);
+
+  // Language context
+  const { language } = useLanguage();
 
   // Fetch all funding source data
   useEffect(() => {
@@ -177,6 +184,12 @@ const FundingSources = () => {
     });
   }, [fundingSourcesList, searchTerm, activeFilters]);
 
+  const translatedFundingByType = translateChartData(fundingByType, language, 'fundingSourceType');
+  const translatedSectorAllocation = sectorAllocation.map(item => ({
+    sector: item.name,
+    amount: item.value
+  }));
+
   if (isLoading) {
     return (
       <PageLayout bgColor="bg-gray-50">
@@ -294,8 +307,8 @@ const FundingSources = () => {
           <Card hover padding={true}>
             {fundingByType.length > 0 ? (
               <PieChartComponent
-                title="Funding by Source Type"
-                data={fundingByType}
+                title={getChartTitle(language, 'fundingByType')}
+                data={translatedFundingByType}
                 valueKey="value"
                 nameKey="name"
               />
@@ -340,10 +353,7 @@ const FundingSources = () => {
           {sectorAllocation.length > 0 ? (
             <BarChartComponent
               title="Sector Allocation"
-              data={sectorAllocation.map(item => ({
-                sector: item.name,
-                amount: item.value
-              }))}
+              data={translatedSectorAllocation}
               xAxisKey="sector"
               bars={[{ dataKey: 'amount', fill: CHART_COLORS[0], name: 'Amount' }]}
               formatYAxis={true}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import Card from './Card';
 
-const StatCard = ({ title, value, change, icon = null, color = 'primary' }) => {
+const StatCard = ({ title, value, change, icon = null, color = 'primary', locale = 'en-US', currency = 'USD' }) => {
   const [animatedValue, setAnimatedValue] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -94,7 +94,19 @@ const StatCard = ({ title, value, change, icon = null, color = 'primary' }) => {
 
   const formatDisplayValue = (val) => {
     if (typeof val === 'number') {
-      return val.toLocaleString();
+      // Check if the value looks like currency (has decimal places or is large)
+      const isCurrency = val % 1 !== 0 || val >= 1000;
+      
+      if (isCurrency) {
+        return new Intl.NumberFormat(locale, {
+          style: 'currency',
+          currency: currency,
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 2
+        }).format(val);
+      } else {
+        return new Intl.NumberFormat(locale).format(val);
+      }
     }
     return val;
   };
@@ -129,7 +141,7 @@ const StatCard = ({ title, value, change, icon = null, color = 'primary' }) => {
         
         {/* Value - Centered and taking available space */}
         <div className="flex-1 flex items-center justify-center mb-4">
-          <h3 className="text-3xl font-bold text-gray-900 tracking-tight text-center">
+          <h3 className="text-3xl font-bold text-gray-900 tracking-tight text-center" translate="no">
             {formatDisplayValue(animatedValue)}
           </h3>
         </div>
@@ -146,7 +158,7 @@ const StatCard = ({ title, value, change, icon = null, color = 'primary' }) => {
             ) : (
               <TrendingDown size={12} className="text-error-600" />
             )}
-            <span className="leading-none">{change}</span>
+            <span className="leading-none" translate="no">{change}</span>
           </div>
         </div>
         

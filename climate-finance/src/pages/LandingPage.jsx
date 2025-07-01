@@ -24,6 +24,10 @@ import { formatCurrency } from "../utils/formatters";
 import { projectApi } from "../services/api";
 import ExportButton from "../components/ui/ExportButton";
 import PageHeader from "../components/layouts/PageHeader";
+import { useLanguage } from '../context/LanguageContext';
+import { translateChartData, getChartTitle, getChartTranslation } from '../utils/chartTranslations';
+
+
 
 const LandingPage = () => {
     const navigate = useNavigate();
@@ -31,11 +35,13 @@ const LandingPage = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState(null);
     const { toast } = useToast();
+    const { language } = useLanguage();
 
     // API data states
     const [overviewStats, setOverviewStats] = useState([]);
     const [projectsByStatus, setProjectsByStatus] = useState([]);
     const [projectsBySector, setProjectsBySector] = useState([]);
+    const [projectsByType, setProjectsByType] = useState([]);
     const [regionalData, setRegionalData] = useState([]);
 
     // Fetch all dashboard data
@@ -53,11 +59,13 @@ const LandingPage = () => {
                 overviewResponse,
                 statusResponse,
                 sectorResponse,
+                typeResponse,
                 regionalResponse,
             ] = await Promise.all([
                 projectApi.getOverviewStats(),
                 projectApi.getByStatus(),
                 projectApi.getBySector(),
+                projectApi.getByType(),
                 projectApi.getRegionalDistribution(),
             ]);
 
@@ -213,6 +221,13 @@ const LandingPage = () => {
                 setProjectsBySector([]);
             }
 
+            // Set projects by type for pie chart
+            if (typeResponse.status && Array.isArray(typeResponse.data)) {
+                setProjectsByType(typeResponse.data);
+            } else {
+                setProjectsByType([]);
+            }
+
             // Set regional data for bar chart
             if (
                 regionalResponse.status &&
@@ -239,6 +254,7 @@ const LandingPage = () => {
             setOverviewStats([]);
             setProjectsByStatus([]);
             setProjectsBySector([]);
+            setProjectsByType([]);
             setRegionalData([]);
         } finally {
             setLoading(false);
@@ -270,6 +286,7 @@ const LandingPage = () => {
             overview: overviewStats,
             projectsByStatus,
             projectsBySector,
+            projectsByType,
             regionalData,
             summary: {
                 totalProjects:
@@ -301,6 +318,14 @@ const LandingPage = () => {
             icon: icons[index],
         };
     });
+
+    const translatedProjectsBySector = translateChartData(projectsBySector, language, 'sector');
+    const translatedProjectsByStatus = translateChartData(projectsByStatus, language, 'status');
+    const translatedProjectsByType = translateChartData(projectsByType, language, 'mitigationType');
+    const translatedRegionalData = regionalData.map(item => ({
+        ...item,
+        region: getChartTranslation(language, 'region', item.region + ' Division')?.replace(' বিভাগ', '') || item.region
+    }));
 
     if (loading) {
         return (
@@ -411,8 +436,8 @@ const LandingPage = () => {
                     <Card hover padding={true}>
                         {projectsBySector.length > 0 ? (
                             <PieChartComponent
-                                title="Projects by Sector"
-                                data={projectsBySector}
+                                title={getChartTitle(language, 'projectsBySector')}
+                                data={translatedProjectsBySector}
                             />
                         ) : (
                             <div className="h-[300px] flex items-center justify-center">
@@ -430,8 +455,8 @@ const LandingPage = () => {
                     <Card hover padding={true}>
                         {projectsByStatus.length > 0 ? (
                             <PieChartComponent
-                                title="Projects by Status"
-                                data={projectsByStatus}
+                                title={getChartTitle(language, 'projectsByStatus')}
+                                data={translatedProjectsByStatus}
                             />
                         ) : (
                             <div className="h-[300px] flex items-center justify-center">
@@ -444,27 +469,47 @@ const LandingPage = () => {
                 </div>
             </div>
 
-            {/* Regional Distribution */}
             <div
                 className="animate-fade-in-up"
                 style={{ animationDelay: "700ms" }}
+            >
+                <Card hover padding={true}>
+                    {projectsByType.length > 0 ? (
+                        <PieChartComponent
+                            title={getChartTitle(language, 'projectsByType')}
+                            data={translatedProjectsByType}
+                        />
+                    ) : (
+                        <div className="h-[300px] flex items-center justify-center">
+                            <p className="text-gray-500">
+                                No type data available
+                            </p>
+                        </div>
+                    )}
+                </Card>
+            </div>
+
+            {/* Regional Distribution */}
+            <div
+                className="animate-fade-in-up"
+                style={{ animationDelay: "800ms" }}
             >
                 <Card>
                     {regionalData.length > 0 ? (
                         <BarChartComponent
                             title="Regional Distribution"
-                            data={regionalData}
+                            data={translatedRegionalData}
                             xAxisKey="region"
                             bars={[
                                 {
                                     dataKey: "adaptation",
                                     fill: CHART_COLORS[0],
-                                    name: "Adaptation",
+                                    name: getChartTranslation(language, 'mitigationType', 'Adaptation'),
                                 },
                                 {
                                     dataKey: "mitigation",
                                     fill: CHART_COLORS[1],
-                                    name: "Mitigation",
+                                    name: getChartTranslation(language, 'mitigationType', 'Mitigation'),
                                 },
                             ]}
                             formatYAxis={true}
@@ -482,7 +527,7 @@ const LandingPage = () => {
             {/* Quick Actions */}
             <div
                 className="mt-8 p-6 bg-gradient-to-r from-primary-50 to-primary-100 rounded-2xl border border-primary-200 animate-fade-in-up"
-                style={{ animationDelay: "800ms" }}
+                style={{ animationDelay: "900ms" }}
             >
                 <div className="text-center mb-6">
                     <h3 className="text-xl font-semibold text-gray-800 mb-2">
