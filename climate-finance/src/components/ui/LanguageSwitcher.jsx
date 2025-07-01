@@ -2,23 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import Button from "./Button";
+import { useLanguage } from "../../context/LanguageContext";
 
 const LanguageSwitcher = () => {
-    const [language, setLanguage] = useState("en");
+    const { language, updateLanguage } = useLanguage();
     const [isGoogleTranslateLoaded, setIsGoogleTranslateLoaded] = useState(false);
 
     useEffect(() => {
-        // Get language from cookie with improved parsing
-        const getCookieValue = (name) => {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
-            return null;
-        };
-        
-        const googtransCookie = getCookieValue('googtrans');
-        const currentLang = googtransCookie ? googtransCookie.split('/')[2] || "en" : "en";
-        setLanguage(currentLang);
+        // Language is now managed by LanguageContext
+        // This effect only handles Google Translate setup
 
         // Check if Google Translate is already loaded
         if (window.google && window.google.translate) {
@@ -116,7 +108,7 @@ const LanguageSwitcher = () => {
         // Debug: Check if cookie was actually set
         console.log('Cookie after setting:', document.cookie);
 
-        setLanguage(newLang);
+        updateLanguage(newLang);
         
         // Try to trigger translation programmatically if Google Translate is loaded
         if (isGoogleTranslateLoaded && window.google && window.google.translate) {
