@@ -329,7 +329,7 @@ const Projects = () => {
 
   // Translate category labels for status and type
   const translatedProjectsByStatus = translateChartData(projectsByStatus, language, 'status');
-  const translatedProjectsByType = translateChartData(projectsByType, language, 'type');
+  const translatedProjectsByType = translateChartData(projectsByType, language, 'mitigationType');
 
   if (isLoading) {
     return (
@@ -429,14 +429,16 @@ const Projects = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:gap-8 mb-6">
+        {/* Projects by Status */}
         <div className="animate-fade-in-up" style={{ animationDelay: '400ms' }}>
           <Card hover padding={true}>
             {projectsByStatus.length > 0 ? (
               <PieChartComponent
                 title={getChartTitle(language, 'projectsByStatus')}
                 data={translatedProjectsByStatus}
-                height={300}
+                valueKey="value"
+                nameKey="name"
               />
             ) : (
               <div className="h-[300px] flex items-center justify-center">
@@ -448,14 +450,16 @@ const Projects = () => {
             )}
           </Card>
         </div>
-        
+
+        {/* Projects by Type */}
         <div className="animate-fade-in-up" style={{ animationDelay: '500ms' }}>
           <Card hover padding={true}>
             {projectsByType.length > 0 ? (
               <PieChartComponent
                 title={getChartTitle(language, 'projectsByType')}
                 data={translatedProjectsByType}
-                height={300}
+                valueKey="value"
+                nameKey="name"
               />
             ) : (
               <div className="h-[300px] flex items-center justify-center">
@@ -467,28 +471,23 @@ const Projects = () => {
             )}
           </Card>
         </div>
-        
+      </div>
+
+      {/* Project Trend */}
+      {projectTrend.length > 0 && (
         <div className="animate-fade-in-up" style={{ animationDelay: '600ms' }}>
           <Card hover padding={true}>
-            {projectTrend.length > 0 ? (
-              <LineChartComponent
-                title="Project Trends"
-                data={projectTrend}
-                xAxisKey="year"
-                yAxisKey="projects"
-                height={300}
-              />
-            ) : (
-              <div className="h-[300px] flex items-center justify-center">
-                <div className="text-center">
-                  <AlertCircle size={24} className="mx-auto text-gray-400 mb-2" />
-                  <p className="text-gray-600">No trend data available</p>
-                </div>
-              </div>
-            )}
+            <LineChartComponent
+              title={getChartTitle(language, 'projectTrend')}
+              data={projectTrend}
+              xAxisKey="year"
+              yAxisKey="projects"
+              formatYAxis={true}
+              lineName={getChartTitle(language, 'projectTrend')}
+            />
           </Card>
         </div>
-      </div>
+      )}
 
       <Card hover className="mb-6" padding={true}>
         <div className="border-b border-gray-100 pb-6 mb-8">

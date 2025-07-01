@@ -17,7 +17,7 @@ import { CHART_COLORS } from '../utils/constants';
 import { generateOrganizationLogo } from '../utils/svgPlaceholder';
 import { fundingSourceApi } from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
-import { translateChartData, getChartTitle, getChartTranslation } from '../utils/chartTranslations';
+import { translateChartData, getChartTitle } from '../utils/chartTranslations';
 
 
 
@@ -184,6 +184,12 @@ const FundingSources = () => {
     });
   }, [fundingSourcesList, searchTerm, activeFilters]);
 
+  const translatedFundingByType = translateChartData(fundingByType, language, 'fundingSourceType');
+  const translatedSectorAllocation = sectorAllocation.map(item => ({
+    sector: item.name,
+    amount: item.value
+  }));
+
   if (isLoading) {
     return (
       <PageLayout bgColor="bg-gray-50">
@@ -302,7 +308,7 @@ const FundingSources = () => {
             {fundingByType.length > 0 ? (
               <PieChartComponent
                 title={getChartTitle(language, 'fundingByType')}
-                data={translateChartData(fundingByType, language, 'type')}
+                data={translatedFundingByType}
                 valueKey="value"
                 nameKey="name"
               />
@@ -347,10 +353,7 @@ const FundingSources = () => {
           {sectorAllocation.length > 0 ? (
             <BarChartComponent
               title="Sector Allocation"
-              data={sectorAllocation.map(item => ({
-                sector: item.name,
-                amount: item.value
-              }))}
+              data={translatedSectorAllocation}
               xAxisKey="sector"
               bars={[{ dataKey: 'amount', fill: CHART_COLORS[0], name: 'Amount' }]}
               formatYAxis={true}
@@ -433,7 +436,7 @@ const FundingSources = () => {
                         <div className="flex flex-wrap gap-2">
                           {source.type && (
                             <span className="inline-flex px-2.5 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">
-                              {getChartTranslation(language, 'source', source.type) || source.type}
+                              {source.type}
                             </span>
                           )}
                         </div>
