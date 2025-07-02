@@ -225,17 +225,6 @@ const PieChartComponent = ({
         className="relative bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-300"
         style={{ height: height + 100 }}
       >
-        {/* Selected segment highlight */}
-        {selectedSegment !== null && (
-          <div className="absolute top-4 right-4 bg-primary-50 border border-primary-200 rounded-lg px-3 py-2">
-            <p className="text-sm font-medium text-primary-800">
-              {t.selected}: {data[selectedSegment]?.[nameKey]}
-            </p>
-            <p className="text-xs text-primary-600">
-              {formatCurrency(data[selectedSegment]?.[valueKey])}
-            </p>
-          </div>
-        )}
         <Pie 
           ref={chartRef}
           data={chartData} 
