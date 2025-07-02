@@ -38,7 +38,7 @@ const AdminLocations = () => {
         { value: 'Northwest', label: 'Northwest' },
         { value: 'Southwest', label: 'Southwest' },
         { value: 'Southeast', label: 'Southeast' },
-        { value: 'Chittagong', label: 'Chittagong' }
+        { value: 'Chattogram', label: 'Chattogram' }
       ]
     }
   ];
