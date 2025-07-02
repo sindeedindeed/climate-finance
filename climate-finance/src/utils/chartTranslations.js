@@ -68,7 +68,7 @@ export const chartTranslations = {
     // Regions/Divisions
     region: {
       'Barisal Division': 'Barisal Division',
-      'Chittagong Division': 'Chittagong Division',
+      'Chattogram Division': 'Chattogram Division',
       'Dhaka Division': 'Dhaka Division',
       'Khulna Division': 'Khulna Division',
       'Mymensingh Division': 'Mymensingh Division',
@@ -165,10 +165,10 @@ export const chartTranslations = {
     },
     // Mitigation/Adaptation/International translations (project type)
     mitigationType: {
-      Mitigation: 'প্রশমন',
-      Adaptation: 'উপযোগ',
-      International: 'আন্তর্জাতিক',
-      Government: 'সরকার',
+      Mitigation: 'Mitigation',
+      Adaptation: 'Adaptation',
+      International: 'International',
+      Government: 'Government',
     },
     // Funding source type
     fundingSourceType: {
@@ -186,7 +186,7 @@ export const chartTranslations = {
     // Regions/Divisions
     region: {
       'Barisal Division': 'বরিশাল বিভাগ',
-      'Chittagong Division': 'চট্টগ্রাম বিভাগ',
+      'Chattogram Division': 'চট্টগ্রাম বিভাগ',
       'Dhaka Division': 'ঢাকা বিভাগ',
       'Khulna Division': 'খুলনা বিভাগ',
       'Mymensingh Division': 'ময়মনসিংহ বিভাগ',

@@ -24,7 +24,7 @@ const LocationFormPage = ({ mode = 'add' }) => {
         { value: 'Northwest', label: 'Northwest' },
         { value: 'Southwest', label: 'Southwest' },
         { value: 'Southeast', label: 'Southeast' },
-        { value: 'Chittagong', label: 'Chittagong' }
+        { value: 'Chattogram', label: 'Chattogram' }
       ],
       className: 'md:col-span-1'
     }

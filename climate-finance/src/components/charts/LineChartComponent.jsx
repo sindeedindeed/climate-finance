@@ -1,7 +1,7 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TOOLTIP_STYLES } from '../../utils/constants';
-import { formatCurrency } from '../../utils/formatters';
+import { useLanguage } from '../../context/LanguageContext';
 
 const LineChartComponent = ({ 
   data, 
@@ -12,6 +12,35 @@ const LineChartComponent = ({
   formatYAxis = false,
   lineName = 'Value'
 }) => {
+  const formatYAxisMillion = value => {
+    if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
+    return `$${value}`;
+  };
+
+  const Transliteration = (type, language) => {
+    if (language === 'bn') {
+      if (type === 'Adaptation') return 'অ্যাডাপটেশন';
+      if (type === 'Mitigation') return 'মিটিগেশন';
+    }
+    return type;
+  };
+
+  const CustomTooltip = ({ active, payload, label }) => {
+    const { language } = useLanguage();
+    if (!active || !payload || payload.length === 0) return null;
+    return (
+      <div className="notranslate" translate="no" style={{ background: 'white', border: '1px solid #eee', borderRadius: 8, padding: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+        <div className="font-semibold mb-1">{label}</div>
+        {payload.map((entry, idx) => (
+          <div key={idx} style={{ color: entry.color, marginBottom: 4 }}>
+            {Transliteration(entry.name, language)}: {entry.value}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="w-full overflow-hidden">
       <h3 className="text-lg font-semibold text-gray-800 mb-4">{title}</h3>
@@ -27,14 +56,11 @@ const LineChartComponent = ({
             interval={0} // ✅ Show all year labels
           />
           <YAxis 
-            tickFormatter={formatYAxis ? value => formatCurrency(value) : undefined}
+            tickFormatter={formatYAxis ? formatYAxisMillion : (value) => value}
             width={100} // ✅ Increased width for better label fit
           />
           <Tooltip 
-            formatter={(value) => 
-              formatYAxis ? [formatCurrency(value), lineName] : [value, lineName]
-            }
-            contentStyle={TOOLTIP_STYLES}
+            content={<CustomTooltip />}
           />
           <Line 
             type="monotone" 

@@ -24,7 +24,14 @@ import MultiSelect from '../components/ui/MultiSelect';
 import { useLanguage } from '../context/LanguageContext';
 import { translateChartData, getChartTitle } from '../utils/chartTranslations';
 
-
+const Transliteration = (type, language) => {
+  if (language === 'bn') {
+    if (type === 'Adaptation') return 'অ্যাডাপটেশন';
+    if (type === 'Mitigation') return 'মিটিগেশন';
+    if (type === 'Trend' || type === 'trend') return 'ট্রেন্ড';
+  }
+  return type;
+};
 
 const Projects = () => {
   const navigate = useNavigate();
@@ -239,9 +246,10 @@ const Projects = () => {
         key: 'type',
         label: 'Project Type',
         options: [
-          { value: 'All', label: 'All Types' },
-          ...types.map(type => ({ value: type, label: type }))
-        ]
+          { value: 'All', label: language === 'bn' ? 'সকল প্রকর' : 'All Types' },
+          ...types.map(type => ({ value: type, label: Transliteration(type, language) }))
+        ],
+        selectProps: { className: 'notranslate', translate: 'no' }
       }] : []),
       ...(divisions.length > 0 ? [{
         key: 'division',
@@ -385,7 +393,7 @@ const Projects = () => {
   return (
     <PageLayout bgColor="bg-gray-50">
       <PageHeader 
-        title="Climate Projects"
+        title="Projects"
         subtitle="Explore climate finance projects across Bangladesh"
         actions={
           <ExportButton
@@ -477,13 +485,14 @@ const Projects = () => {
       {projectTrend.length > 0 && (
         <div className="animate-fade-in-up" style={{ animationDelay: '600ms' }}>
           <Card hover padding={true}>
+            {console.log('DEBUG projectTrend:', projectTrend)}
             <LineChartComponent
-              title={getChartTitle(language, 'projectTrend')}
+              title={Transliteration(getChartTitle(language, 'projectTrend'), language)}
               data={projectTrend}
               xAxisKey="year"
               yAxisKey="projects"
-              formatYAxis={true}
-              lineName={getChartTitle(language, 'projectTrend')}
+              lineName={Transliteration(getChartTitle(language, 'projectTrend'), language)}
+              formatYAxis={false}
             />
           </Card>
         </div>

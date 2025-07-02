@@ -340,8 +340,8 @@ const LandingPage = () => {
     return (
         <PageLayout bgColor="bg-gray-50">
             <PageHeader
-                title="Climate Finance Dashboard"
-                subtitle="Track, analyze and visualize climate finance flows in Bangladesh with real-time insights and comprehensive reporting."
+                title="Dashboard"
+                subtitle="Track, analyze and visualize climate finance flows in Bangladesh with real-time overview and comprehensive reporting."
                 actions={
                     <>
                         <Button
