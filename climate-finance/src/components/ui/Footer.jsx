@@ -115,14 +115,18 @@ const Footer = () => {
                                     rel="noopener noreferrer"
                                     className="flex-shrink-0"
                                 >
-                                    <img
-                                        src={partners[0].src}
-                                        alt={partners[0].alt}
-                                        width={partners[0].width}
-                                        height={partners[0].height}
-                                        className="object-contain"
-                                    />
+                                    <div className={"flex gap-x-2 justify-center items-center"}>
+                                        <img
+                                            src={partners[0].src}
+                                            alt={partners[0].alt}
+                                            width={partners[0].width}
+                                            height={partners[0].height}
+                                            className="object-contain"
+                                        />
+                                        <p>{partners[0].alt}</p>
+                                    </div>
                                 </a>
+
                             </div>
                         </div>
                     </div>

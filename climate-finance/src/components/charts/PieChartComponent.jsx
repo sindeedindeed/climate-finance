@@ -12,6 +12,7 @@ import { Pie } from 'react-chartjs-2';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../context/LanguageContext';
 import { getChartTranslation } from '../../utils/chartTranslations';
+import {CHART_COLORS} from "../../utils/constants.js";
 
 // Register Chart.js components
 ChartJS.register(
@@ -36,14 +37,6 @@ const PieChartComponent = ({
   const chartRef = useRef(null);
   const { language } = useLanguage();
 
-  // Use only main theme colors (repeat if needed)
-  const themeColors = [
-    '#7C65C1', // primary-600
-    '#059669', // success-600
-    '#D97706', // warning-600
-    '#DC2626', // error-600
-    '#3F1D85', // accent
-  ];
 
   // Get translations using centralized system
   const t = {
@@ -59,11 +52,11 @@ const PieChartComponent = ({
     datasets: [
       {
         data: data.map(item => item[valueKey]),
-        backgroundColor: data.map((_, index) => themeColors[index % themeColors.length]),
+        backgroundColor: data.map((_, index) => CHART_COLORS[index % CHART_COLORS.length]),
         borderColor: '#fff',
         borderWidth: 0, // No border between arcs
         hoverBorderWidth: 2,
-        hoverBorderColor: '#1F2937',
+        hoverBorderColor: '#7C65C1',
         hoverOffset: 8,
         borderRadius: 0, // No rounded corners for seamless arcs
         spacing: 0, // No gaps between arcs
@@ -97,8 +90,8 @@ const PieChartComponent = ({
                 const percentage = ((value / total) * 100).toFixed(1);
                 return {
                   text: `${label} (${percentage}%)`,
-                  fillStyle: themeColors[i % themeColors.length],
-                  strokeStyle: themeColors[i % themeColors.length],
+                  fillStyle: CHART_COLORS[i % CHART_COLORS.length],
+                  strokeStyle: CHART_COLORS[i % CHART_COLORS.length],
                   lineWidth: 0,
                   pointStyle: 'circle',
                   hidden: false,
@@ -114,7 +107,7 @@ const PieChartComponent = ({
         backgroundColor: 'rgba(17, 24, 39, 0.95)',
         titleColor: '#F9FAFB',
         bodyColor: '#F9FAFB',
-        borderColor: '#374151',
+        borderColor: '#7C65C1',
         borderWidth: 1,
         cornerRadius: 8,
         displayColors: true,
@@ -172,7 +165,7 @@ const PieChartComponent = ({
     elements: {
       arc: {
         borderWidth: 0,
-        borderColor: '#fff'
+        borderColor: '#7C65C1'
       }
     }
   };
