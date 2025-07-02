@@ -9,6 +9,7 @@ import PageLayout from '../components/layouts/PageLayout';
 import ProjectFormSections from '../features/admin/ProjectFormSections';
 import { ArrowLeft, FolderTree, CheckCircle } from 'lucide-react';
 import { useToast } from '../components/ui/Toast';
+import { useLanguage } from '../context/LanguageContext';
 
 const defaultFormData = {
   project_id: '',
@@ -46,6 +47,14 @@ const formatDateForInput = (dateStr) => {
   return d.toISOString().slice(0, 10);
 };
 
+const Transliteration = (type, language) => {
+  if (language === 'bn') {
+    if (type === 'Adaptation') return 'অ্যাডাপটেশন';
+    if (type === 'Mitigation') return 'মিটিগেশন';
+  }
+  return type;
+};
+
 const ProjectFormPage = ({
   mode = 'add',
   pageTitle,
@@ -67,6 +76,7 @@ const ProjectFormPage = ({
   const [error, setError] = useState(null);
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
+  const { language } = useLanguage();
 
   // Determine mode based on params, authentication, and URL query
   const urlParams = new URLSearchParams(location.search);
@@ -495,8 +505,8 @@ const ProjectFormPage = ({
                   required
                 >
                   <option value="">Select Type</option>
-                  <option value="Adaptation">Adaptation</option>
-                  <option value="Mitigation">Mitigation</option>
+                  <option value="Adaptation">{Transliteration('Adaptation', language)}</option>
+                  <option value="Mitigation">{Transliteration('Mitigation', language)}</option>
                 </select>
                 {errors.type && (
                   <p className="mt-1 text-sm text-red-600">{errors.type}</p>

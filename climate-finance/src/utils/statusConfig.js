@@ -151,8 +151,8 @@ export const REGION_CONFIG = {
     label: 'Southeast',
     color: 'bg-pink-100 text-pink-800'
   },
-  chittagong: {
-    label: 'Chittagong',
+  chattogram: {
+    label: 'Chattogram',
     color: 'bg-indigo-100 text-indigo-800'
   }
 };

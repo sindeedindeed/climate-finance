@@ -2,11 +2,38 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TOOLTIP_STYLES } from '../../utils/constants';
 import { formatCurrency } from '../../utils/formatters';
+import { useLanguage } from '../../context/LanguageContext';
+
+const Transliteration = (type, language) => {
+  if (language === 'bn') {
+    if (type === 'Adaptation') return 'অ্যাডাপটেশন';
+    if (type === 'Mitigation') return 'মিটিগেশন';
+    if (type === 'Trend' || type === 'trend') return 'ট্রেন্ড';
+  }
+  return type;
+};
+
+const CustomTooltip = ({ active, payload, label }) => {
+  const { language } = useLanguage();
+  if (!active || !payload || payload.length === 0) return null;
+  return (
+    <div className="notranslate" translate="no" style={{ background: 'white', border: '1px solid #eee', borderRadius: 8, padding: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+      <div className="font-semibold mb-1">{label}</div>
+      {payload.map((entry, idx) => (
+        <div key={idx} style={{ color: entry.color, marginBottom: 4 }}>
+          {Transliteration(entry.name, language)}: {formatCurrency(entry.value)}
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const BarChartComponent = ({ data, title, xAxisKey, bars, formatYAxis = false }) => {
+  const { language } = useLanguage();
+  const displayTitle = Transliteration(title, language);
   return (
     <div className="w-full overflow-hidden">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">{title}</h3>
+      <h3 className="text-lg font-semibold text-gray-800 mb-4">{displayTitle}</h3>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart 
           data={data} 
@@ -26,9 +53,7 @@ const BarChartComponent = ({ data, title, xAxisKey, bars, formatYAxis = false })
             width={100} // ✅ Increased width for better label fit
           />
           <Tooltip 
-            formatter={(value, name) => 
-              formatYAxis ? [formatCurrency(value), name] : [value, name]
-            }
+            content={<CustomTooltip />}
             contentStyle={TOOLTIP_STYLES} 
           />
           {bars.map((bar, index) => (

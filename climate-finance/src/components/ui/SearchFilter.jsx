@@ -234,7 +234,8 @@ const SearchFilter = ({
                 onChange={(e) => {
                   handleFilterChange(filter.key, e.target.value);
                 }}
-                className="px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className={`px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent ${filter.selectProps?.className || ''}`}
+                translate={filter.selectProps?.translate || undefined}
               >
                 {filter.options.map((option, index) => (
                   <option key={`${filter.key}-${option.value}-${index}`} value={option.value}>

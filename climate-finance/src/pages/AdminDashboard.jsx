@@ -23,9 +23,12 @@ import {
     Activity,
     CheckCircle,
 } from "lucide-react";
+import { getChartTranslation } from "../utils/chartTranslations";
+import { useLanguage } from '../context/LanguageContext';
 
 const AdminDashboard = () => {
     const { user, logout } = useAuth();
+    const { language } = useLanguage();
     const navigate = useNavigate();
     const [dashboardStats, setDashboardStats] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -69,9 +72,11 @@ const AdminDashboard = () => {
                         : `0% from last year`;
                 };
                 
+                const getAdaptationTransliteration = (lang) => lang === 'bn' ? 'অ্যাডাপটেশন' : 'Adaptation';
+
                 setDashboardStats([
                     {
-                        title: "Total Projects",
+                        title: getChartTranslation(language, null, 'projectsByStatus'),
                         value: data.total_projects || 0,
                         change: data.previous_year?.total_projects !== undefined
                             ? calculateProjectChange(
@@ -83,7 +88,7 @@ const AdminDashboard = () => {
                         icon: <FolderTree size={20} />,
                     },
                     {
-                        title: "Active Projects",
+                        title: getChartTranslation(language, null, 'projectsByType'),
                         value: data.active_projects || 0,
                         change: data.previous_year?.active_projects !== undefined
                             ? calculateProjectChange(
@@ -95,7 +100,7 @@ const AdminDashboard = () => {
                         icon: <Activity size={20} />,
                     },
                     {
-                        title: "Total Climate Finance",
+                        title: getChartTranslation(language, null, 'fundingByType'),
                         value: formatCurrency(data.total_climate_finance || 0),
                         change: data.current_year?.total_climate_finance ? 
                             calculateFinancialChange(
@@ -107,7 +112,7 @@ const AdminDashboard = () => {
                         icon: <Banknote size={20} />,
                     },
                     {
-                        title: "Adaptation Finance",
+                        title: <span className="notranslate" translate="no">{getAdaptationTransliteration(language)} ফাইন্যান্স</span>,
                         value: formatCurrency(data.adaptation_finance || 0),
                         change: data.current_year?.adaptation_finance ? 
                             calculateFinancialChange(
@@ -126,30 +131,31 @@ const AdminDashboard = () => {
             console.error("Error fetching dashboard stats:", error);
             setError("Failed to load dashboard statistics");
             // Fallback to default values
+            const getAdaptationTransliteration = (lang) => lang === 'bn' ? 'অ্যাডাপটেশন' : 'Adaptation';
             setDashboardStats([
                 {
-                    title: "Total Projects",
+                    title: getChartTranslation(language, null, 'projectsByStatus'),
                     value: 0,
                     change: "No data available",
                     color: "primary",
                     icon: <FolderTree size={20} />,
                 },
                 {
-                    title: "Active Projects",
+                    title: getChartTranslation(language, null, 'projectsByType'),
                     value: 0,
                     change: "No data available",
                     color: "success",
                     icon: <Activity size={20} />,
                 },
                 {
-                    title: "Total Climate Finance",
+                    title: getChartTranslation(language, null, 'fundingByType'),
                     value: formatCurrency(0),
                     change: "No data available",
                     color: "warning",
                     icon: <Banknote size={20} />,
                 },
                 {
-                    title: "Adaptation Finance",
+                    title: <span className="notranslate" translate="no">{getAdaptationTransliteration(language)} ফাইন্যান্স</span>,
                     value: formatCurrency(0),
                     change: "No data available",
                     color: "primary",
@@ -233,8 +239,8 @@ const AdminDashboard = () => {
         <PageLayout bgColor="bg-gray-50">
             {/* Page Header - Using reusable component */}
             <PageHeader
-                title="Climate Finance Admin Portal"
-                subtitle={`Welcome back, ${
+                title="Admin Portal"
+                subtitle={`Welcome, ${
                     user?.fullName || user?.full_name || "Admin"
                 }`}
                 backPath="/"

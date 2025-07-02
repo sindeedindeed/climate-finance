@@ -46,9 +46,18 @@ const PieChartComponent = ({
     value: getChartTranslation(language, null, 'value')
   };
 
+  // Helper for transliteration
+  const transliterateType = (type) => {
+    if (language === 'bn') {
+      if (type === 'Adaptation') return 'অ্যাডাপটেশন';
+      if (type === 'Mitigation') return 'মিটিগেশন';
+    }
+    return type;
+  };
+
   // Prepare chart data
   const chartData = {
-    labels: data.map(item => item[nameKey]),
+    labels: data.map(item => transliterateType(item[nameKey])),
     datasets: [
       {
         data: data.map(item => item[valueKey]),
@@ -196,6 +205,18 @@ const PieChartComponent = ({
         chartRef.current.chartInstance.destroy();
       }
     };
+  }, []);
+
+  // Add notranslate to Chart.js tooltip container
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const tooltips = document.querySelectorAll('.chartjs-tooltip, .chartjs-tooltip-box, .chartjs-tooltip-container, .chartjs-tooltip-content, .chartjs-tooltip-title, .chartjs-tooltip-body, .chartjs-tooltip-list, .chartjs-tooltip-label, .chartjs-tooltip-value, .chartjs-tooltip-percentage, .chartjs-tooltip-item, .chartjs-tooltip-header, .chartjs-tooltip-footer, .chartjs-tooltip-text, .chartjs-tooltip-inner, .chartjs-tooltip-outer, .chartjs-tooltip-wrap, .chartjs-tooltip-bg, .chartjs-tooltip-arrow, .chartjs-tooltip-pointer, .chartjs-tooltip-pointer-inner, .chartjs-tooltip-pointer-outer, .chartjs-tooltip-pointer-bg, .chartjs-tooltip-pointer-arrow, .chartjs-tooltip-pointer-arrow-inner, .chartjs-tooltip-pointer-arrow-outer, .chartjs-tooltip-pointer-arrow-bg, .chartjs-tooltip-pointer-arrow-pointer, .chartjs-tooltip-pointer-arrow-pointer-inner, .chartjs-tooltip-pointer-arrow-pointer-outer, .chartjs-tooltip-pointer-arrow-pointer-bg, .chartjs-tooltip-pointer-arrow-pointer-pointer');
+      tooltips.forEach(tip => {
+        tip.classList.add('notranslate');
+        tip.setAttribute('translate', 'no');
+      });
+    }, 200);
+    return () => clearInterval(interval);
   }, []);
 
   return (

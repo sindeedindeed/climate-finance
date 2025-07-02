@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { FolderTree, CheckCircle } from 'lucide-react';
 import AdminListPage from '../features/admin/AdminListPage';
 import { projectApi } from '../services/api';
+import { getChartTranslation } from '../utils/chartTranslations';
 
 const AdminProjects = () => {
   const [projectsList, setProjectsList] = useState([]);
@@ -50,14 +51,13 @@ const AdminProjects = () => {
       key: 'type',
       header: 'Type',
       render: (value) => {
-        // Project types like "Adaptation", "Mitigation" should be displayed directly
         if (!value) return '-';
         const colorClass = value === 'Adaptation' ? 'bg-blue-100 text-blue-800' : 
                           value === 'Mitigation' ? 'bg-green-100 text-green-800' : 
                           'bg-purple-100 text-purple-800';
         return (
           <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${colorClass}`}>
-            {value}
+            {getChartTranslation('en', 'mitigationType', value)}
           </span>
         );
       }
@@ -105,7 +105,7 @@ const AdminProjects = () => {
         defaultValue: 'All',
         options: [
           { value: 'All', label: 'All Types' },
-          ...types.map(type => ({ value: type, label: type }))
+          ...types.map(type => ({ value: type, label: getChartTranslation('en', 'mitigationType', type) }))
         ]
       },
       {
