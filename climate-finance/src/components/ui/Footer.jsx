@@ -123,7 +123,7 @@ const Footer = () => {
                                             height={partners[0].height}
                                             className="object-contain"
                                         />
-                                        <p>{partners[0].alt}</p>
+                                        <p className={"text-blue-500"}>www.acmeai.tech</p>
                                     </div>
                                 </a>
 
