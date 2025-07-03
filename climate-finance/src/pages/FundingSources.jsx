@@ -245,7 +245,7 @@ const FundingSources = () => {
     <PageLayout bgColor="bg-gray-50">
       <PageHeader
         title="Funding Sources"
-        subtitle="Explore climate finance funding sources and their contributions"
+        subtitle="Learn climate finance funding sources and their significance"
         actions={
           <ExportButton
             data={{
