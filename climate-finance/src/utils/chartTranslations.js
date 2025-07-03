@@ -14,6 +14,7 @@ export const chartTranslations = {
     fundingByType: 'Funding by Type',
     fundingBySource: 'Funding by Source',
     projectTrend: 'Project Trend',
+    regionalDistributionMap: 'Regional Distribution Map',
     
     // Status translations
     status: {
@@ -131,7 +132,8 @@ export const chartTranslations = {
     projectsBySector: 'খাত অনুযায়ী প্রকল্প',
     fundingByType: 'ধরন অনুযায়ী অর্থায়ন',
     fundingBySource: 'উৎস অনুযায়ী অর্থায়ন',
-    projectTrend: 'প্রকল্প প্রবণতা',
+    projectTrend: 'প্রকল্প গতি',
+    regionalDistributionMap: 'আঞ্চলিক বণ্টন চিত্র',
     
     // Status translations
     status: {

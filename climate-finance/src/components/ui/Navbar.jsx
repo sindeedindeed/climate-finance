@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Plus } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
+import { getClimateFinanceTransliteration } from "../../utils/transliteration";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 const Navbar = () => {
@@ -9,6 +11,7 @@ const Navbar = () => {
     const path = location.pathname;
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { isAuthenticated } = useAuth();
+    const { language } = useLanguage();
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -58,7 +61,9 @@ const Navbar = () => {
                             onClick={() => setIsMobileMenuOpen(false)}
                         >
                             <h1 className="text-xl font-bold text-purple-700 group-hover:text-purple-600 transition-colors duration-200">
-                                Climate Finance
+                                <span className="notranslate" translate="no">
+                                    {getClimateFinanceTransliteration(language)}
+                                </span>
                             </h1>
                         </Link>
                     </div>
