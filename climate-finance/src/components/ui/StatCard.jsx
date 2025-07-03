@@ -158,7 +158,7 @@ const StatCard = ({ title, value, change, icon = null, color = 'primary', locale
             ) : (
               <TrendingDown size={12} className="text-error-600" />
             )}
-            <span className="leading-none" translate="no">{change}</span>
+            <span className="leading-none">{change}</span>
           </div>
         </div>
         
