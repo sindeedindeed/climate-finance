@@ -17,7 +17,7 @@ const AdminListItem = ({
 }) => {
   return (
     <div 
-      className={`p-6 hover:bg-purple-50 transition-all duration-200 group animate-fade-in-up ${isInactive ? 'opacity-60' : ''}`}
+      className={`p-6 hover:bg-purple-50 transition-all duration-200 group animate-fade-in-up border border-gray-200 rounded-lg ${isInactive ? 'opacity-60' : ''}`}
       style={{ animationDelay: `${index * 50}ms` }}
     >
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
