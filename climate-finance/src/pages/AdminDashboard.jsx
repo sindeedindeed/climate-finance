@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { getChartTranslation } from "../utils/chartTranslations";
 import { useLanguage } from '../context/LanguageContext';
+import { getAdaptationTransliteration } from '../utils/transliteration';
 
 const AdminDashboard = () => {
     const { user, logout } = useAuth();
@@ -72,7 +73,7 @@ const AdminDashboard = () => {
                         : `0% from last year`;
                 };
                 
-                const getAdaptationTransliteration = (lang) => lang === 'bn' ? 'অ্যাডাপটেশন' : 'Adaptation';
+
 
                 setDashboardStats([
                     {
@@ -131,7 +132,6 @@ const AdminDashboard = () => {
             console.error("Error fetching dashboard stats:", error);
             setError("Failed to load dashboard statistics");
             // Fallback to default values
-            const getAdaptationTransliteration = (lang) => lang === 'bn' ? 'অ্যাডাপটেশন' : 'Adaptation';
             setDashboardStats([
                 {
                     title: getChartTranslation(language, null, 'projectsByStatus'),

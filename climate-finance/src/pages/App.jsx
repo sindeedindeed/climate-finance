@@ -7,6 +7,7 @@ import ErrorBoundary from '../components/ui/ErrorBoundary';
 import Routing from '../routing';
 import Navbar from '../components/ui/Navbar';
 import Footer from '../components/ui/Footer';
+import DynamicTitle from '../components/ui/DynamicTitle';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <AuthProvider>
           <LanguageProvider>
             <ToastProvider>
+              <DynamicTitle />
               <Navbar />
               <div className="min-h-screen flex flex-col bg-gray-50">
                 <main className="flex-grow">

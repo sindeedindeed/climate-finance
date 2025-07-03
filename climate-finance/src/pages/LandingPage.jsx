@@ -356,7 +356,7 @@ const LandingPage = () => {
                             disabled={refreshing}
                             loading={refreshing}
                         >
-                            {refreshing ? "Refreshing..." : "Refresh Data"}
+                            {refreshing ? "Refreshing..." : "Refresh"}
                         </Button>
                         <ExportButton
                             data={getExportData()}
@@ -423,7 +423,7 @@ const LandingPage = () => {
             >
                 <BangladeshMapComponent
                     data={regionalData}
-                    title="Regional Distribution Map"
+                    title={getChartTitle(language, 'regionalDistributionMap')}
                     height={400}
                 />
             </div>
