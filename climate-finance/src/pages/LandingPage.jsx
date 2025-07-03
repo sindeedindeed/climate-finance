@@ -341,7 +341,18 @@ const LandingPage = () => {
         <PageLayout bgColor="bg-gray-50">
             <PageHeader
                 title="Dashboard"
-                subtitle="Track, analyze and visualize climate finance flows in Bangladesh with real-time overview and comprehensive reporting."
+                subtitle={
+                    language === "bn"
+                        ? (
+                            <span className="no-translate">
+                                বাংলাদেশে জলবায়ু অর্থায়নের প্রবাহ রিয়েল-টাইমে ট্র্যাক, বিশ্লেষণ ও চিত্রায়িত করুন—সহজ ও বিস্তারিত প্রতিবেদনের মাধ্যমে।
+                            </span>
+                        ) : (
+                            <span className="no-translate">
+                                Track, analyze and visualize climate finance flows in Bangladesh with real-time overview and comprehensive reporting.
+                            </span>
+                        )
+                }
                 actions={
                     <>
                         <Button
