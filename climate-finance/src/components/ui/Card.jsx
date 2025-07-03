@@ -14,13 +14,13 @@ const Card = ({
     bg-white rounded-2xl shadow-soft 
     transition-all duration-300 ease-out
     relative overflow-hidden
-    border border-gray-100/50
+    border border-gray-200
     w-full
   `;
 
   const hoverStyles = hover || interactive ? `
     hover:shadow-large hover:-translate-y-1
-    hover:border-primary-200/50
+    hover:border-primary-300
     cursor-pointer
     transform
   ` : '';
