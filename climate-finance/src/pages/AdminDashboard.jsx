@@ -113,7 +113,7 @@ const AdminDashboard = () => {
                         icon: <Banknote size={20} />,
                     },
                     {
-                        title: <span className="notranslate" translate="no">{getAdaptationTransliteration(language)} ফাইন্যান্স</span>,
+                        title: language === 'bn' ? 'অ্যাডাপটেশন ফাইন্যান্স' : 'Adaptation Finance',
                         value: formatCurrency(data.adaptation_finance || 0),
                         change: data.current_year?.adaptation_finance ? 
                             calculateFinancialChange(
@@ -155,7 +155,7 @@ const AdminDashboard = () => {
                     icon: <Banknote size={20} />,
                 },
                 {
-                    title: <span className="notranslate" translate="no">{getAdaptationTransliteration(language)} ফাইন্যান্স</span>,
+                    title: language === 'bn' ? 'অ্যাডাপটেশন ফাইন্যান্স' : 'Adaptation Finance',
                     value: formatCurrency(0),
                     change: "No data available",
                     color: "primary",

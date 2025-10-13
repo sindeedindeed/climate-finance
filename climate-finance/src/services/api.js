@@ -1,20 +1,28 @@
 // Base API configuration
 const BASE_URL = import.meta.env.VITE_BASE_URL || 'https://climate-finance.onrender.com';
 
-// Generic API request function with error handling
+// Generic API request function with error handling and timeout
 const apiRequest = async (endpoint, options = {}) => {
   const url = `${BASE_URL}/api${endpoint}`;
+  
+  // Create AbortController for timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
   
   const config = {
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
     },
+    signal: controller.signal,
     ...options,
   };
 
   try {
     const response = await fetch(url, config);
+    
+    // Clear timeout if request completes successfully
+    clearTimeout(timeoutId);
     
     if (!response.ok) {
       let errorMessage = `HTTP error! status: ${response.status}`;
@@ -31,7 +39,14 @@ const apiRequest = async (endpoint, options = {}) => {
     const data = await response.json();
     return data;
   } catch (error) {
+    // Clear timeout on error
+    clearTimeout(timeoutId);
     console.error(`API request failed for ${endpoint}:`, error);
+    
+    // Handle timeout errors
+    if (error.name === 'AbortError') {
+      throw new Error('Request timed out. Unable to connect to server. Please try again.');
+    }
     
     // Provide user-friendly error messages
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
