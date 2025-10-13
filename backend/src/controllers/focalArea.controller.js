@@ -1,4 +1,6 @@
 const FocalArea = require('../models/FocalArea.model');
+const { isDBAvailable } = require('../config/db');
+const mockDataService = require('../services/mockDataService');
 const Agency = require("../models/Agency.model");
 
 exports.addFocalArea = async (req, res) => {
@@ -12,8 +14,13 @@ exports.addFocalArea = async (req, res) => {
 
 exports.getAllFocalAreas = async (req, res) => {
     try {
-        const result = await FocalArea.getAllFocalAreas();
-        res.status(200).json({ status: true, data: result });
+        if (isDBAvailable()) {
+            const result = await FocalArea.getAllFocalAreas();
+            res.status(200).json({ status: true, data: result });
+        } else {
+            const result = mockDataService.getAllFocalAreas();
+            res.status(200).json(result);
+        }
     } catch (e) {
         res.status(500).json({ status: false, message: `Error: ${e.message}` });
     }

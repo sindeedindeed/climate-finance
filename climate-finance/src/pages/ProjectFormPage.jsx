@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link, useParams, useLocation } from 'react-router-dom';
-import { locationApi, agencyApi, fundingSourceApi, focalAreaApi, projectApi, pendingProjectApi } from '../services/api';
+import { agencyApi, fundingSourceApi, focalAreaApi, projectApi, pendingProjectApi } from '../services/api';
 import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
 import Card from '../components/ui/Card';
@@ -16,7 +16,6 @@ const defaultFormData = {
   title: '',
   type: '',
   sector: '',
-  division: '',
   status: '',
   total_cost_usd: '',
   gef_grant: '',
@@ -28,7 +27,6 @@ const defaultFormData = {
   objectives: '',
   agencies: [],
   funding_sources: [],
-  locations: [],
   focal_areas: [],
   wash_component: {
     presence: false,
@@ -37,7 +35,23 @@ const defaultFormData = {
     public_admin_percent: 0
   },
   disbursement: '',
-  submitter_email: '' // Added for public mode
+  submitter_email: '', // Added for public mode
+  
+  // New fields for client requirements
+  hotspot_vulnerability_type: '',
+  wash_component_description: '',
+  direct_beneficiaries: '',
+  indirect_beneficiaries: '',
+  beneficiary_description: '',
+  gender_inclusion: '',
+  equity_marker: '',
+  equity_marker_description: '',
+  assessment: '',
+  alignment_sdg: [],
+  alignment_nap: '',
+  alignment_cff: '',
+  geographic_division: '',
+  districts: []
 };
 
 const formatDateForInput = (dateStr) => {
@@ -62,13 +76,12 @@ const ProjectFormPage = ({
 }) => {
   const { id } = useParams();
   const location = useLocation();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [formData, setFormData] = useState(defaultFormData);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
-  const [locations, setLocations] = useState([]);
   const [agencies, setAgencies] = useState([]);
   const [fundingSources, setFundingSources] = useState([]);
   const [focalAreas, setFocalAreas] = useState([]);
@@ -129,7 +142,6 @@ const ProjectFormPage = ({
           objectives: projectData.objectives || '',
           agencies: projectData.agencies || [],
           funding_sources: projectData.funding_sources || [],
-          locations: projectData.locations || [],
           focal_areas: projectData.focal_areas || [],
           wash_component: projectData.wash_component || {
             presence: false,
@@ -138,7 +150,9 @@ const ProjectFormPage = ({
             public_admin_percent: 0
           },
           disbursement: projectData.disbursement || '',
-          submitter_email: projectData.submitter_email || ''
+          submitter_email: projectData.submitter_email || '',
+          geographic_division: projectData.geographic_division || '',
+          districts: projectData.districts || []
         });
       } else {
         throw new Error('Project not found');
@@ -156,15 +170,13 @@ const ProjectFormPage = ({
       setIsLoadingData(true);
       
       // Fetch all data in parallel
-      const [locationsResponse, agenciesResponse, fundingSourcesResponse, focalAreasResponse] = await Promise.all([
-        locationApi.getAll().catch(() => ({ status: false, data: [] })),
+      const [agenciesResponse, fundingSourcesResponse, focalAreasResponse] = await Promise.all([
         agencyApi.getAll().catch(() => ({ status: false, data: [] })),
         fundingSourceApi.getAll().catch(() => ({ status: false, data: [] })),
         focalAreaApi.getAll().catch(() => ({ status: false, data: [] }))
       ]);
 
       // Set data or fallback to empty arrays if API calls fail
-      setLocations(locationsResponse.status && locationsResponse.data ? locationsResponse.data : []);
       setAgencies(agenciesResponse.status && agenciesResponse.data ? agenciesResponse.data : []);
       setFundingSources(fundingSourcesResponse.status && fundingSourcesResponse.data ? fundingSourcesResponse.data : []);
       setFocalAreas(focalAreasResponse.status && focalAreasResponse.data ? focalAreasResponse.data : []);
@@ -172,7 +184,6 @@ const ProjectFormPage = ({
     } catch (error) {
       console.error('Error fetching form data:', error);
       // Set empty arrays as fallback
-      setLocations([]);
       setAgencies([]);
       setFundingSources([]);
       setFocalAreas([]);
@@ -222,8 +233,12 @@ const ProjectFormPage = ({
       newErrors.sector = 'Project sector is required';
     }
 
-    if (!formData.division) {
-      newErrors.division = 'Project division is required';
+    if (!formData.geographic_division) {
+      newErrors.geographic_division = 'Geographic division is required';
+    }
+
+    if (!formData.districts || formData.districts.length === 0) {
+      newErrors.districts = 'At least one district must be selected';
     }
 
     if (!formData.status) {
@@ -280,7 +295,6 @@ const ProjectFormPage = ({
         title: formData.title,
         type: formData.type,
         sector: formData.sector,
-        division: formData.division,
         status: formData.status,
         total_cost_usd: totalCost,
         gef_grant: gefGrant,
@@ -292,14 +306,33 @@ const ProjectFormPage = ({
         objectives: formData.objectives,
         wash_finance: washFinance,
         wash_finance_percent: washFinancePercent,
-        wash_component: formData.wash_component,
+        wash_component: {
+          presence: formData.wash_component.presence,
+          wash_percentage: formData.wash_component.wash_percentage || 0,
+          description: formData.wash_component_description || ''
+        },
         disbursement: parseFloat(formData.disbursement) || 0,
         // Transform relationship arrays to match backend expectations
         agency_ids: formData.agencies || [],
-        location_ids: formData.locations || [],
         funding_source_ids: formData.funding_sources || [],
         focal_area_ids: formData.focal_areas || [],
-        submitter_email: formData.submitter_email
+        submitter_email: formData.submitter_email,
+        // New geographic location fields
+        geographic_division: formData.geographic_division,
+        districts: formData.districts || [],
+        // New fields for client requirements
+        hotspot_vulnerability_type: formData.hotspot_vulnerability_type,
+        wash_component_description: formData.wash_component_description,
+        direct_beneficiaries: parseInt(formData.direct_beneficiaries) || 0,
+        indirect_beneficiaries: parseInt(formData.indirect_beneficiaries) || 0,
+        beneficiary_description: formData.beneficiary_description,
+        gender_inclusion: formData.gender_inclusion,
+        equity_marker: formData.equity_marker,
+        equity_marker_description: formData.equity_marker_description,
+        assessment: formData.assessment,
+        alignment_sdg: formData.alignment_sdg || [],
+        alignment_nap: formData.alignment_nap,
+        alignment_cff: formData.alignment_cff
       };
 
       if (actualMode === 'public') {
@@ -399,7 +432,7 @@ const ProjectFormPage = ({
   }
 
   return (
-    <PageLayout bgColor="bg-gray-50">
+    <PageLayout bgColor="bg-gray-50" maxWidth="max-w-7xl mx-auto">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
         <div className="flex items-center space-x-4">
@@ -420,14 +453,6 @@ const ProjectFormPage = ({
             </p>
           </div>
         </div>
-        {actualMode !== 'public' && (
-          <div className="flex items-center space-x-4 mt-4 md:mt-0">
-            <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">{user?.fullName}</p>
-              <p className="text-xs text-gray-500">{user?.role}</p>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Info Message for Public Mode */}
@@ -443,7 +468,7 @@ const ProjectFormPage = ({
       )}
 
       {/* Form Card */}
-      <Card padding={true}>
+      <Card padding={true} className="max-w-none">
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
@@ -493,7 +518,7 @@ const ProjectFormPage = ({
               
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Type <span className="text-red-500">*</span>
+                  Type (to be removed) <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="type"
@@ -514,7 +539,7 @@ const ProjectFormPage = ({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Sector <span className="text-red-500">*</span>
+                  Sector (to be removed) <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="sector"
@@ -540,29 +565,6 @@ const ProjectFormPage = ({
                 </select>
                 {errors.sector && (
                   <p className="mt-1 text-sm text-red-600">{errors.sector}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Division <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="division"
-                  value={formData.division}
-                  onChange={handleInputChange}
-                  className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
-                    errors.division ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  required
-                >
-                  <option value="">Select Division</option>
-                  <option value="Local Government">Local Government</option>
-                  <option value="National Government">National Government</option>
-                  <option value="NGO">NGO</option>
-                  <option value="International">International</option>
-                </select>
-                {errors.division && (
-                  <p className="mt-1 text-sm text-red-600">{errors.division}</p>
                 )}
               </div>
               <div>
@@ -598,7 +600,6 @@ const ProjectFormPage = ({
             handleWashComponentChange={handleWashComponentChange}
             agencies={agencies}
             fundingSources={fundingSources}
-            locations={locations}
             focalAreas={focalAreas}
           />
 
@@ -706,19 +707,8 @@ const ProjectFormPage = ({
           </div>
 
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Objectives & Beneficiaries</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Objectives</h3>
             <div className="grid grid-cols-1 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Beneficiaries</label>
-                <input
-                  type="text"
-                  name="beneficiaries"
-                  value={formData.beneficiaries}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                  placeholder="e.g., 2,500,000 coastal residents"
-                />
-              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Objectives {actualMode === 'public' && <span className="text-red-500">*</span>}
@@ -731,7 +721,6 @@ const ProjectFormPage = ({
                   className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
                     errors.objectives ? 'border-red-300' : 'border-gray-300'
                   }`}
-                  placeholder="Describe the project objectives..."
                   required={actualMode === 'public'}
                 />
                 {errors.objectives && (

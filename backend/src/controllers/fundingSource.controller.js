@@ -1,4 +1,6 @@
 const FundingSource = require('../models/FundingSource.model');
+const { isDBAvailable } = require('../config/db');
+const mockDataService = require('../services/mockDataService');
 const Agency = require("../models/Agency.model");
 
 exports.addFundingSource = async (req, res) => {
@@ -12,8 +14,13 @@ exports.addFundingSource = async (req, res) => {
 
 exports.getAllFundingSources = async (req, res) => {
     try {
-        const result = await FundingSource.getAllFundingSources();
-        res.status(200).json({ status: true, data: result });
+        if (isDBAvailable()) {
+            const result = await FundingSource.getAllFundingSources();
+            res.status(200).json({ status: true, data: result });
+        } else {
+            const result = mockDataService.getAllFundingSources();
+            res.status(200).json(result);
+        }
     } catch (e) {
         res.status(500).json({ status: false, message: `Error: ${e.message}` });
     }

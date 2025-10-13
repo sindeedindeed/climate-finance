@@ -48,7 +48,6 @@ const AdminDashboard = () => {
 
             if (response.status && response.data) {
                 const data = response.data;
-                console.log('Admin Dashboard data:', data);
                 
                 // Helper function for financial metrics (using funding source calculation method)
                 const calculateFinancialChange = (total, current) => {

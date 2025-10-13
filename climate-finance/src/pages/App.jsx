@@ -11,11 +11,11 @@ import DynamicTitle from '../components/ui/DynamicTitle';
 
 function App() {
   return (
-    <ErrorBoundary>
-      <BrowserRouter>
-        <AuthProvider>
-          <LanguageProvider>
-            <ToastProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <LanguageProvider>
+          <ToastProvider>
+            <ErrorBoundary>
               <DynamicTitle />
               <Navbar />
               <div className="min-h-screen flex flex-col bg-gray-50">
@@ -24,11 +24,11 @@ function App() {
                 </main>
                 <Footer />
               </div>
-            </ToastProvider>
-          </LanguageProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </ErrorBoundary>
+            </ErrorBoundary>
+          </ToastProvider>
+        </LanguageProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

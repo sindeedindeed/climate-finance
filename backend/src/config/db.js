@@ -14,10 +14,14 @@ const pool = new Pool({
             : false,
 });
 
+// Global flag to indicate if database is available
+let isDatabaseAvailable = false;
+
 const connectDB = async () => {
     try {
         await pool.connect();
         logger.info("PostgreSQL Connected");
+        isDatabaseAvailable = true;
 
         // Only run init SQL if we're in development or if explicitly requested
         if (
@@ -38,9 +42,15 @@ const connectDB = async () => {
             }
         }
     } catch (error) {
-        logger.error("Database connection error:", error);
-        process.exit(1);
+        logger.warn("Database connection failed, using mock data mode:", error.message);
+        isDatabaseAvailable = false;
+        // Don't exit process - continue with mock data
     }
 };
 
-module.exports = { connectDB, pool };
+// Function to check if database is available
+const isDBAvailable = () => {
+    return isDatabaseAvailable;
+};
+
+module.exports = { connectDB, pool, isDBAvailable };

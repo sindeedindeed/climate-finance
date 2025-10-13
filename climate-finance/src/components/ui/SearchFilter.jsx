@@ -47,11 +47,6 @@ const getNestedValue = (obj, path) => {
 
 // Filter data based on active filters
 const filterData = (data, activeFilters) => {
-  console.log('[filterData] Starting filter with:', {
-    dataLength: data.length,
-    activeFilters
-  });
-  
   return data.filter(item => {
     const passesAllFilters = Object.entries(activeFilters).every(([key, value]) => {
       if (!value || value === 'All') return true;
@@ -66,50 +61,22 @@ const filterData = (data, activeFilters) => {
       // Handle case-insensitive matching for string values
       if (typeof itemValue === 'string' && typeof value === 'string') {
         const matches = itemValue.toLowerCase() === value.toLowerCase();
-        if (!matches) {
-          console.log(`[filterData] Item ${item.project_id || item.id} failed filter ${key}:`, {
-            itemValue,
-            filterValue: value,
-            type: 'string comparison'
-          });
-        }
         return matches;
       }
       
       // Handle numeric values (like IDs)
       if (typeof itemValue === 'number' && typeof value === 'string') {
         const matches = itemValue.toString() === value;
-        if (!matches) {
-          console.log(`[filterData] Item ${item.project_id || item.id} failed filter ${key}:`, {
-            itemValue,
-            filterValue: value,
-            type: 'number to string comparison'
-          });
-        }
         return matches;
       }
       
       // Handle string values that should be compared as numbers
       if (typeof itemValue === 'string' && typeof value === 'string' && !isNaN(itemValue) && !isNaN(value)) {
         const matches = itemValue === value;
-        if (!matches) {
-          console.log(`[filterData] Item ${item.project_id || item.id} failed filter ${key}:`, {
-            itemValue,
-            filterValue: value,
-            type: 'string number comparison'
-          });
-        }
         return matches;
       }
       
       const matches = itemValue === value;
-      if (!matches) {
-        console.log(`[filterData] Item ${item.project_id || item.id} failed filter ${key}:`, {
-          itemValue,
-          filterValue: value,
-          type: 'direct comparison'
-        });
-      }
       return matches;
     });
     
@@ -149,34 +116,18 @@ const SearchFilter = ({
   useEffect(() => {
     let result = [...data]; // Create a copy to avoid mutation issues
     
-    console.log('[SearchFilter] Processing data:', {
-      dataLength: data.length,
-      activeFilters,
-      searchValue,
-      initialResultLength: result.length
-    });
-    
     // Apply filters first
     if (Object.keys(activeFilters).length > 0) {
       result = filterData(result, activeFilters);
-      console.log('[SearchFilter] After filtering:', {
-        resultLength: result.length,
-        activeFilters
-      });
     }
     
     // Apply search with scoring
     if (searchValue) {
       result = advancedSearch(result, searchValue, searchConfig);
-      console.log('[SearchFilter] After search:', {
-        resultLength: result.length,
-        searchValue
-      });
     }
     
     // Always call onFilteredData when data changes or when filters/search change
     if (onFilteredData) {
-      console.log('[SearchFilter] Calling onFilteredData with', result.length, 'items');
       onFilteredData(result);
     }
   }, [data, searchValue, activeFilters, searchConfig, onFilteredData]);

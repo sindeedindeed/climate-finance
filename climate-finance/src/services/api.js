@@ -1,13 +1,31 @@
-// Base API configuration
-const BASE_URL = import.meta.env.VITE_BASE_URL || 'https://climate-finance.onrender.com';
+// Import mock data service for fallback
+import { 
+  projectService, 
+  agencyService, 
+  fundingSourceService, 
+  focalAreaService, 
+  authService, 
+  getOverviewStats 
+} from './mockDataService.js';
 
-// Generic API request function with error handling and timeout
+// Helper function to create API response format (for mock data fallback)
+const createResponse = (data, message = 'Success') => ({
+  status: true,
+  message,
+  data
+});
+
+// Base API configuration
+// const BASE_URL = import.meta.env.VITE_BASE_URL || 'https://climate-finance.onrender.com';
+const BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:5000';
+
+// Generic API request function with error handling, timeout, and mock data fallback
 const apiRequest = async (endpoint, options = {}) => {
   const url = `${BASE_URL}/api${endpoint}`;
   
   // Create AbortController for timeout
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+  const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout for faster fallback
   
   const config = {
     headers: {
@@ -41,20 +59,118 @@ const apiRequest = async (endpoint, options = {}) => {
   } catch (error) {
     // Clear timeout on error
     clearTimeout(timeoutId);
-    console.error(`API request failed for ${endpoint}:`, error);
+    console.warn(`API request failed for ${endpoint}, falling back to mock data:`, error.message);
     
-    // Handle timeout errors
-    if (error.name === 'AbortError') {
-      throw new Error('Request timed out. Unable to connect to server. Please try again.');
-    }
-    
-    // Provide user-friendly error messages
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      throw new Error('Unable to connect to server. Please check your internet connection and try again.');
+    // Fallback to mock data for connection errors
+    if (error.name === 'AbortError' || 
+        (error.name === 'TypeError' && error.message.includes('fetch')) ||
+        error.message.includes('Failed to fetch') ||
+        error.message.includes('Connection refused')) {
+      
+      // Return mock data based on endpoint
+      return getMockDataForEndpoint(endpoint, options);
     }
     
     throw error;
   }
+};
+
+// Helper function to get mock data based on endpoint
+const getMockDataForEndpoint = async (endpoint, options = {}) => {
+  // Project endpoints
+  if (endpoint.includes('/project/all-project')) {
+    return projectService.getAll();
+  }
+  if (endpoint.includes('/project/get/')) {
+    const id = endpoint.split('/').pop();
+    return projectService.getById(id);
+  }
+  if (endpoint.includes('/project/projectsOverviewStats')) {
+    return projectService.getOverviewStats();
+  }
+  if (endpoint.includes('/project/get-project-by-status')) {
+    return projectService.getByStatus();
+  }
+  if (endpoint.includes('/project/get-project-by-type')) {
+    return projectService.getByType();
+  }
+  if (endpoint.includes('/project/get-project-by-sector')) {
+    return projectService.getBySector();
+  }
+  if (endpoint.includes('/project/get-project-by-trend')) {
+    return projectService.getTrend();
+  }
+  if (endpoint.includes('/project/get-regional-distribution')) {
+    return projectService.getRegionalDistribution();
+  }
+  if (endpoint.includes('/project/get-overview-stat')) {
+    return getOverviewStats();
+  }
+  if (endpoint.includes('/project/add-project')) {
+    const data = JSON.parse(options.body || '{}');
+    return projectService.add(data);
+  }
+  if (endpoint.includes('/project/update/')) {
+    const id = endpoint.split('/').pop();
+    const data = JSON.parse(options.body || '{}');
+    return projectService.update(id, data);
+  }
+  if (endpoint.includes('/project/delete/')) {
+    const id = endpoint.split('/').pop();
+    return projectService.delete(id);
+  }
+  
+  // Agency endpoints
+  if (endpoint.includes('/agency/all')) {
+    return agencyService.getAll();
+  }
+  if (endpoint.includes('/agency/get/')) {
+    const id = endpoint.split('/').pop();
+    return agencyService.getById ? agencyService.getById(id) : createResponse({}, 'Agency not found');
+  }
+  
+  // Funding source endpoints
+  if (endpoint.includes('/funding-source/all')) {
+    return fundingSourceService.getAll();
+  }
+  if (endpoint.includes('/funding-source/get/')) {
+    const id = endpoint.split('/').pop();
+    return fundingSourceService.getById(id);
+  }
+  if (endpoint.includes('/project/get-funding-source-by-type')) {
+    return fundingSourceService.getByType();
+  }
+  if (endpoint.includes('/project/get-funding-source-overview')) {
+    return fundingSourceService.getOverview();
+  }
+  if (endpoint.includes('/project/get-funding-source-trend')) {
+    return fundingSourceService.getTrend();
+  }
+  if (endpoint.includes('/project/get-funding-source-sector-allocation')) {
+    return fundingSourceService.getSectorAllocation();
+  }
+  if (endpoint.includes('/project/get-funding-source')) {
+    return fundingSourceService.getAll();
+  }
+  
+  // Focal area endpoints
+  if (endpoint.includes('/focal-area/all')) {
+    return focalAreaService.getAll();
+  }
+  if (endpoint.includes('/focal-area/get/')) {
+    const id = endpoint.split('/').pop();
+    return focalAreaService.getById ? focalAreaService.getById(id) : createResponse({}, 'Focal area not found');
+  }
+  
+  // Auth endpoints
+  if (endpoint.includes('/auth/login')) {
+    const data = JSON.parse(options.body || '{}');
+    return authService.login(data);
+  }
+  
+  // Default fallback
+  console.warn(`No mock data available for endpoint: ${endpoint}`);
+  return { status: false, message: 'Service unavailable', data: null };
 };
 
 // Project API endpoints

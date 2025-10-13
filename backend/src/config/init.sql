@@ -28,7 +28,20 @@ CREATE TABLE IF NOT EXISTS Project (
     wash_finance DECIMAL(15,2),
     wash_finance_percent DECIMAL(5,2),
     beneficiaries VARCHAR(100),
-    objectives TEXT
+    objectives TEXT,
+    hotspot_vulnerability_type TEXT,
+    wash_component_description TEXT,
+    direct_beneficiaries INTEGER,
+    indirect_beneficiaries INTEGER,
+    beneficiary_description TEXT,
+    gender_inclusion TEXT,
+    equity_marker VARCHAR(20) CHECK (equity_marker IN ('strong', 'medium', 'weak', '')),
+    equity_marker_description TEXT,
+    assessment TEXT,
+    alignment_nap TEXT,
+    alignment_cff TEXT,
+    geographic_division VARCHAR(50),
+    districts TEXT[]
 );
 
 -- Table: PendingProject (for projects awaiting approval)
@@ -56,7 +69,21 @@ CREATE TABLE IF NOT EXISTS PendingProject (
     location_ids INTEGER[],
     funding_source_ids INTEGER[],
     focal_area_ids INTEGER[],
-    wash_component JSONB
+    wash_component JSONB,
+    hotspot_vulnerability_type TEXT,
+    wash_component_description TEXT,
+    direct_beneficiaries INTEGER,
+    indirect_beneficiaries INTEGER,
+    beneficiary_description TEXT,
+    gender_inclusion TEXT,
+    equity_marker VARCHAR(20) CHECK (equity_marker IN ('strong', 'medium', 'weak', '')),
+    equity_marker_description TEXT,
+    assessment TEXT,
+    alignment_nap TEXT,
+    alignment_cff TEXT,
+    alignment_sdg INTEGER[],
+    geographic_division VARCHAR(50),
+    districts TEXT[]
 );
 
 -- Table: Agency
@@ -99,6 +126,8 @@ CREATE TABLE IF NOT EXISTS WASHComponent (
     water_supply_percent DECIMAL(5,2),
     sanitation_percent DECIMAL(5,2),
     public_admin_percent DECIMAL(5,2),
+    wash_percentage DECIMAL(5,2),
+    description TEXT,
     FOREIGN KEY (project_id) REFERENCES Project(project_id) ON DELETE CASCADE
 );
 
@@ -136,6 +165,14 @@ CREATE TABLE IF NOT EXISTS ProjectFocalArea (
     PRIMARY KEY (project_id, focal_area_id),
     FOREIGN KEY (project_id) REFERENCES Project(project_id) ON DELETE CASCADE,
     FOREIGN KEY (focal_area_id) REFERENCES FocalArea(focal_area_id) ON DELETE CASCADE
+);
+
+-- Junction Table: ProjectSDG
+CREATE TABLE IF NOT EXISTS ProjectSDG (
+    project_id VARCHAR(50),
+    sdg_id INTEGER,
+    PRIMARY KEY (project_id, sdg_id),
+    FOREIGN KEY (project_id) REFERENCES Project(project_id) ON DELETE CASCADE
 );
 
 -- Indexes for performance

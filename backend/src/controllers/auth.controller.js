@@ -1,6 +1,8 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.model");
+const { isDBAvailable } = require('../config/db');
+const mockDataService = require('../services/mockDataService');
 
 exports.register = async (req, res) => {
   try {
@@ -45,26 +47,27 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    if (isDBAvailable()) {
+      const { email, password } = req.body;
 
-    // Use the new method that supports both email and username
-    const user = await User.getUserByEmailOrUsername(email);
-    if (!user) {
-      return res.status(400).json({ 
-        status: false, 
-        message: 'Invalid credentials' 
-      });
-    }
+      // Use the new method that supports both email and username
+      const user = await User.getUserByEmailOrUsername(email);
+      if (!user) {
+        return res.status(400).json({ 
+          status: false, 
+          message: 'Invalid credentials' 
+        });
+      }
 
-    // Check if user account is active
-    if (!user.active) {
-      return res.status(403).json({ 
-        status: false, 
-        message: 'Account is inactive. Please contact administrator.' 
-      });
-    }
+      // Check if user account is active
+      if (!user.active) {
+        return res.status(403).json({ 
+          status: false, 
+          message: 'Account is inactive. Please contact administrator.' 
+        });
+      }
 
-    // Use bcrypt for all users
+      // Use bcrypt for all users
     const validPassword = await bcrypt.compare(password, user.password);
 
     if (!validPassword) {
@@ -93,6 +96,11 @@ exports.login = async (req, res) => {
         token: token
       }
     });
+    } else {
+      // Use mock data for demo
+      const result = mockDataService.login(req.body);
+      res.status(200).json(result);
+    }
   } catch (error) {
     res.status(500).json({ 
       status: false, 

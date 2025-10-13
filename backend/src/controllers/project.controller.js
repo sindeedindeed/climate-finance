@@ -1,9 +1,16 @@
 const Project = require('../models/Project.model');
+const { isDBAvailable } = require('../config/db');
+const mockDataService = require('../services/mockDataService');
 
 exports.addProject = async (req, res) => {
     try {
-        const result = await Project.addProjectWithRelations(req.body);
-        res.status(201).json({ status: true, message: 'Project added successfully', data: result });
+        if (isDBAvailable()) {
+            const result = await Project.addProjectWithRelations(req.body);
+            res.status(201).json({ status: true, message: 'Project added successfully', data: result });
+        } else {
+            const result = mockDataService.addProject(req.body);
+            res.status(201).json(result);
+        }
     } catch (e) {
         res.status(500).json({ status: false, message: `Server Error: ${e.message}` });
     }
@@ -11,8 +18,13 @@ exports.addProject = async (req, res) => {
 
 exports.getAllProjects = async (req, res) => {
     try {
-        const result = await Project.getAllProjects();
-        res.status(200).json({ status: true, data: result });
+        if (isDBAvailable()) {
+            const result = await Project.getAllProjects();
+            res.status(200).json({ status: true, data: result });
+        } else {
+            const result = mockDataService.getAllProjects();
+            res.status(200).json(result);
+        }
     } catch (e) {
         res.status(500).json({ status: false, message: `Error: ${e.message}` });
     }
@@ -20,23 +32,27 @@ exports.getAllProjects = async (req, res) => {
 
 exports.updateProject = async (req, res) => {
     try {
-        console.log('=== UPDATE PROJECT DEBUG ===');
-        console.log('Project ID:', req.params.id);
-        console.log('Request Body Keys:', Object.keys(req.body));
-        console.log('Request Body:', JSON.stringify(req.body, null, 2));
-        
-        const result = await Project.updateProject(req.params.id, req.body);
-        res.status(200).json({ status: true, message: 'Project updated', data: result });
+        if (isDBAvailable()) {
+            const result = await Project.updateProject(req.params.id, req.body);
+            res.status(200).json({ status: true, message: 'Project updated', data: result });
+        } else {
+            const result = mockDataService.updateProject(req.params.id, req.body);
+            res.status(200).json(result);
+        }
     } catch (e) {
-        console.error('Update Project Controller Error:', e.message);
         res.status(500).json({ status: false, message: `Error: ${e.message}` });
     }
 };
 
 exports.deleteProject = async (req, res) => {
     try {
-        await Project.deleteProject(req.params.id);
-        res.status(200).json({ status: true, message: 'Project deleted' });
+        if (isDBAvailable()) {
+            await Project.deleteProject(req.params.id);
+            res.status(200).json({ status: true, message: 'Project deleted' });
+        } else {
+            const result = mockDataService.deleteProject(req.params.id);
+            res.status(200).json(result);
+        }
     } catch (e) {
         res.status(500).json({ status: false, message: `Error: ${e.message}` });
     }
@@ -44,11 +60,19 @@ exports.deleteProject = async (req, res) => {
 
 exports.getProjectById = async (req, res) => {
     try {
-        const result = await Project.getProjectById(req.params.id);
-        if (!result) {
-            return res.status(404).json({ status: false, message: 'Project not found' });
+        if (isDBAvailable()) {
+            const result = await Project.getProjectById(req.params.id);
+            if (!result) {
+                return res.status(404).json({ status: false, message: 'Project not found' });
+            }
+            res.status(200).json({ status: true, data: result });
+        } else {
+            const result = mockDataService.getProjectById(req.params.id);
+            if (!result.status) {
+                return res.status(404).json(result);
+            }
+            res.status(200).json(result);
         }
-        res.status(200).json({ status: true, data: result });
     } catch (e) {
         res.status(500).json({ status: false, message: `Error: ${e.message}` });
     }
@@ -56,8 +80,13 @@ exports.getProjectById = async (req, res) => {
 
 exports.getProjectsOverviewStats = async (req, res)=> {
     try {
-        const response = await Project.getProjectsOverviewStats()
-        res.status(200).json({ status: true, data: response });
+        if (isDBAvailable()) {
+            const response = await Project.getProjectsOverviewStats()
+            res.status(200).json({ status: true, data: response });
+        } else {
+            const result = mockDataService.getProjectsOverviewStats();
+            res.status(200).json(result);
+        }
     } catch (e) {
         res.status(500).json({status: false, message: `Server Error: ${e.message}`});
     }
@@ -65,8 +94,13 @@ exports.getProjectsOverviewStats = async (req, res)=> {
 
 exports.getProjectByStatus = async (req, res)=> {
     try {
-        const response = await Project.getProjectByStatus()
-        res.status(200).json({ status: true, data: response });
+        if (isDBAvailable()) {
+            const response = await Project.getProjectByStatus()
+            res.status(200).json({ status: true, data: response });
+        } else {
+            const result = mockDataService.getProjectByStatus();
+            res.status(200).json(result);
+        }
     } catch (e) {
         res.status(500).json({status: false, message: `Server Error: ${e.message}`});
     }
@@ -74,8 +108,13 @@ exports.getProjectByStatus = async (req, res)=> {
 
 exports.getProjectBySector = async (req, res)=> {
     try {
-        const response = await Project.getProjectBySector()
-        res.status(200).json({ status: true, data: response });
+        if (isDBAvailable()) {
+            const response = await Project.getProjectBySector()
+            res.status(200).json({ status: true, data: response });
+        } else {
+            const result = mockDataService.getProjectBySector();
+            res.status(200).json(result);
+        }
     } catch (e) {
         res.status(500).json({status: false, message: `Server Error: ${e.message}`});
     }
@@ -83,8 +122,13 @@ exports.getProjectBySector = async (req, res)=> {
 
 exports.getProjectByType = async (req, res)=> {
     try {
-        const response = await Project.getProjectByType()
-        res.status(200).json({ status: true, data: response });
+        if (isDBAvailable()) {
+            const response = await Project.getProjectByType()
+            res.status(200).json({ status: true, data: response });
+        } else {
+            const result = mockDataService.getProjectByType();
+            res.status(200).json(result);
+        }
     } catch (e) {
         res.status(500).json({status: false, message: `Server Error: ${e.message}`});
     }
@@ -157,8 +201,13 @@ exports.getOverViewStats = async (req, res)=> {
 
 exports.getRegionalDistribution = async (req, res)=> {
     try {
-        const response = await Project.getRegionalDistribution()
-        res.status(200).json({ status: true, data: response });
+        if (isDBAvailable()) {
+            const response = await Project.getRegionalDistribution()
+            res.status(200).json({ status: true, data: response });
+        } else {
+            const result = mockDataService.getRegionalDistribution();
+            res.status(200).json(result);
+        }
     } catch (e) {
         res.status(500).json({status: false, message: `Server Error: ${e.message}`});
     }
