@@ -55,13 +55,8 @@ const ReportIssueModal = ({ isOpen, onClose }) => {
       // For now, we'll simulate the submission
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Log the issue data (in real app, send to backend)
-      console.log('Issue submitted:', {
-        ...formData,
-        timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent,
-        url: window.location.href
-      });
+      // In real app, send to backend
+      // Issue data: { ...formData, timestamp: new Date().toISOString(), userAgent: navigator.userAgent, url: window.location.href }
 
       alert('Issue reported successfully. Thank you for your feedback!');
       handleClose();

@@ -28,7 +28,21 @@ Project.addProjectWithRelations = async (data) => {
             location_ids = [],
             funding_source_ids = [],
             focal_area_ids = [],
-            wash_component
+            wash_component,
+            hotspot_vulnerability_type,
+            wash_component_description,
+            direct_beneficiaries,
+            indirect_beneficiaries,
+            beneficiary_description,
+            gender_inclusion,
+            equity_marker,
+            equity_marker_description,
+            assessment,
+            alignment_sdg = [],
+            alignment_nap,
+            alignment_cff,
+            geographic_division,
+            districts = []
         } = data;
 
         const project_id = uuidv4(); // 🔑 Generate project ID
@@ -37,31 +51,49 @@ Project.addProjectWithRelations = async (data) => {
             INSERT INTO Project (
                 project_id, title, type, sector, division, status, approval_fy, beginning, closing,
                 total_cost_usd, gef_grant, cofinancing, wash_finance,
-                wash_finance_percent, beneficiaries, objectives
-            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+                wash_finance_percent, beneficiaries, objectives,
+                hotspot_vulnerability_type, wash_component_description, direct_beneficiaries,
+                indirect_beneficiaries, beneficiary_description, gender_inclusion, equity_marker,
+                equity_marker_description, assessment, alignment_nap, alignment_cff,
+                geographic_division, districts
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29)
         `;
         const values = [
             project_id, title, type, sector, division, status, approval_fy, beginning, closing,
             total_cost_usd, gef_grant, cofinancing, wash_finance,
-            wash_finance_percent, beneficiaries, objectives
+            wash_finance_percent, beneficiaries, objectives,
+            hotspot_vulnerability_type, wash_component_description, direct_beneficiaries,
+            indirect_beneficiaries, beneficiary_description, gender_inclusion, equity_marker,
+            equity_marker_description, assessment, alignment_nap, alignment_cff,
+            geographic_division, districts
         ];
         await client.query(insertProjectQuery, values);
 
         // Always update/create WASHComponent record (required for data consistency)
-        const washData = wash_component || { presence: false, water_supply_percent: 0, sanitation_percent: 0, public_admin_percent: 0 };
-        const { presence, water_supply_percent, sanitation_percent, public_admin_percent } = washData;
+        const washData = wash_component || { 
+            presence: false, 
+            water_supply_percent: 0, 
+            sanitation_percent: 0, 
+            public_admin_percent: 0,
+            wash_percentage: 0,
+            description: ''
+        };
+        const { presence, water_supply_percent, sanitation_percent, public_admin_percent, wash_percentage, description } = washData;
         
         const insertWASH = `
             INSERT INTO WASHComponent (
-                project_id, presence, water_supply_percent, sanitation_percent, public_admin_percent
-            ) VALUES ($1, $2, $3, $4, $5)
+                project_id, presence, water_supply_percent, sanitation_percent, public_admin_percent,
+                wash_percentage, description
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
         `;
         await client.query(insertWASH, [
             project_id,
             presence,
             water_supply_percent || 0,
             sanitation_percent || 0,
-            public_admin_percent || 0
+            public_admin_percent || 0,
+            wash_percentage || 0,
+            description || ''
         ]);
 
         for (const agency_id of agency_ids) {
@@ -71,10 +103,11 @@ Project.addProjectWithRelations = async (data) => {
             );
         }
 
-        for (const location_id of location_ids) {
+        // Handle SDG relationships
+        for (const sdg_id of alignment_sdg) {
             await client.query(
-                'INSERT INTO ProjectLocation (project_id, location_id) VALUES ($1, $2)',
-                [project_id, location_id]
+                'INSERT INTO ProjectSDG (project_id, sdg_id) VALUES ($1, $2)',
+                [project_id, sdg_id]
             );
         }
 
@@ -125,10 +158,25 @@ Project.getAllProjects = async () => {
                 p.wash_finance_percent,
                 p.beneficiaries,
                 p.objectives,
+                p.hotspot_vulnerability_type,
+                p.wash_component_description,
+                p.direct_beneficiaries,
+                p.indirect_beneficiaries,
+                p.beneficiary_description,
+                p.gender_inclusion,
+                p.equity_marker,
+                p.equity_marker_description,
+                p.assessment,
+                p.alignment_nap,
+                p.alignment_cff,
+                p.geographic_division,
+                p.districts,
                 wc.presence as wash_presence,
                 wc.water_supply_percent,
                 wc.sanitation_percent,
-                wc.public_admin_percent
+                wc.public_admin_percent,
+                wc.wash_percentage,
+                wc.description as wash_description
             FROM Project p
             LEFT JOIN WASHComponent wc ON p.project_id = wc.project_id
         `;
@@ -197,6 +245,20 @@ Project.getAllProjects = async () => {
                 wash_finance_percent: row.wash_finance_percent,
                 beneficiaries: row.beneficiaries,
                 objectives: row.objectives,
+                // New fields
+                hotspot_vulnerability_type: row.hotspot_vulnerability_type,
+                wash_component_description: row.wash_component_description,
+                direct_beneficiaries: row.direct_beneficiaries,
+                indirect_beneficiaries: row.indirect_beneficiaries,
+                beneficiary_description: row.beneficiary_description,
+                gender_inclusion: row.gender_inclusion,
+                equity_marker: row.equity_marker,
+                equity_marker_description: row.equity_marker_description,
+                assessment: row.assessment,
+                alignment_nap: row.alignment_nap,
+                alignment_cff: row.alignment_cff,
+                geographic_division: row.geographic_division,
+                districts: row.districts || [],
                 // Add agency and funding source data for filtering
                 agency_id: projectAgencies.length > 0 ? projectAgencies[0].agency_id : null,
                 funding_source_id: projectFundingSources.length > 0 ? projectFundingSources[0].funding_source_id : null,
@@ -207,7 +269,9 @@ Project.getAllProjects = async () => {
                     presence: row.wash_presence || false,
                     water_supply_percent: row.water_supply_percent || 0,
                     sanitation_percent: row.sanitation_percent || 0,
-                    public_admin_percent: row.public_admin_percent || 0
+                    public_admin_percent: row.public_admin_percent || 0,
+                    wash_percentage: row.wash_percentage || 0,
+                    description: row.wash_description || ''
                 }
             };
         });
@@ -223,10 +287,6 @@ Project.updateProject = async (id, data) => {
     try {
         await client.query('BEGIN');
 
-        // Add debugging
-        console.log('Update Project - ID:', id);
-        console.log('Update Project - Data keys:', Object.keys(data));
-        console.log('Update Project - wash_component:', data.wash_component);
 
         const {
             title,
@@ -248,7 +308,21 @@ Project.updateProject = async (id, data) => {
             location_ids = [],
             funding_source_ids = [],
             focal_area_ids = [],
-            wash_component
+            wash_component,
+            hotspot_vulnerability_type,
+            wash_component_description,
+            direct_beneficiaries,
+            indirect_beneficiaries,
+            beneficiary_description,
+            gender_inclusion,
+            equity_marker,
+            equity_marker_description,
+            assessment,
+            alignment_sdg = [],
+            alignment_nap,
+            alignment_cff,
+            geographic_division,
+            districts = []
         } = data;
 
         // Update the main project record (no wash_component column here)
@@ -257,70 +331,75 @@ Project.updateProject = async (id, data) => {
                 title = $1, type = $2, sector = $3, division = $4, status = $5, 
                 approval_fy = $6, beginning = $7, closing = $8, total_cost_usd = $9, 
                 gef_grant = $10, cofinancing = $11, wash_finance = $12, 
-                wash_finance_percent = $13, beneficiaries = $14, objectives = $15, disbursement = $16
-            WHERE project_id = $17
+                wash_finance_percent = $13, beneficiaries = $14, objectives = $15, disbursement = $16,
+                hotspot_vulnerability_type = $17, wash_component_description = $18, direct_beneficiaries = $19,
+                indirect_beneficiaries = $20, beneficiary_description = $21, gender_inclusion = $22, 
+                equity_marker = $23, equity_marker_description = $24, assessment = $25, 
+                alignment_nap = $26, alignment_cff = $27, geographic_division = $28, districts = $29
+            WHERE project_id = $30
             RETURNING *
         `;
-        
-        console.log('Executing project update query...');
         
         const values = [
             title, type, sector, division, status, approval_fy, beginning, closing,
             total_cost_usd, gef_grant, cofinancing, wash_finance,
-            wash_finance_percent, beneficiaries, objectives, data.disbursement || 0, id
+            wash_finance_percent, beneficiaries, objectives, data.disbursement || 0,
+            hotspot_vulnerability_type, wash_component_description, direct_beneficiaries,
+            indirect_beneficiaries, beneficiary_description, gender_inclusion, 
+            equity_marker, equity_marker_description, assessment, 
+            alignment_nap, alignment_cff, geographic_division, districts, id
         ];
         
         const result = await client.query(updateProjectQuery, values);
-        console.log('Project update query completed');
 
         // Always update/create WASHComponent record (required for data consistency)
-        const washData = wash_component || { presence: false, water_supply_percent: 0, sanitation_percent: 0, public_admin_percent: 0 };
-        const { presence, water_supply_percent, sanitation_percent, public_admin_percent } = washData;
-        
-        console.log('Executing WASH component update...');
+        const washData = wash_component || { 
+            presence: false, 
+            water_supply_percent: 0, 
+            sanitation_percent: 0, 
+            public_admin_percent: 0,
+            wash_percentage: 0,
+            description: ''
+        };
+        const { presence, water_supply_percent, sanitation_percent, public_admin_percent, wash_percentage, description } = washData;
         
         const updateWASH = `
             INSERT INTO WASHComponent (
-                project_id, presence, water_supply_percent, sanitation_percent, public_admin_percent
-            ) VALUES ($1, $2, $3, $4, $5)
+                project_id, presence, water_supply_percent, sanitation_percent, public_admin_percent,
+                wash_percentage, description
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
             ON CONFLICT (project_id) 
             DO UPDATE SET 
                 presence = EXCLUDED.presence,
                 water_supply_percent = EXCLUDED.water_supply_percent,
                 sanitation_percent = EXCLUDED.sanitation_percent,
-                public_admin_percent = EXCLUDED.public_admin_percent
+                public_admin_percent = EXCLUDED.public_admin_percent,
+                wash_percentage = EXCLUDED.wash_percentage,
+                description = EXCLUDED.description
         `;
         await client.query(updateWASH, [
             id,
             presence,
             water_supply_percent || 0,
             sanitation_percent || 0,
-            public_admin_percent || 0
+            public_admin_percent || 0,
+            wash_percentage || 0,
+            description || ''
         ]);
-        
-        console.log('WASH component update completed');
 
         // Update relationships - delete existing and insert new ones
-        console.log('Updating relationships...');
         
         // Delete existing relationships
         await client.query('DELETE FROM ProjectAgency WHERE project_id = $1', [id]);
-        await client.query('DELETE FROM ProjectLocation WHERE project_id = $1', [id]);
         await client.query('DELETE FROM ProjectFundingSource WHERE project_id = $1', [id]);
         await client.query('DELETE FROM ProjectFocalArea WHERE project_id = $1', [id]);
+        await client.query('DELETE FROM ProjectSDG WHERE project_id = $1', [id]);
 
         // Insert new relationships
         for (const agency_id of agency_ids) {
             await client.query(
                 'INSERT INTO ProjectAgency (project_id, agency_id) VALUES ($1, $2)',
                 [id, agency_id]
-            );
-        }
-
-        for (const location_id of location_ids) {
-            await client.query(
-                'INSERT INTO ProjectLocation (project_id, location_id) VALUES ($1, $2)',
-                [id, location_id]
             );
         }
 
@@ -338,7 +417,14 @@ Project.updateProject = async (id, data) => {
             );
         }
 
-        console.log('All updates completed successfully');
+        // Handle SDG relationships
+        for (const sdg_id of alignment_sdg) {
+            await client.query(
+                'INSERT INTO ProjectSDG (project_id, sdg_id) VALUES ($1, $2)',
+                [id, sdg_id]
+            );
+        }
+
         await client.query('COMMIT');
         return result.rows[0];
     } catch (err) {
@@ -365,7 +451,9 @@ Project.getProjectById = async (id) => {
                 wc.presence,
                 wc.water_supply_percent,
                 wc.sanitation_percent,
-                wc.public_admin_percent
+                wc.public_admin_percent,
+                wc.wash_percentage,
+                wc.description as wash_description
             FROM Project p
             LEFT JOIN WASHComponent wc ON p.project_id = wc.project_id 
             WHERE p.project_id = $1
@@ -414,12 +502,22 @@ Project.getProjectById = async (id) => {
         `;
         const focalAreasResult = await client.query(focalAreasQuery, [id]);
         
+        // Get related SDGs
+        const sdgsQuery = `
+            SELECT psd.sdg_id
+            FROM ProjectSDG psd
+            WHERE psd.project_id = $1
+        `;
+        const sdgsResult = await client.query(sdgsQuery, [id]);
+        
         // Extract project fields excluding WASH component fields
         const {
             presence,
             water_supply_percent,
             sanitation_percent,
             public_admin_percent,
+            wash_percentage,
+            wash_description,
             ...projectData
         } = project;
         
@@ -431,6 +529,7 @@ Project.getProjectById = async (id) => {
             locations: locationsResult.rows.map(row => row.location_id),
             funding_sources: fundingSourcesResult.rows.map(row => row.funding_source_id),
             focal_areas: focalAreasResult.rows.map(row => row.focal_area_id),
+            alignment_sdg: sdgsResult.rows.map(row => row.sdg_id),
             // For display purposes (return full objects)
             projectAgencies: agenciesResult.rows,
             projectLocations: locationsResult.rows,
@@ -440,7 +539,9 @@ Project.getProjectById = async (id) => {
                 presence: presence || false,
                 water_supply_percent: parseFloat(water_supply_percent) || 0,
                 sanitation_percent: parseFloat(sanitation_percent) || 0,
-                public_admin_percent: parseFloat(public_admin_percent) || 0
+                public_admin_percent: parseFloat(public_admin_percent) || 0,
+                wash_percentage: parseFloat(wash_percentage) || 0,
+                description: wash_description || ''
             }
         };
         

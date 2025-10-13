@@ -1,4 +1,6 @@
 const Agency = require('../models/Agency.model');
+const { isDBAvailable } = require('../config/db');
+const mockDataService = require('../services/mockDataService');
 
 exports.addAgency = async (req, res) => {
     try {
@@ -11,8 +13,13 @@ exports.addAgency = async (req, res) => {
 
 exports.getAllAgencies = async (req, res) => {
     try {
-        const result = await Agency.getAllAgencies();
-        res.status(200).json({ status: true, data: result });
+        if (isDBAvailable()) {
+            const result = await Agency.getAllAgencies();
+            res.status(200).json({ status: true, data: result });
+        } else {
+            const result = mockDataService.getAllAgencies();
+            res.status(200).json(result);
+        }
     } catch (e) {
         res.status(500).json({ status: false, message: `Error: ${e.message}` });
     }

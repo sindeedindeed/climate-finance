@@ -70,22 +70,6 @@ const LanguageSwitcher = () => {
         
         const cookieDomain = getCookieDomain();
         
-        // Debug logging
-        console.log('Language toggle debug:', {
-            hostname,
-            cookieDomain,
-            newLang,
-            currentCookie: document.cookie
-        });
-        
-        // Debug logging for Vercel deployment
-        console.log('Language toggle debug:', {
-            hostname,
-            cookieDomain,
-            newLang,
-            currentCookie: document.cookie
-        });
-        
         // Set or clear translation cookie with proper format
         if (newLang === "en") {
             // Clear cookie - try multiple approaches for Vercel
@@ -105,9 +89,6 @@ const LanguageSwitcher = () => {
             document.cookie = `googtrans=/en/${newLang}; path=/; SameSite=Lax`;
         }
         
-        // Debug: Check if cookie was actually set
-        console.log('Cookie after setting:', document.cookie);
-
         updateLanguage(newLang);
         
         // Try to trigger translation programmatically if Google Translate is loaded

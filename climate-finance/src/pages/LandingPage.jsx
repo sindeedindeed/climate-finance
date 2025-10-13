@@ -74,73 +74,24 @@ const LandingPage = () => {
                 const data = overviewResponse.data;
                 const currentYear = data.current_year || {};
 
-                console.log("API Response data:", data);
-                console.log("Current year data:", currentYear);
-                console.log("Previous year data:", data.previous_year);
-                console.log(
-                    "Adaptation finance - all time:",
-                    data.adaptation_finance,
-                    "current year:",
-                    currentYear.adaptation_finance,
-                    "previous year:",
-                    data.previous_year?.adaptation_finance
-                );
-                console.log(
-                    "Mitigation finance - all time:",
-                    data.mitigation_finance,
-                    "current year:",
-                    currentYear.mitigation_finance,
-                    "previous year:",
-                    data.previous_year?.mitigation_finance
-                );
-
                 // Helper function to calculate percentage change (standard formula)
                 const calculateChange = (current, previous) => {
-                    console.log("calculateChange called with:", {
-                        current,
-                        previous,
-                        currentType: typeof current,
-                        previousType: typeof previous,
-                    });
-
                     // Convert to numbers for proper comparison
                     const currentNum = parseFloat(current) || 0;
                     const previousNum = parseFloat(previous) || 0;
 
-                    console.log("Converted to numbers:", {
-                        currentNum,
-                        previousNum,
-                    });
-
                     if (previousNum === 0) {
-                        console.log(
-                            'Returning "No previous data available" - previous is 0'
-                        );
                         return "No previous data available";
                     }
                     if (currentNum === 0 && previousNum === 0) {
-                        console.log(
-                            'Returning "No change from last year" - both current and previous are 0'
-                        );
                         return "No change from last year";
                     }
 
                     const percentage =
                         ((currentNum - previousNum) / previousNum) * 100;
-                    console.log(
-                        "Calculated percentage:",
-                        percentage,
-                        "from formula: ((",
-                        currentNum,
-                        "-",
-                        previousNum,
-                        ") /",
-                        previousNum,
-                        ") * 100"
-                    );
                     return percentage >= 0
                         ? `+${percentage.toFixed(2)}% from last year`
-                        : `0% from last year`;
+                        : `${percentage.toFixed(2)}% from last year`;
                 };
                 setOverviewStats([
                     {

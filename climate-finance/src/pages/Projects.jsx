@@ -84,7 +84,6 @@ const Projects = () => {
     try {
       setIsLoading(true);
       setError(null);
-      console.log('[Projects] Fetching projects data');
       const [
         projectsResponse,
         overviewResponse,
@@ -98,20 +97,12 @@ const Projects = () => {
         projectApi.getByType(),
         projectApi.getTrend()
       ]);
-      console.log('[Projects] API responses:', {
-        projectsResponse,
-        overviewResponse,
-        statusResponse,
-        typeResponse,
-        trendResponse
-      });
       if (projectsResponse?.status && Array.isArray(projectsResponse.data)) {
         setProjectsList(projectsResponse.data);
         setFilteredProjects(projectsResponse.data);
       } else {
         setProjectsList([]);
         setFilteredProjects([]);
-        console.warn('No projects data received from API', projectsResponse);
       }
 
       if (overviewResponse?.status && overviewResponse.data) {
@@ -156,26 +147,22 @@ const Projects = () => {
         setProjectsByStatus(statusResponse.data);
       } else {
         setProjectsByStatus([]);
-        console.warn('No status data received from API');
       }
 
       if (typeResponse?.status && Array.isArray(typeResponse.data)) {
         setProjectsByType(typeResponse.data);
       } else {
         setProjectsByType([]);
-        console.warn('No type data received from API');
       }
 
       if (trendResponse?.status && Array.isArray(trendResponse.data)) {
         setProjectTrend(trendResponse.data);
       } else {
         setProjectTrend([]);
-        console.warn('No trend data received from API');
       }
 
       setRetryCount(0);
     } catch (error) {
-      console.error('[Projects] Error fetching project data:', error);
       setError(error.message || 'Failed to load project data. Please try again.');
       setProjectsList([]);
       setFilteredProjects([]);
@@ -221,9 +208,12 @@ const Projects = () => {
     // Create unique option arrays using the actual fields available
     const sectors = Array.from(new Set(projectsList.map(p => p.sector).filter(Boolean))).sort();
     const types = Array.from(new Set(projectsList.map(p => p.type).filter(Boolean))).sort();
-    const divisions = Array.from(new Set(projectsList.map(p => p.division).filter(Boolean))).sort();
+    const divisions = Array.from(new Set(projectsList.map(p => p.geographic_division).filter(Boolean))).sort();
     const statuses = Array.from(new Set(projectsList.map(p => p.status).filter(Boolean))).sort();
     const approvalYears = Array.from(new Set(projectsList.map(p => p.approval_fy).filter(Boolean))).sort();
+    const geographicDivisions = Array.from(new Set(projectsList.map(p => p.geographic_division).filter(Boolean))).sort();
+    const vulnerabilityTypes = Array.from(new Set(projectsList.map(p => p.hotspot_vulnerability_type).filter(Boolean))).sort();
+    const equityMarkers = Array.from(new Set(projectsList.map(p => p.equity_marker).filter(Boolean))).sort();
 
     const filters = [
       {
@@ -252,8 +242,8 @@ const Projects = () => {
         selectProps: { className: 'notranslate', translate: 'no' }
       }] : []),
       ...(divisions.length > 0 ? [{
-        key: 'division',
-        label: 'Division',
+        key: 'geographic_division',
+        label: 'Geographic Division',
         options: [
           { value: 'All', label: 'All Divisions' },
           ...divisions.map(division => ({ value: division, label: division }))
@@ -283,6 +273,22 @@ const Projects = () => {
           ...fundingSources.map(f => ({ value: f.funding_source_id, label: f.name }))
         ]
       },
+      ...(vulnerabilityTypes.length > 0 ? [{
+        key: 'hotspot_vulnerability_type',
+        label: 'Vulnerability Type',
+        options: [
+          { value: 'All', label: 'All Vulnerability Types' },
+          ...vulnerabilityTypes.map(type => ({ value: type, label: type }))
+        ]
+      }] : []),
+      ...(equityMarkers.length > 0 ? [{
+        key: 'equity_marker',
+        label: 'Equity Marker',
+        options: [
+          { value: 'All', label: 'All Equity Markers' },
+          ...equityMarkers.map(marker => ({ value: marker, label: marker.charAt(0).toUpperCase() + marker.slice(1) }))
+        ]
+      }] : []),
     ];
 
     return {
@@ -290,7 +296,10 @@ const Projects = () => {
         { key: 'title', label: 'Project Title', weight: 3 },
         { key: 'project_id', label: 'Project ID', weight: 3 },
         { key: 'objectives', label: 'Objectives', weight: 2 },
-        { key: 'beneficiaries', label: 'Beneficiaries', weight: 1 }
+        { key: 'beneficiaries', label: 'Beneficiaries', weight: 1 },
+        { key: 'hotspot_vulnerability_type', label: 'Vulnerability Type', weight: 1 },
+        { key: 'beneficiary_description', label: 'Beneficiary Description', weight: 1 },
+        { key: 'assessment', label: 'Assessment', weight: 1 }
       ],
       filters: filters
     };
@@ -485,7 +494,6 @@ const Projects = () => {
       {projectTrend.length > 0 && (
         <div className="animate-fade-in-up" style={{ animationDelay: '600ms' }}>
           <Card hover padding={true}>
-            {console.log('DEBUG projectTrend:', projectTrend)}
             <LineChartComponent
               title={Transliteration(getChartTitle(language, 'projectTrend'), language)}
               data={projectTrend}

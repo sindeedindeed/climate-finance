@@ -48,7 +48,6 @@ const AdminDashboard = () => {
 
             if (response.status && response.data) {
                 const data = response.data;
-                console.log('Admin Dashboard data:', data);
                 
                 // Helper function for financial metrics (using funding source calculation method)
                 const calculateFinancialChange = (total, current) => {
@@ -113,7 +112,7 @@ const AdminDashboard = () => {
                         icon: <Banknote size={20} />,
                     },
                     {
-                        title: <span className="notranslate" translate="no">{getAdaptationTransliteration(language)} ফাইন্যান্স</span>,
+                        title: language === 'bn' ? 'অ্যাডাপটেশন ফাইন্যান্স' : 'Adaptation Finance',
                         value: formatCurrency(data.adaptation_finance || 0),
                         change: data.current_year?.adaptation_finance ? 
                             calculateFinancialChange(
@@ -155,7 +154,7 @@ const AdminDashboard = () => {
                     icon: <Banknote size={20} />,
                 },
                 {
-                    title: <span className="notranslate" translate="no">{getAdaptationTransliteration(language)} ফাইন্যান্স</span>,
+                    title: language === 'bn' ? 'অ্যাডাপটেশন ফাইন্যান্স' : 'Adaptation Finance',
                     value: formatCurrency(0),
                     change: "No data available",
                     color: "primary",
