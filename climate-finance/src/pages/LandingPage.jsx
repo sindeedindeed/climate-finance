@@ -40,8 +40,6 @@ const LandingPage = () => {
     // API data states
     const [overviewStats, setOverviewStats] = useState([]);
     const [projectsByStatus, setProjectsByStatus] = useState([]);
-    const [projectsBySector, setProjectsBySector] = useState([]);
-    const [projectsByType, setProjectsByType] = useState([]);
     const [regionalData, setRegionalData] = useState([]);
 
     // Fetch all dashboard data
@@ -58,14 +56,10 @@ const LandingPage = () => {
             const [
                 overviewResponse,
                 statusResponse,
-                sectorResponse,
-                typeResponse,
                 regionalResponse,
             ] = await Promise.all([
                 projectApi.getOverviewStats(),
                 projectApi.getByStatus(),
-                projectApi.getBySector(),
-                projectApi.getByType(),
                 projectApi.getRegionalDistribution(),
             ]);
 
@@ -165,38 +159,23 @@ const LandingPage = () => {
                 setProjectsByStatus([]);
             }
 
-            // Set projects by sector for pie chart
-            if (sectorResponse.status && Array.isArray(sectorResponse.data)) {
-                setProjectsBySector(sectorResponse.data);
-            } else {
-                setProjectsBySector([]);
-            }
-
-            // Set projects by type for pie chart
-            if (typeResponse.status && Array.isArray(typeResponse.data)) {
-                setProjectsByType(typeResponse.data);
-            } else {
-                setProjectsByType([]);
-            }
-
-            // Set regional data for bar chart
-            if (
-                regionalResponse.status &&
-                Array.isArray(regionalResponse.data)
-            ) {
+            // Set regional data for map and chart
+            if (regionalResponse.status && Array.isArray(regionalResponse.data)) {
                 setRegionalData(
                     regionalResponse.data.map((item) => ({
                         region: item.location_name
                             .replace(" Division", "")
                             .replace("Chittagong", "Chattogram")
                             .replace("Barishal", "Barisal"),
-                        adaptation: Number(item.adaptation_total) || 0,
-                        mitigation: Number(item.mitigation_total) || 0,
+                        active: Number(item.active_projects) || 0,
+                        completed: Number(item.completed_projects) || 0,
+                        total: Number(item.total_projects) || 0,
                     }))
                 );
             } else {
                 setRegionalData([]);
             }
+
         } catch (error) {
             console.error("Error fetching dashboard data:", error);
             setError("Failed to load dashboard data. Please try again.");
@@ -204,9 +183,6 @@ const LandingPage = () => {
             // Clear all data on error
             setOverviewStats([]);
             setProjectsByStatus([]);
-            setProjectsBySector([]);
-            setProjectsByType([]);
-            setRegionalData([]);
         } finally {
             setLoading(false);
         }
@@ -236,8 +212,6 @@ const LandingPage = () => {
         return {
             overview: overviewStats,
             projectsByStatus,
-            projectsBySector,
-            projectsByType,
             regionalData,
             summary: {
                 totalProjects:
@@ -270,13 +244,7 @@ const LandingPage = () => {
         };
     });
 
-    const translatedProjectsBySector = translateChartData(projectsBySector, language, 'sector');
     const translatedProjectsByStatus = translateChartData(projectsByStatus, language, 'status');
-    const translatedProjectsByType = translateChartData(projectsByType, language, 'mitigationType');
-    const translatedRegionalData = regionalData.map(item => ({
-        ...item,
-        region: getChartTranslation(language, 'region', item.region + ' Division')?.replace(' বিভাগ', '') || item.region
-    }));
 
     if (loading) {
         return (
@@ -378,112 +346,54 @@ const LandingPage = () => {
                 </div>
             )}
 
-            {/* Bangladesh Map */}
-            <div
-                className="animate-fade-in-up"
-                style={{ animationDelay: "750ms" }}
-            >
-                <BangladeshMapComponent
-                    data={regionalData}
-                    title={getChartTitle(language, 'regionalDistributionMap')}
-                    height={400}
-                />
-            </div>
 
+            {/* Charts Section - Pie Chart and Bar Chart Side by Side */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div
                     className="animate-fade-in-up"
                     style={{ animationDelay: "500ms" }}
                 >
-                    <Card hover padding={true}>
-                        {projectsBySector.length > 0 ? (
-                            <PieChartComponent
-                                title={getChartTitle(language, 'projectsBySector')}
-                                data={translatedProjectsBySector}
-                            />
-                        ) : (
-                            <div className="h-[300px] flex items-center justify-center">
-                                <p className="text-gray-500">
-                                    No sector data available
-                                </p>
-                            </div>
-                        )}
-                    </Card>
-                </div>
-                <div
-                    className="animate-fade-in-up"
-                    style={{ animationDelay: "600ms" }}
-                >
-                    <Card hover padding={true}>
-                        {projectsByStatus.length > 0 ? (
-                            <PieChartComponent
-                                title={getChartTitle(language, 'projectsByStatus')}
-                                data={translatedProjectsByStatus}
-                            />
-                        ) : (
+                    {projectsByStatus.length > 0 ? (
+                        <PieChartComponent
+                            title={getChartTitle(language, 'projectsByStatus')}
+                            data={translatedProjectsByStatus}
+                        />
+                    ) : (
+                        <Card hover padding={true}>
                             <div className="h-[300px] flex items-center justify-center">
                                 <p className="text-gray-500">
                                     No status data available
                                 </p>
                             </div>
-                        )}
-                    </Card>
-                </div>
-            </div>
-
-            <div
-                className="animate-fade-in-up"
-                style={{ animationDelay: "700ms" }}
-            >
-                <Card hover padding={true}>
-                    {projectsByType.length > 0 ? (
-                        <PieChartComponent
-                            title={getChartTitle(language, 'projectsByType')}
-                            data={translatedProjectsByType}
-                        />
-                    ) : (
-                        <div className="h-[300px] flex items-center justify-center">
-                            <p className="text-gray-500">
-                                No type data available
-                            </p>
-                        </div>
+                        </Card>
                     )}
-                </Card>
-            </div>
-
-            {/* Regional Distribution */}
-            <div
-                className="animate-fade-in-up"
-                style={{ animationDelay: "800ms" }}
-            >
-                <Card>
+                </div>
+                <div className="animate-fade-in-up" style={{ animationDelay: "600ms" }}>
                     {regionalData.length > 0 ? (
                         <BarChartComponent
                             title="Regional Distribution"
-                            data={translatedRegionalData}
+                            data={regionalData}
                             xAxisKey="region"
                             bars={[
-                                {
-                                    dataKey: "adaptation",
-                                    fill: CHART_COLORS[0],
-                                    name: getChartTranslation(language, 'mitigationType', 'Adaptation'),
-                                },
-                                {
-                                    dataKey: "mitigation",
-                                    fill: CHART_COLORS[1],
-                                    name: getChartTranslation(language, 'mitigationType', 'Mitigation'),
-                                },
+                                { dataKey: "active", name: "Active Projects", fill: "#8B5CF6" },
+                                { dataKey: "completed", name: "Completed Projects", fill: "#A78BFA" }
                             ]}
-                            formatYAxis={true}
                         />
                     ) : (
-                        <div className="h-[300px] flex items-center justify-center p-6">
-                            <p className="text-gray-500">
-                                No regional data available
-                            </p>
-                        </div>
+                        <Card hover padding={true}>
+                            <div className="h-[300px] flex items-center justify-center">
+                                <p className="text-gray-500">No regional data available</p>
+                            </div>
+                        </Card>
                     )}
-                </Card>
+                </div>
+            </div>
+
+            {/* Map Section - Full Width */}
+            <div className="mb-8">
+                <div className="animate-fade-in-up" style={{ animationDelay: "700ms" }}>
+                    {regionalData.length > 0 && <BangladeshMapComponent data={regionalData} />}
+                </div>
             </div>
 
             {/* Quick Actions */}

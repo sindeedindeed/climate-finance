@@ -148,50 +148,7 @@ const mockDataService = {
         };
     },
 
-    getProjectBySector: () => {
-        const sectorCounts = mockProjects.reduce((acc, project) => {
-            acc[project.sector] = (acc[project.sector] || 0) + 1;
-            return acc;
-        }, {});
 
-        return {
-            status: true,
-            data: Object.entries(sectorCounts).map(([sector, count]) => ({
-                sector,
-                count
-            }))
-        };
-    },
-
-    getProjectByType: () => {
-        const typeCounts = mockProjects.reduce((acc, project) => {
-            acc[project.type] = (acc[project.type] || 0) + 1;
-            return acc;
-        }, {});
-
-        return {
-            status: true,
-            data: Object.entries(typeCounts).map(([type, count]) => ({
-                type,
-                count
-            }))
-        };
-    },
-
-    getRegionalDistribution: () => {
-        const divisionCounts = mockProjects.reduce((acc, project) => {
-            acc[project.geographic_division] = (acc[project.geographic_division] || 0) + 1;
-            return acc;
-        }, {});
-
-        return {
-            status: true,
-            data: Object.entries(divisionCounts).map(([division, count]) => ({
-                division,
-                count
-            }))
-        };
-    },
 
     // Agency operations
     getAllAgencies: () => {

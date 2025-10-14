@@ -47,22 +47,6 @@ const FundingSourceFormPage = ({ mode = 'add' }) => {
       min: '0',
       className: 'md:col-span-1'
     },
-    {
-      name: 'disbursement',
-      label: 'Disbursement (USD)',
-      type: 'number',
-      placeholder: '0.00',
-      step: '0.01',
-      min: '0',
-      className: 'md:col-span-1'
-    },
-    {
-      name: 'non_grant_instrument',
-      label: 'Non-Grant Instrument',
-      type: 'text',
-      placeholder: 'Enter non-grant instrument details (optional)',
-      className: 'md:col-span-2'
-    }
   ];
 
   const defaultFormData = {
@@ -70,9 +54,7 @@ const FundingSourceFormPage = ({ mode = 'add' }) => {
     dev_partner: '',
     grant_amount: '',
     loan_amount: '',
-    counterpart_funding: '',
-    disbursement: '',
-    non_grant_instrument: ''
+    counterpart_funding: ''
   };
 
   const validationRules = {

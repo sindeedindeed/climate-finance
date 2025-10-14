@@ -106,33 +106,6 @@ exports.getProjectByStatus = async (req, res)=> {
     }
 };
 
-exports.getProjectBySector = async (req, res)=> {
-    try {
-        if (isDBAvailable()) {
-            const response = await Project.getProjectBySector()
-            res.status(200).json({ status: true, data: response });
-        } else {
-            const result = mockDataService.getProjectBySector();
-            res.status(200).json(result);
-        }
-    } catch (e) {
-        res.status(500).json({status: false, message: `Server Error: ${e.message}`});
-    }
-};
-
-exports.getProjectByType = async (req, res)=> {
-    try {
-        if (isDBAvailable()) {
-            const response = await Project.getProjectByType()
-            res.status(200).json({ status: true, data: response });
-        } else {
-            const result = mockDataService.getProjectByType();
-            res.status(200).json(result);
-        }
-    } catch (e) {
-        res.status(500).json({status: false, message: `Server Error: ${e.message}`});
-    }
-};
 
 exports.getFundingSourceByType = async (req, res)=> {
     try {
@@ -199,16 +172,3 @@ exports.getOverViewStats = async (req, res)=> {
     }
 };
 
-exports.getRegionalDistribution = async (req, res)=> {
-    try {
-        if (isDBAvailable()) {
-            const response = await Project.getRegionalDistribution()
-            res.status(200).json({ status: true, data: response });
-        } else {
-            const result = mockDataService.getRegionalDistribution();
-            res.status(200).json(result);
-        }
-    } catch (e) {
-        res.status(500).json({status: false, message: `Server Error: ${e.message}`});
-    }
-};

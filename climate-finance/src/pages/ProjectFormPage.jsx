@@ -14,8 +14,6 @@ import { useLanguage } from '../context/LanguageContext';
 const defaultFormData = {
   project_id: '',
   title: '',
-  type: '',
-  sector: '',
   status: '',
   total_cost_usd: '',
   gef_grant: '',
@@ -27,14 +25,12 @@ const defaultFormData = {
   objectives: '',
   agencies: [],
   funding_sources: [],
-  focal_areas: [],
   wash_component: {
     presence: false,
     water_supply_percent: 0,
     sanitation_percent: 0,
     public_admin_percent: 0
   },
-  disbursement: '',
   submitter_email: '', // Added for public mode
   
   // New fields for client requirements
@@ -61,13 +57,6 @@ const formatDateForInput = (dateStr) => {
   return d.toISOString().slice(0, 10);
 };
 
-const Transliteration = (type, language) => {
-  if (language === 'bn') {
-    if (type === 'Adaptation') return 'অ্যাডাপটেশন';
-    if (type === 'Mitigation') return 'মিটিগেশন';
-  }
-  return type;
-};
 
 const ProjectFormPage = ({
   mode = 'add',
@@ -84,7 +73,6 @@ const ProjectFormPage = ({
   const [isFetching, setIsFetching] = useState(false);
   const [agencies, setAgencies] = useState([]);
   const [fundingSources, setFundingSources] = useState([]);
-  const [focalAreas, setFocalAreas] = useState([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [error, setError] = useState(null);
   const [errors, setErrors] = useState({});
@@ -128,9 +116,6 @@ const ProjectFormPage = ({
         setFormData({
           project_id: projectData.project_id,
           title: projectData.title,
-          type: projectData.type,
-          sector: projectData.sector || '',
-          division: projectData.division || '',
           status: projectData.status,
           total_cost_usd: projectData.total_cost_usd,
           gef_grant: projectData.gef_grant,
@@ -142,14 +127,12 @@ const ProjectFormPage = ({
           objectives: projectData.objectives || '',
           agencies: projectData.agencies || [],
           funding_sources: projectData.funding_sources || [],
-          focal_areas: projectData.focal_areas || [],
           wash_component: projectData.wash_component || {
             presence: false,
             water_supply_percent: 0,
             sanitation_percent: 0,
             public_admin_percent: 0
           },
-          disbursement: projectData.disbursement || '',
           submitter_email: projectData.submitter_email || '',
           geographic_division: projectData.geographic_division || '',
           districts: projectData.districts || []
@@ -170,23 +153,20 @@ const ProjectFormPage = ({
       setIsLoadingData(true);
       
       // Fetch all data in parallel
-      const [agenciesResponse, fundingSourcesResponse, focalAreasResponse] = await Promise.all([
+      const [agenciesResponse, fundingSourcesResponse] = await Promise.all([
         agencyApi.getAll().catch(() => ({ status: false, data: [] })),
-        fundingSourceApi.getAll().catch(() => ({ status: false, data: [] })),
-        focalAreaApi.getAll().catch(() => ({ status: false, data: [] }))
+        fundingSourceApi.getAll().catch(() => ({ status: false, data: [] }))
       ]);
 
       // Set data or fallback to empty arrays if API calls fail
       setAgencies(agenciesResponse.status && agenciesResponse.data ? agenciesResponse.data : []);
       setFundingSources(fundingSourcesResponse.status && fundingSourcesResponse.data ? fundingSourcesResponse.data : []);
-      setFocalAreas(focalAreasResponse.status && focalAreasResponse.data ? focalAreasResponse.data : []);
       
     } catch (error) {
       console.error('Error fetching form data:', error);
       // Set empty arrays as fallback
       setAgencies([]);
       setFundingSources([]);
-      setFocalAreas([]);
     } finally {
       setIsLoadingData(false);
     }
@@ -225,13 +205,6 @@ const ProjectFormPage = ({
       newErrors.title = 'Project title is required';
     }
 
-    if (!formData.type) {
-      newErrors.type = 'Project type is required';
-    }
-
-    if (!formData.sector) {
-      newErrors.sector = 'Project sector is required';
-    }
 
     if (!formData.geographic_division) {
       newErrors.geographic_division = 'Geographic division is required';
@@ -293,8 +266,6 @@ const ProjectFormPage = ({
       // Create clean project data object
       const projectData = {
         title: formData.title,
-        type: formData.type,
-        sector: formData.sector,
         status: formData.status,
         total_cost_usd: totalCost,
         gef_grant: gefGrant,
@@ -311,7 +282,6 @@ const ProjectFormPage = ({
           wash_percentage: formData.wash_component.wash_percentage || 0,
           description: formData.wash_component_description || ''
         },
-        disbursement: parseFloat(formData.disbursement) || 0,
         // Transform relationship arrays to match backend expectations
         agency_ids: formData.agencies || [],
         funding_source_ids: formData.funding_sources || [],
@@ -518,57 +488,6 @@ const ProjectFormPage = ({
               
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Type (to be removed) <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="type"
-                  value={formData.type}
-                  onChange={handleInputChange}
-                  className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
-                    errors.type ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  required
-                >
-                  <option value="">Select Type</option>
-                  <option value="Adaptation">{Transliteration('Adaptation', language)}</option>
-                  <option value="Mitigation">{Transliteration('Mitigation', language)}</option>
-                </select>
-                {errors.type && (
-                  <p className="mt-1 text-sm text-red-600">{errors.type}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Sector (to be removed) <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="sector"
-                  value={formData.sector}
-                  onChange={handleInputChange}
-                  className={`mt-1 block w-full px-3 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
-                    errors.sector ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  required
-                >
-                  <option value="">Select Sector</option>
-                  <option value="Agriculture">Agriculture</option>
-                  <option value="Water">Water</option>
-                  <option value="Energy">Energy</option>
-                  <option value="Transport">Transport</option>
-                  <option value="Urban">Urban</option>
-                  <option value="Forestry">Forestry</option>
-                  <option value="Coastal">Coastal</option>
-                  <option value="Disaster Risk Management">Disaster Risk Management</option>
-                  <option value="Disaster Risk Reduction">Disaster Risk Reduction</option>
-                  <option value="Health">Health</option>
-                  <option value="Cross-cutting">Cross-cutting</option>
-                </select>
-                {errors.sector && (
-                  <p className="mt-1 text-sm text-red-600">{errors.sector}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
                   Status <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -600,7 +519,6 @@ const ProjectFormPage = ({
             handleWashComponentChange={handleWashComponentChange}
             agencies={agencies}
             fundingSources={fundingSources}
-            focalAreas={focalAreas}
           />
 
           <div>
@@ -753,6 +671,65 @@ const ProjectFormPage = ({
                   )}
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Climate Relevance */}
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Climate Relevance</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Score Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Climate Relevance Score (%)
+                </label>
+                <input
+                  type="number"
+                  name="climate_relevance_score"
+                  value={formData.climate_relevance_score || ''}
+                  onChange={handleInputChange}
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                  placeholder="0-100"
+                />
+              </div>
+              
+              {/* Category Dropdown */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Relevance Category
+                </label>
+                <select
+                  name="climate_relevance_category"
+                  value={formData.climate_relevance_category || ''}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                >
+                  <option value="">Select Category</option>
+                  <option value="High">High</option>
+                  <option value="Moderate-High">Moderate-High</option>
+                  <option value="Moderate">Moderate</option>
+                  <option value="Moderate-Low">Moderate-Low</option>
+                  <option value="Low">Low</option>
+                </select>
+              </div>
+            </div>
+            
+            {/* Justification */}
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Climate Relevance Justification
+              </label>
+              <textarea
+                name="climate_relevance_justification"
+                value={formData.climate_relevance_justification || ''}
+                onChange={handleInputChange}
+                rows={4}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                placeholder="Explain the climate relevance score and category..."
+              />
             </div>
           </div>
 

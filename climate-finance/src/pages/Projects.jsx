@@ -38,7 +38,6 @@ const Projects = () => {
   const [projectsList, setProjectsList] = useState([]);
   const [overviewStats, setOverviewStats] = useState([]);
   const [projectsByStatus, setProjectsByStatus] = useState([]);
-  const [projectsByType, setProjectsByType] = useState([]);
   const [projectTrend, setProjectTrend] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -47,9 +46,7 @@ const Projects = () => {
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState({
-    sector: 'All',
     status: 'All',
-    type: 'All',
     division: 'All',
     approval_fy: 'All',
     agency_id: 'All',
@@ -88,13 +85,11 @@ const Projects = () => {
         projectsResponse,
         overviewResponse,
         statusResponse,
-        typeResponse,
         trendResponse
       ] = await Promise.all([
         projectApi.getAll(),
         projectApi.getProjectsOverviewStats(),
         projectApi.getByStatus(),
-        projectApi.getByType(),
         projectApi.getTrend()
       ]);
       if (projectsResponse?.status && Array.isArray(projectsResponse.data)) {
@@ -149,11 +144,6 @@ const Projects = () => {
         setProjectsByStatus([]);
       }
 
-      if (typeResponse?.status && Array.isArray(typeResponse.data)) {
-        setProjectsByType(typeResponse.data);
-      } else {
-        setProjectsByType([]);
-      }
 
       if (trendResponse?.status && Array.isArray(trendResponse.data)) {
         setProjectTrend(trendResponse.data);
@@ -168,7 +158,6 @@ const Projects = () => {
       setFilteredProjects([]);
       setOverviewStats([]);
       setProjectsByStatus([]);
-      setProjectsByType([]);
       setProjectTrend([]);
     } finally {
       setIsLoading(false);
@@ -206,8 +195,6 @@ const Projects = () => {
     }
 
     // Create unique option arrays using the actual fields available
-    const sectors = Array.from(new Set(projectsList.map(p => p.sector).filter(Boolean))).sort();
-    const types = Array.from(new Set(projectsList.map(p => p.type).filter(Boolean))).sort();
     const divisions = Array.from(new Set(projectsList.map(p => p.geographic_division).filter(Boolean))).sort();
     const statuses = Array.from(new Set(projectsList.map(p => p.status).filter(Boolean))).sort();
     const approvalYears = Array.from(new Set(projectsList.map(p => p.approval_fy).filter(Boolean))).sort();
@@ -224,23 +211,6 @@ const Projects = () => {
           ...statuses.map(status => ({ value: status, label: status }))
         ]
       },
-      ...(sectors.length > 0 ? [{
-        key: 'sector',
-        label: 'Sector',
-        options: [
-          { value: 'All', label: 'All Sectors' },
-          ...sectors.map(sector => ({ value: sector, label: sector }))
-        ]
-      }] : []),
-      ...(types.length > 0 ? [{
-        key: 'type',
-        label: 'Project Type',
-        options: [
-          { value: 'All', label: language === 'bn' ? 'সকল প্রকর' : 'All Types' },
-          ...types.map(type => ({ value: type, label: Transliteration(type, language) }))
-        ],
-        selectProps: { className: 'notranslate', translate: 'no' }
-      }] : []),
       ...(divisions.length > 0 ? [{
         key: 'geographic_division',
         label: 'Geographic Division',
@@ -330,7 +300,6 @@ const Projects = () => {
       overview: overviewStats,
       chartData: {
         status: projectsByStatus,
-        type: projectsByType,
         trend: projectTrend
       },
       filters: {
@@ -344,9 +313,8 @@ const Projects = () => {
     };
   };
 
-  // Translate category labels for status and type
+  // Translate category labels for status
   const translatedProjectsByStatus = translateChartData(projectsByStatus, language, 'status');
-  const translatedProjectsByType = translateChartData(projectsByType, language, 'mitigationType');
 
   if (isLoading) {
     return (
@@ -446,48 +414,25 @@ const Projects = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:gap-8 mb-6">
-        {/* Projects by Status */}
-        <div className="animate-fade-in-up" style={{ animationDelay: '400ms' }}>
-          <Card hover padding={true}>
-            {projectsByStatus.length > 0 ? (
-              <PieChartComponent
-                title={getChartTitle(language, 'projectsByStatus')}
-                data={translatedProjectsByStatus}
-                valueKey="value"
-                nameKey="name"
-              />
-            ) : (
-              <div className="h-[300px] flex items-center justify-center">
-                <div className="text-center">
-                  <AlertCircle size={24} className="mx-auto text-gray-400 mb-2" />
-                  <p className="text-gray-600">No status data available</p>
-                </div>
+      {/* Projects by Status - Full Width */}
+      <div className="animate-fade-in-up mb-6" style={{ animationDelay: '400ms' }}>
+        <Card hover padding={true}>
+          {projectsByStatus.length > 0 ? (
+            <PieChartComponent
+              title={getChartTitle(language, 'projectsByStatus')}
+              data={translatedProjectsByStatus}
+              valueKey="value"
+              nameKey="name"
+            />
+          ) : (
+            <div className="h-[300px] flex items-center justify-center">
+              <div className="text-center">
+                <AlertCircle size={24} className="mx-auto text-gray-400 mb-2" />
+                <p className="text-gray-600">No status data available</p>
               </div>
-            )}
-          </Card>
-        </div>
-
-        {/* Projects by Type */}
-        <div className="animate-fade-in-up" style={{ animationDelay: '500ms' }}>
-          <Card hover padding={true}>
-            {projectsByType.length > 0 ? (
-              <PieChartComponent
-                title={getChartTitle(language, 'projectsByType')}
-                data={translatedProjectsByType}
-                valueKey="value"
-                nameKey="name"
-              />
-            ) : (
-              <div className="h-[300px] flex items-center justify-center">
-                <div className="text-center">
-                  <AlertCircle size={24} className="mx-auto text-gray-400 mb-2" />
-                  <p className="text-gray-600">No type data available</p>
-                </div>
-              </div>
-            )}
-          </Card>
-        </div>
+            </div>
+          )}
+        </Card>
       </div>
 
       {/* Project Trend */}
@@ -524,9 +469,7 @@ const Projects = () => {
             onClearAll={() => {
               setSearchTerm('');
               setActiveFilters({
-                sector: 'All',
                 status: 'All',
-                type: 'All',
                 division: 'All',
                 approval_fy: 'All',
                 agency_id: 'All',
@@ -577,16 +520,6 @@ const Projects = () => {
                       <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}>
                         {project.status}
                       </span>
-                      {project.type && (
-                        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">
-                          {project.type}
-                        </span>
-                      )}
-                      {project.sector && (
-                        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
-                          {project.sector}
-                        </span>
-                      )}
                     </div>
 
                     <div className="space-y-3 mb-4 flex-1">

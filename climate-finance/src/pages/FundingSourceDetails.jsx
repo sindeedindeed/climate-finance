@@ -149,27 +149,12 @@ const FundingSourceDetails = () => {
     }
   };
 
-  const disbursementRate = (() => {
-    const committed = source.total_committed || source.grant_amount || 0;
-    const disbursed = source.total_disbursed || source.disbursement || 0;
-    
-    if (committed > 0 && disbursed >= 0) {
-      return Math.min((disbursed / committed) * 100, 100);
-    }
-    return 0;
-  })();
-
-  // Calculate over-disbursement robustly
-  const disbursedNum = Number(source.total_disbursed || source.disbursement || 0);
   const committedNum = Number(source.total_committed || source.grant_amount || 0);
-  const isOverDisbursed = disbursedNum > committedNum;
 
   const exportData = {
     source: source?.name,
     type: source?.type,
     totalCommitted: source?.total_committed || source?.grant_amount || 0,
-    totalDisbursed: source?.total_disbursed || source?.disbursement || 0,
-    disbursementRate: disbursementRate,
     activeProjects: source?.active_projects || 0,
     sectors: source?.sectors || [],
     devPartner: source?.dev_partner
@@ -234,12 +219,6 @@ const FundingSourceDetails = () => {
               </div>
             </div>
             
-            <div className="text-center">
-              <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Disbursed</div>
-              <div className="text-base sm:text-lg font-bold text-success-600">
-                {formatCurrency(source.total_disbursed || source.disbursement || 0)}
-              </div>
-            </div>
             
             <div className="text-center">
               <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Projects</div>
@@ -256,21 +235,6 @@ const FundingSourceDetails = () => {
             </div>
           </div>
 
-          {/* Mini Progress Bar */}
-          {committedNum > 0 && (
-            <div className="mb-6">
-              <ProgressBar
-                label="Disbursement Progress"
-                percentage={Math.min(disbursementRate, 100)}
-                current={disbursedNum}
-                total={committedNum}
-                formatValue={formatCurrency}
-                color={isOverDisbursed ? "warning" : "purple"}
-                showValues={true}
-                warning={isOverDisbursed ? "Disbursed amount exceeds committed funds!" : ""}
-              />
-            </div>
-          )}
 
           {/* Sectors - Horizontal Tags */}
           {source.sectors && Array.isArray(source.sectors) && source.sectors.length > 0 && (
@@ -298,7 +262,7 @@ const FundingSourceDetails = () => {
         {/* Financial Summary */}
         <Card className="mb-6" padding="p-4 sm:p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Financial Summary</h3>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="text-center p-4 bg-primary-50 rounded-lg border border-primary-100">
               <div className="text-sm text-gray-600 font-medium mb-2">Total Committed</div>
               <div className="text-xl font-bold text-primary-700">
@@ -306,15 +270,9 @@ const FundingSourceDetails = () => {
               </div>
             </div>
             <div className="text-center p-4 bg-success-50 rounded-lg border border-success-100">
-              <div className="text-sm text-gray-600 font-medium mb-2">Total Disbursed</div>
+              <div className="text-sm text-gray-600 font-medium mb-2">Active Projects</div>
               <div className="text-xl font-bold text-success-700">
-                {formatCurrency(source.total_disbursed || source.disbursement || 0)}
-              </div>
-            </div>
-            <div className="text-center p-4 bg-warning-50 rounded-lg border border-warning-100">
-              <div className="text-sm text-gray-600 font-medium mb-2">Remaining</div>
-              <div className="text-xl font-bold text-warning-700">
-                {formatCurrency((source.total_committed || source.grant_amount || 0) - (source.total_disbursed || source.disbursement || 0))}
+                {source.active_projects || 0}
               </div>
             </div>
           </div>

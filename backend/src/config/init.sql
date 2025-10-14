@@ -24,7 +24,6 @@ CREATE TABLE IF NOT EXISTS Project (
     total_cost_usd DECIMAL(15,2),
     gef_grant DECIMAL(15,2),
     cofinancing DECIMAL(15,2),
-    disbursement DECIMAL(15,2) NOT NULL DEFAULT 0.00,
     wash_finance DECIMAL(15,2),
     wash_finance_percent DECIMAL(5,2),
     beneficiaries VARCHAR(100),
@@ -41,7 +40,10 @@ CREATE TABLE IF NOT EXISTS Project (
     alignment_nap TEXT,
     alignment_cff TEXT,
     geographic_division VARCHAR(50),
-    districts TEXT[]
+    districts TEXT[],
+    climate_relevance_score DECIMAL(5,2),
+    climate_relevance_category VARCHAR(50) CHECK (climate_relevance_category IN ('High', 'Moderate-High', 'Moderate', 'Moderate-Low', 'Low', '')),
+    climate_relevance_justification TEXT
 );
 
 -- Table: PendingProject (for projects awaiting approval)
@@ -58,7 +60,6 @@ CREATE TABLE IF NOT EXISTS PendingProject (
     total_cost_usd DECIMAL(15,2),
     gef_grant DECIMAL(15,2),
     cofinancing DECIMAL(15,2),
-    disbursement DECIMAL(15,2) NOT NULL DEFAULT 0.00,
     wash_finance DECIMAL(15,2),
     wash_finance_percent DECIMAL(5,2),
     beneficiaries VARCHAR(100),
@@ -83,7 +84,10 @@ CREATE TABLE IF NOT EXISTS PendingProject (
     alignment_cff TEXT,
     alignment_sdg INTEGER[],
     geographic_division VARCHAR(50),
-    districts TEXT[]
+    districts TEXT[],
+    climate_relevance_score DECIMAL(5,2),
+    climate_relevance_category VARCHAR(50) CHECK (climate_relevance_category IN ('High', 'Moderate-High', 'Moderate', 'Moderate-Low', 'Low', '')),
+    climate_relevance_justification TEXT
 );
 
 -- Table: Agency
@@ -102,7 +106,6 @@ CREATE TABLE IF NOT EXISTS FundingSource (
     grant_amount DECIMAL(15,2),
     loan_amount DECIMAL(15,2),
     counterpart_funding DECIMAL(15,2),
-    disbursement DECIMAL(15,2) NOT NULL DEFAULT 0.00,
     non_grant_instrument VARCHAR(50)
 );
 

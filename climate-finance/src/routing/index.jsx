@@ -17,12 +17,10 @@ import AdminProjects from '../pages/AdminProjects';
 import AdminAgencies from '../pages/AdminAgencies';
 import AdminFundingSources from '../pages/AdminFundingSources';
 import AdminLocations from '../pages/AdminLocations';
-import AdminFocalAreas from '../pages/AdminFocalAreas';
 import AdminProjectApproval from '../pages/AdminProjectApproval';
 import UserFormPage from '../pages/UserFormPage';
 import AgencyFormPage from '../pages/AgencyFormPage';
 import LocationFormPage from '../pages/LocationFormPage';
-import FocalAreaFormPage from '../pages/FocalAreaFormPage';
 import AboutPage from '../pages/AboutPage';
 
 // Protected route wrapper that uses AuthContext
@@ -197,23 +195,6 @@ const Routing = () => {
         </AdminRoute>
       } />
       
-      {/* Admin Focal Areas */}
-      <Route path="/admin/focal-areas" element={
-        <AdminRoute>
-          <AdminFocalAreas />
-        </AdminRoute>
-      } />
-      <Route path="/admin/focal-areas/add" element={<Navigate to="/admin/focal-areas/new" replace />} />
-      <Route path="/admin/focal-areas/new" element={
-        <AdminRoute>
-          <FocalAreaFormPage mode="add" />
-        </AdminRoute>
-      } />
-      <Route path="/admin/focal-areas/:id/edit" element={
-        <AdminRoute>
-          <FocalAreaFormPage mode="edit" />
-        </AdminRoute>
-      } />
       
       {/* Admin Project Approval */}
       <Route path="/admin/project-approval" element={
