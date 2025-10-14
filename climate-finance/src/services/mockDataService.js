@@ -1,5 +1,5 @@
 // Frontend mock data service - simulates backend API responses
-import { mockProjects, mockAgencies, mockFundingSources, mockFocalAreas } from '../data/mockProjects.js';
+import { mockProjects, mockAgencies, mockFundingSources } from '../data/mockProjects.js';
 
 // Simulate API delay
 const delay = (ms = 300) => new Promise(resolve => setTimeout(resolve, ms));
@@ -290,11 +290,13 @@ export const fundingSourceService = {
       active_funding_source: mockFundingSources.length,
       committed_funds: totalGrant,
       disbursed_funds: totalDisbursement,
+      total_projects: mockProjects.length,
       current_year: {
         total_finance: Math.floor(totalClimateFinance * 0.4),
         active_funding_source: Math.floor(mockFundingSources.length * 0.7),
         committed_funds: Math.floor(totalGrant * 0.4),
-        disbursed_funds: Math.floor(totalDisbursement * 0.4)
+        disbursed_funds: Math.floor(totalDisbursement * 0.4),
+        total_projects: Math.floor(mockProjects.length * 0.7)
       }
     });
   },
@@ -328,21 +330,14 @@ export const fundingSourceService = {
   // Get funding source trend
   getTrend: async () => {
     await delay();
-    // Simulate trend data by year
-    const trendData = {
-      2020: { grants: 10000000, loans: 5000000, total: 15000000 },
-      2021: { grants: 12000000, loans: 8000000, total: 20000000 },
-      2022: { grants: 15000000, loans: 10000000, total: 25000000 },
-      2023: { grants: 18000000, loans: 12000000, total: 30000000 }
-    };
-    
-    // Convert to array format expected by charts
-    const trendArray = Object.entries(trendData).map(([year, data]) => ({
-      year: parseInt(year),
-      grants: data.grants,
-      loans: data.loans,
-      total: data.total
-    })).sort((a, b) => a.year - b.year);
+    // Direct mock trend data for immediate display
+    const trendArray = [
+      { year: "2020", grants: 10000000, loans: 5000000, total: 15000000 },
+      { year: "2021", grants: 12000000, loans: 8000000, total: 20000000 },
+      { year: "2022", grants: 15000000, loans: 10000000, total: 25000000 },
+      { year: "2023", grants: 18000000, loans: 12000000, total: 30000000 },
+      { year: "2024", grants: 20000000, loans: 15000000, total: 35000000 }
+    ];
     
     return createResponse(trendArray);
   },
@@ -399,13 +394,6 @@ export const fundingSourceService = {
   }
 };
 
-// Focal area endpoints
-export const focalAreaService = {
-  getAll: async () => {
-    await delay();
-    return createResponse(mockFocalAreas);
-  }
-};
 
 // Auth endpoints
 export const authService = {
@@ -446,7 +434,6 @@ export const getOverviewStats = async () => {
     total_climate_finance: totalClimateFinance,
     totalAgencies: mockAgencies.length,
     totalFundingSources: mockFundingSources.length,
-    totalFocalAreas: mockFocalAreas.length,
     current_year: {
       total_projects: Math.floor(stats.total_projects * 0.6),
       active_projects: Math.floor(stats.active_projects * 0.7),

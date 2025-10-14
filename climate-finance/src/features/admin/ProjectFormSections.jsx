@@ -11,8 +11,7 @@ const ProjectFormSections = ({
   handleMultiSelectChange,
   handleWashComponentChange,
   agencies,
-  fundingSources,
-  focalAreas
+  fundingSources
 }) => {
   const navigate = useNavigate();
   const [districtsData, setDistrictsData] = useState({});
@@ -179,20 +178,6 @@ const ProjectFormSections = ({
         </div>
       </div>
 
-      {/* Focal Areas */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Focal Areas</h3>
-        <CheckboxGroup
-          label="Select Focal Areas"
-          options={focalAreas}
-          selectedValues={formData.focal_areas}
-          onChange={(values) => handleMultiSelectChange({ target: { value: values } }, 'focal_areas')}
-          getOptionId={(area) => area.focal_area_id}
-          getOptionLabel={(area) => area.name}
-          onAddNew={handleAddFocalArea}
-          addButtonText="Add Focal Area"
-        />
-      </div>
 
       {/* WASH Component - Updated */}
       <div>

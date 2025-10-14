@@ -155,22 +155,6 @@ const ProjectDetails = () => {
     return proj.total_cost_usd || proj.totalFunding || proj.totalBudget || 0;
   };
 
-  const calculateProgress = () => {
-    const committed = project.gef_grant || 0;
-    const disbursed = project.disbursement || 0;
-    
-    if (committed > 0 && disbursed >= 0) {
-      return Math.min(Math.round((disbursed / committed) * 100), 100);
-    }
-    return 0;
-  };
-
-  const progressPercentage = calculateProgress();
-
-  // Calculate over-disbursement robustly
-  const disbursedNum = Number(project.disbursement) || 0;
-  const committedNum = Number(project.gef_grant) || 0;
-  const isOverDisbursed = disbursedNum > committedNum;
 
   const exportData = {
     projectId: project?.project_id,
@@ -178,8 +162,6 @@ const ProjectDetails = () => {
     status: project?.status,
     description: project?.objectives,
     totalBudget: getTotalBudget(project),
-    disbursed: project?.disbursement || 0,
-    progress: progressPercentage,
     location: getLocation(project),
     timeline: getTimeline(project),
     beneficiaries: project?.beneficiaries,
@@ -257,27 +239,8 @@ const ProjectDetails = () => {
               <div className="text-base sm:text-lg font-bold text-success-600">{formatCurrency(project.gef_grant || 0)}</div>
             </div>
             
-            <div className="text-center">
-              <div className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Disbursed</div>
-              <div className="text-base sm:text-lg font-bold text-primary-600">{formatCurrency(project.disbursement || 0)}</div>
-            </div>
           </div>
 
-          {/* Mini Progress Bar */}
-          {committedNum > 0 && (
-            <div className="mb-6">
-              <ProgressBar
-                label="Disbursement Progress"
-                percentage={Math.min(progressPercentage, 100)}
-                current={disbursedNum}
-                total={committedNum}
-                formatValue={formatCurrency}
-                color={isOverDisbursed ? "warning" : "purple"}
-                showValues={true}
-                warning={isOverDisbursed ? "Disbursed amount exceeds committed funds!" : ""}
-              />
-            </div>
-          )}
 
           {/* Timeline and Details */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-base">
@@ -552,6 +515,40 @@ const ProjectDetails = () => {
             </div>
           </Card>
         </div>
+
+        {/* Climate Relevance */}
+        {(project.climate_relevance_score || project.climate_relevance_category || project.climate_relevance_justification) && (
+          <Card padding="p-4 sm:p-6" className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Climate Relevance</h3>
+            <div className="space-y-4">
+              {project.climate_relevance_score && (
+                <div>
+                  <div className="text-sm text-gray-600 font-medium mb-2">Climate Relevance Score</div>
+                  <div className="flex items-center gap-3">
+                    <div className="text-3xl font-bold text-blue-600">{project.climate_relevance_score}%</div>
+                    {project.climate_relevance_category && (
+                      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                        project.climate_relevance_category === 'High' ? 'bg-green-100 text-green-800' :
+                        project.climate_relevance_category === 'Moderate-High' ? 'bg-blue-100 text-blue-800' :
+                        project.climate_relevance_category === 'Moderate' ? 'bg-yellow-100 text-yellow-800' :
+                        project.climate_relevance_category === 'Moderate-Low' ? 'bg-orange-100 text-orange-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {project.climate_relevance_category}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+              {project.climate_relevance_justification && (
+                <div>
+                  <div className="text-sm text-gray-600 font-medium mb-1">Justification</div>
+                  <div className="text-sm text-gray-700">{project.climate_relevance_justification}</div>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
 
         {/* Assessment - Full Width at End */}
         {project.assessment && (

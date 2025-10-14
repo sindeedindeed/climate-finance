@@ -3,7 +3,6 @@ import {
   projectService, 
   agencyService, 
   fundingSourceService, 
-  focalAreaService, 
   authService, 
   getOverviewStats 
 } from './mockDataService.js';
@@ -91,17 +90,31 @@ const getMockDataForEndpoint = async (endpoint, options = {}) => {
   if (endpoint.includes('/project/get-project-by-status')) {
     return projectService.getByStatus();
   }
-  if (endpoint.includes('/project/get-project-by-type')) {
-    return projectService.getByType();
-  }
-  if (endpoint.includes('/project/get-project-by-sector')) {
-    return projectService.getBySector();
-  }
   if (endpoint.includes('/project/get-project-by-trend')) {
     return projectService.getTrend();
   }
   if (endpoint.includes('/project/get-regional-distribution')) {
-    return projectService.getRegionalDistribution();
+    // Calculate from mockProjects
+    const { mockProjects } = await import('../data/mockProjects.js');
+    const divisions = {};
+    mockProjects.forEach(p => {
+      const div = p.geographic_division;
+      if (!div) return;
+      if (!divisions[div]) {
+        divisions[div] = { active_projects: 0, completed_projects: 0, total_projects: 0, total_funding: 0 };
+      }
+      divisions[div].total_projects++;
+      divisions[div].total_funding += p.total_cost_usd || 0;
+      if (p.status === 'Completed' || p.status === 'Implemented') divisions[div].completed_projects++;
+      else if (p.status === 'Active') divisions[div].active_projects++;
+    });
+    return {
+      status: true,
+      data: Object.keys(divisions).map(location_name => ({
+        location_name,
+        ...divisions[location_name]
+      }))
+    };
   }
   if (endpoint.includes('/project/get-overview-stat')) {
     return getOverviewStats();
@@ -145,9 +158,6 @@ const getMockDataForEndpoint = async (endpoint, options = {}) => {
   }
   if (endpoint.includes('/project/get-funding-source-trend')) {
     return fundingSourceService.getTrend();
-  }
-  if (endpoint.includes('/project/get-funding-source-sector-allocation')) {
-    return fundingSourceService.getSectorAllocation();
   }
   if (endpoint.includes('/project/get-funding-source')) {
     return fundingSourceService.getAll();
@@ -203,15 +213,13 @@ export const projectApi = {
     });
   },
   getByStatus: () => apiRequest('/project/get-project-by-status'),
-  getBySector: () => apiRequest('/project/get-project-by-sector'),
   getTrend: () => apiRequest('/project/get-project-by-trend'),
-  getByType: () => apiRequest('/project/get-project-by-type'),
   getOverviewStats: () => apiRequest('/project/get-overview-stat'),
   getProjectsOverviewStats: () => apiRequest('/project/projectsOverviewStats'),
+  getRegionalDistribution: () => apiRequest('/project/get-regional-distribution'),
 
   // Dashboard Data
   getDashboardOverviewStats: () => apiRequest('/project/get-overview-stat'),
-  getRegionalDistribution: () => apiRequest('/project/get-regional-distribution'),
 };
 
 // Pending Project API endpoints
@@ -337,7 +345,6 @@ export const fundingSourceApi = {
   getFundingSourceByType: () => apiRequest('/project/get-funding-source-by-type'),
   getFundingSourceOverview: () => apiRequest('/project/get-funding-source-overview'),
   getFundingSourceTrend: () => apiRequest('/project/get-funding-source-trend'),
-  getFundingSourceSectorAllocation: () => apiRequest('/project/get-funding-source-sector-allocation'),
   getFundingSource: () => apiRequest('/project/get-funding-source'),
 };
 

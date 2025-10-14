@@ -1,10 +1,9 @@
-// Mock data for frontend demo - works without backend
+// Mock data aligned with client's Excel structure
+// Fields NOT in Excel have been removed: type, sector, focal_areas, disbursement
 export const mockProjects = [
   {
     "project_id": "demo-proj-001",
     "title": "Coastal Climate Resilience and Adaptation Project",
-    "type": "Adaptation",
-    "sector": "Water Resources",
     "status": "Active",
     "approval_fy": 2023,
     "beginning": "2023-01-15",
@@ -12,7 +11,6 @@ export const mockProjects = [
     "total_cost_usd": 25000000,
     "gef_grant": 15000000,
     "cofinancing": 10000000,
-    "disbursement": 8500000,
     "wash_finance": 5000000,
     "wash_finance_percent": 20.0,
     "beneficiaries": "Coastal communities in vulnerable areas",
@@ -30,6 +28,9 @@ export const mockProjects = [
     "alignment_cff": "Supports Climate Finance Framework objectives for adaptation finance mobilization",
     "geographic_division": "Chattogram",
     "districts": ["Cox's Bazar", "Chattogram", "Noakhali"],
+    "climate_relevance_score": 85.5,
+    "climate_relevance_category": "High",
+    "climate_relevance_justification": "Project directly addresses climate adaptation needs in vulnerable coastal zones through integrated water management and early warning systems, with strong focus on climate-resilient infrastructure and community-based adaptation strategies.",
     "agencies": [
       {"agency_id": 1, "name": "Ministry of Water Resources", "type": "Government Agency"},
       {"agency_id": 2, "name": "UNDP Bangladesh", "type": "International Organization"}
@@ -37,10 +38,6 @@ export const mockProjects = [
     "funding_sources": [
       {"funding_source_id": 1, "name": "Green Climate Fund", "dev_partner": "GCF", "grant_amount": 15000000},
       {"funding_source_id": 2, "name": "World Bank", "dev_partner": "WB", "loan_amount": 10000000}
-    ],
-    "focal_areas": [
-      {"focal_area_id": 1, "name": "Climate Change Adaptation"},
-      {"focal_area_id": 2, "name": "Water Resources Management"}
     ],
     "wash_component": {
       "presence": true,
@@ -61,7 +58,6 @@ export const mockProjects = [
     "total_cost_usd": 18000000,
     "gef_grant": 12000000,
     "cofinancing": 6000000,
-    "disbursement": 18000000,
     "wash_finance": 0,
     "wash_finance_percent": 0,
     "beneficiaries": "Rural households and small businesses",
@@ -79,6 +75,9 @@ export const mockProjects = [
     "alignment_cff": "Supports CFF mitigation finance goals for clean energy transition",
     "geographic_division": "Rajshahi",
     "districts": ["Rajshahi", "Bogura", "Pabna", "Sirajganj"],
+    "climate_relevance_score": 92.0,
+    "climate_relevance_category": "High",
+    "climate_relevance_justification": "Direct climate mitigation project that reduces greenhouse gas emissions through renewable energy deployment and energy efficiency measures, contributing significantly to national climate targets.",
     "agencies": [
       {"agency_id": 3, "name": "Ministry of Power, Energy and Mineral Resources", "type": "Government Agency"},
       {"agency_id": 4, "name": "Grameen Shakti", "type": "NGO"}
@@ -110,7 +109,6 @@ export const mockProjects = [
     "total_cost_usd": 32000000,
     "gef_grant": 20000000,
     "cofinancing": 12000000,
-    "disbursement": 12000000,
     "wash_finance": 8000000,
     "wash_finance_percent": 25.0,
     "beneficiaries": "Urban residents and municipal authorities",
@@ -128,6 +126,9 @@ export const mockProjects = [
     "alignment_cff": "Supports CFF objectives for urban climate finance and resilience building",
     "geographic_division": "Dhaka",
     "districts": ["Dhaka", "Narayanganj", "Gazipur"],
+    "climate_relevance_score": 78.0,
+    "climate_relevance_category": "Moderate-High",
+    "climate_relevance_justification": "Urban climate adaptation project addressing flooding and heat island effects through green infrastructure and sustainable urban planning, with significant climate resilience benefits for vulnerable urban populations.",
     "agencies": [
       {"agency_id": 5, "name": "Dhaka North City Corporation", "type": "Local Government"},
       {"agency_id": 6, "name": "UN-Habitat", "type": "International Organization"}
@@ -159,7 +160,6 @@ export const mockProjects = [
     "total_cost_usd": 28000000,
     "gef_grant": 18000000,
     "cofinancing": 10000000,
-    "disbursement": 7000000,
     "wash_finance": 0,
     "wash_finance_percent": 0,
     "beneficiaries": "Smallholder farmers and agricultural communities",
@@ -177,6 +177,9 @@ export const mockProjects = [
     "alignment_cff": "Supports CFF adaptation finance for agricultural sector resilience",
     "geographic_division": "Khulna",
     "districts": ["Khulna", "Satkhira", "Bagerhat", "Jessore"],
+    "climate_relevance_score": 88.0,
+    "climate_relevance_category": "High",
+    "climate_relevance_justification": "Direct climate adaptation project addressing agricultural vulnerability to climate change through sustainable farming practices, drought-resistant crops, and improved irrigation systems, critical for food security in climate-vulnerable regions.",
     "agencies": [
       {"agency_id": 7, "name": "Ministry of Agriculture", "type": "Government Agency"},
       {"agency_id": 8, "name": "FAO Bangladesh", "type": "International Organization"}
@@ -208,7 +211,6 @@ export const mockProjects = [
     "total_cost_usd": 22000000,
     "gef_grant": 14000000,
     "cofinancing": 8000000,
-    "disbursement": 11000000,
     "wash_finance": 0,
     "wash_finance_percent": 0,
     "beneficiaries": "Forest-dependent communities and conservation organizations",
@@ -226,6 +228,9 @@ export const mockProjects = [
     "alignment_cff": "Supports CFF nature-based solutions and REDD+ finance objectives",
     "geographic_division": "Sylhet",
     "districts": ["Sylhet", "Moulvibazar", "Habiganj", "Sunamganj"],
+    "climate_relevance_score": 95.0,
+    "climate_relevance_category": "High",
+    "climate_relevance_justification": "Direct climate mitigation project through forest conservation and restoration, enhancing carbon sequestration and biodiversity protection. Critical for achieving national climate targets and REDD+ objectives.",
     "agencies": [
       {"agency_id": 9, "name": "Forest Department", "type": "Government Agency"},
       {"agency_id": 10, "name": "IUCN Bangladesh", "type": "International Organization"}
@@ -257,7 +262,6 @@ export const mockProjects = [
     "total_cost_usd": 15000000,
     "gef_grant": 10000000,
     "cofinancing": 5000000,
-    "disbursement": 15000000,
     "wash_finance": 3000000,
     "wash_finance_percent": 20.0,
     "beneficiaries": "Vulnerable communities in disaster-prone areas",
@@ -275,6 +279,9 @@ export const mockProjects = [
     "alignment_cff": "Supports CFF adaptation finance for disaster risk reduction and resilience building",
     "geographic_division": "Barishal",
     "districts": ["Barishal", "Patuakhali", "Bhola", "Pirojpur"],
+    "climate_relevance_score": 82.0,
+    "climate_relevance_category": "High",
+    "climate_relevance_justification": "Critical climate adaptation project addressing disaster risk reduction and early warning systems for climate-vulnerable communities, essential for building resilience against increasing climate-related disasters.",
     "agencies": [
       {"agency_id": 11, "name": "Ministry of Disaster Management and Relief", "type": "Government Agency"},
       {"agency_id": 12, "name": "Bangladesh Red Crescent Society", "type": "NGO"}
@@ -314,18 +321,18 @@ export const mockAgencies = [
 
 // Mock funding sources data
 export const mockFundingSources = [
-  { funding_source_id: 1, name: "Green Climate Fund", dev_partner: "GCF", grant_amount: 15000000, loan_amount: 0, disbursement: 8500000 },
-  { funding_source_id: 2, name: "World Bank", dev_partner: "WB", grant_amount: 0, loan_amount: 10000000, disbursement: 5000000 },
-  { funding_source_id: 3, name: "Asian Development Bank", dev_partner: "ADB", grant_amount: 0, loan_amount: 12000000, disbursement: 12000000 },
-  { funding_source_id: 4, name: "KfW Development Bank", dev_partner: "KfW", grant_amount: 6000000, loan_amount: 0, disbursement: 6000000 },
-  { funding_source_id: 5, name: "European Union", dev_partner: "EU", grant_amount: 20000000, loan_amount: 0, disbursement: 8000000 },
-  { funding_source_id: 6, name: "Agence Française de Développement", dev_partner: "AFD", grant_amount: 0, loan_amount: 12000000, disbursement: 4000000 },
-  { funding_source_id: 7, name: "International Fund for Agricultural Development", dev_partner: "IFAD", grant_amount: 18000000, loan_amount: 0, disbursement: 3000000 },
-  { funding_source_id: 8, name: "Japan International Cooperation Agency", dev_partner: "JICA", grant_amount: 0, loan_amount: 10000000, disbursement: 4000000 },
-  { funding_source_id: 9, name: "Global Environment Facility", dev_partner: "GEF", grant_amount: 14000000, loan_amount: 0, disbursement: 7000000 },
-  { funding_source_id: 10, name: "Norway International Climate and Forest Initiative", dev_partner: "NICFI", grant_amount: 8000000, loan_amount: 0, disbursement: 4000000 },
-  { funding_source_id: 11, name: "United Nations Office for Disaster Risk Reduction", dev_partner: "UNDRR", grant_amount: 10000000, loan_amount: 0, disbursement: 10000000 },
-  { funding_source_id: 12, name: "Swiss Agency for Development and Cooperation", dev_partner: "SDC", grant_amount: 5000000, loan_amount: 0, disbursement: 5000000 }
+  { funding_source_id: 1, name: "Green Climate Fund", dev_partner: "GCF", grant_amount: 15000000, loan_amount: 0 },
+  { funding_source_id: 2, name: "World Bank", dev_partner: "WB", grant_amount: 0, loan_amount: 10000000 },
+  { funding_source_id: 3, name: "Asian Development Bank", dev_partner: "ADB", grant_amount: 0, loan_amount: 12000000 },
+  { funding_source_id: 4, name: "KfW Development Bank", dev_partner: "KfW", grant_amount: 6000000, loan_amount: 0 },
+  { funding_source_id: 5, name: "European Union", dev_partner: "EU", grant_amount: 20000000, loan_amount: 0 },
+  { funding_source_id: 6, name: "Agence Française de Développement", dev_partner: "AFD", grant_amount: 0, loan_amount: 12000000 },
+  { funding_source_id: 7, name: "International Fund for Agricultural Development", dev_partner: "IFAD", grant_amount: 18000000, loan_amount: 0 },
+  { funding_source_id: 8, name: "Japan International Cooperation Agency", dev_partner: "JICA", grant_amount: 0, loan_amount: 10000000 },
+  { funding_source_id: 9, name: "Global Environment Facility", dev_partner: "GEF", grant_amount: 14000000, loan_amount: 0 },
+  { funding_source_id: 10, name: "Norway International Climate and Forest Initiative", dev_partner: "NICFI", grant_amount: 8000000, loan_amount: 0 },
+  { funding_source_id: 11, name: "United Nations Office for Disaster Risk Reduction", dev_partner: "UNDRR", grant_amount: 10000000, loan_amount: 0 },
+  { funding_source_id: 12, name: "Swiss Agency for Development and Cooperation", dev_partner: "SDC", grant_amount: 5000000, loan_amount: 0 }
 ];
 
 // Mock focal areas data

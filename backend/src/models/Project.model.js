@@ -42,7 +42,10 @@ Project.addProjectWithRelations = async (data) => {
             alignment_nap,
             alignment_cff,
             geographic_division,
-            districts = []
+            districts = [],
+            climate_relevance_score,
+            climate_relevance_category,
+            climate_relevance_justification
         } = data;
 
         const project_id = uuidv4(); // 🔑 Generate project ID
@@ -55,8 +58,8 @@ Project.addProjectWithRelations = async (data) => {
                 hotspot_vulnerability_type, wash_component_description, direct_beneficiaries,
                 indirect_beneficiaries, beneficiary_description, gender_inclusion, equity_marker,
                 equity_marker_description, assessment, alignment_nap, alignment_cff,
-                geographic_division, districts
-            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29)
+                geographic_division, districts, climate_relevance_score, climate_relevance_category, climate_relevance_justification
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32)
         `;
         const values = [
             project_id, title, type, sector, division, status, approval_fy, beginning, closing,
@@ -65,7 +68,7 @@ Project.addProjectWithRelations = async (data) => {
             hotspot_vulnerability_type, wash_component_description, direct_beneficiaries,
             indirect_beneficiaries, beneficiary_description, gender_inclusion, equity_marker,
             equity_marker_description, assessment, alignment_nap, alignment_cff,
-            geographic_division, districts
+            geographic_division, districts, climate_relevance_score, climate_relevance_category, climate_relevance_justification
         ];
         await client.query(insertProjectQuery, values);
 
@@ -153,7 +156,6 @@ Project.getAllProjects = async () => {
                 p.total_cost_usd,
                 p.gef_grant,
                 p.cofinancing,
-                p.disbursement,
                 p.wash_finance,
                 p.wash_finance_percent,
                 p.beneficiaries,
@@ -171,6 +173,9 @@ Project.getAllProjects = async () => {
                 p.alignment_cff,
                 p.geographic_division,
                 p.districts,
+                p.climate_relevance_score,
+                p.climate_relevance_category,
+                p.climate_relevance_justification,
                 wc.presence as wash_presence,
                 wc.water_supply_percent,
                 wc.sanitation_percent,
@@ -240,7 +245,6 @@ Project.getAllProjects = async () => {
                 total_cost_usd: row.total_cost_usd,
                 gef_grant: row.gef_grant,
                 cofinancing: row.cofinancing,
-                disbursement: row.disbursement,
                 wash_finance: row.wash_finance,
                 wash_finance_percent: row.wash_finance_percent,
                 beneficiaries: row.beneficiaries,
@@ -259,6 +263,9 @@ Project.getAllProjects = async () => {
                 alignment_cff: row.alignment_cff,
                 geographic_division: row.geographic_division,
                 districts: row.districts || [],
+                climate_relevance_score: row.climate_relevance_score,
+                climate_relevance_category: row.climate_relevance_category,
+                climate_relevance_justification: row.climate_relevance_justification,
                 // Add agency and funding source data for filtering
                 agency_id: projectAgencies.length > 0 ? projectAgencies[0].agency_id : null,
                 funding_source_id: projectFundingSources.length > 0 ? projectFundingSources[0].funding_source_id : null,
@@ -322,7 +329,10 @@ Project.updateProject = async (id, data) => {
             alignment_nap,
             alignment_cff,
             geographic_division,
-            districts = []
+            districts = [],
+            climate_relevance_score,
+            climate_relevance_category,
+            climate_relevance_justification
         } = data;
 
         // Update the main project record (no wash_component column here)
@@ -331,23 +341,25 @@ Project.updateProject = async (id, data) => {
                 title = $1, type = $2, sector = $3, division = $4, status = $5, 
                 approval_fy = $6, beginning = $7, closing = $8, total_cost_usd = $9, 
                 gef_grant = $10, cofinancing = $11, wash_finance = $12, 
-                wash_finance_percent = $13, beneficiaries = $14, objectives = $15, disbursement = $16,
-                hotspot_vulnerability_type = $17, wash_component_description = $18, direct_beneficiaries = $19,
-                indirect_beneficiaries = $20, beneficiary_description = $21, gender_inclusion = $22, 
-                equity_marker = $23, equity_marker_description = $24, assessment = $25, 
-                alignment_nap = $26, alignment_cff = $27, geographic_division = $28, districts = $29
-            WHERE project_id = $30
+                wash_finance_percent = $13, beneficiaries = $14, objectives = $15,
+                hotspot_vulnerability_type = $16, wash_component_description = $17, direct_beneficiaries = $18,
+                indirect_beneficiaries = $19, beneficiary_description = $20, gender_inclusion = $21, 
+                equity_marker = $22, equity_marker_description = $23, assessment = $24, 
+                alignment_nap = $25, alignment_cff = $26, geographic_division = $27, districts = $28,
+                climate_relevance_score = $29, climate_relevance_category = $30, climate_relevance_justification = $31
+            WHERE project_id = $32
             RETURNING *
         `;
         
         const values = [
             title, type, sector, division, status, approval_fy, beginning, closing,
             total_cost_usd, gef_grant, cofinancing, wash_finance,
-            wash_finance_percent, beneficiaries, objectives, data.disbursement || 0,
+            wash_finance_percent, beneficiaries, objectives,
             hotspot_vulnerability_type, wash_component_description, direct_beneficiaries,
             indirect_beneficiaries, beneficiary_description, gender_inclusion, 
             equity_marker, equity_marker_description, assessment, 
-            alignment_nap, alignment_cff, geographic_division, districts, id
+            alignment_nap, alignment_cff, geographic_division, districts, 
+            climate_relevance_score, climate_relevance_category, climate_relevance_justification, id
         ];
         
         const result = await client.query(updateProjectQuery, values);
@@ -486,7 +498,7 @@ Project.getProjectById = async (id) => {
         
         // Get related funding sources with full details
         const fundingSourcesQuery = `
-            SELECT fs.funding_source_id, fs.name, fs.dev_partner, fs.grant_amount, fs.loan_amount, fs.disbursement
+            SELECT fs.funding_source_id, fs.name, fs.dev_partner, fs.grant_amount, fs.loan_amount
             FROM FundingSource fs
             INNER JOIN ProjectFundingSource pfs ON fs.funding_source_id = pfs.funding_source_id
             WHERE pfs.project_id = $1
@@ -600,31 +612,6 @@ Project.getProjectByStatus = async () => {
     }));
 };
 
-Project.getProjectBySector = async () => {
-    const query = `
-        SELECT sector, COUNT(*) AS value
-        FROM Project
-        GROUP BY sector
-    `;
-    const { rows } = await pool.query(query);
-    return rows.map(row => ({
-        name: row.sector,
-        value: parseInt(row.value)
-    }));
-};
-
-Project.getProjectByType = async () => {
-    const query = `
-        SELECT type, COUNT(*) AS value
-        FROM Project
-        GROUP BY "type"
-    `;
-    const { rows } = await pool.query(query);
-    return rows.map(row => ({
-        name: row.type,
-        value: parseInt(row.value)
-    }));
-};
 
 
 
@@ -673,7 +660,6 @@ Project.getFundingSourceOverviewStats = async () => {
                      WHERE p.status != 'Implemented'
                     ) AS active_funding_source,
                 (SELECT COALESCE(SUM(gef_grant), 0) FROM Project) AS committed_funds,
-                (SELECT COALESCE(SUM(disbursement), 0) FROM Project) AS disbursed_funds
         `;
 
 
@@ -689,7 +675,6 @@ Project.getFundingSourceOverviewStats = async () => {
                     AND p2.approval_fy = EXTRACT(YEAR FROM CURRENT_DATE)
                     ) AS active_funding_source,
                 COALESCE(SUM(p.gef_grant), 0) AS committed_funds,
-                COALESCE(SUM(p.disbursement), 0) AS disbursed_funds
             FROM Project p
             WHERE p.approval_fy = EXTRACT(YEAR FROM CURRENT_DATE);
         `;
@@ -868,21 +853,6 @@ Project.getOverviewStats = async () => {
     }
 };
 
-Project.getRegionalDistribution = async () => {
-    const query = `
-        SELECT 
-            l.name AS location_name,
-            SUM(CASE WHEN p.type = 'Adaptation' THEN p.total_cost_usd ELSE 0 END) AS adaptation_total,
-            SUM(CASE WHEN p.type = 'Mitigation' THEN p.total_cost_usd ELSE 0 END) AS mitigation_total
-        FROM Project p
-            INNER JOIN ProjectLocation pl ON pl.project_id = p.project_id
-            RIGHT JOIN Location l ON pl.location_id = l.location_id
-        GROUP BY l.name
-        ORDER BY l.name;
-    `;
-    const { rows } = await pool.query(query);
-    return rows;
-};
 
 
 
