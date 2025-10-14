@@ -165,11 +165,10 @@ const getMockDataForEndpoint = async (endpoint, options = {}) => {
   
   // Focal area endpoints
   if (endpoint.includes('/focal-area/all')) {
-    return focalAreaService.getAll();
+    return createResponse([], 'Focal areas not available');
   }
   if (endpoint.includes('/focal-area/get/')) {
-    const id = endpoint.split('/').pop();
-    return focalAreaService.getById ? focalAreaService.getById(id) : createResponse({}, 'Focal area not found');
+    return createResponse({}, 'Focal area not found');
   }
   
   // Auth endpoints

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link, useParams, useLocation } from 'react-router-dom';
-import { agencyApi, fundingSourceApi, focalAreaApi, projectApi, pendingProjectApi } from '../services/api';
+import { agencyApi, fundingSourceApi, projectApi, pendingProjectApi } from '../services/api';
 import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
 import Card from '../components/ui/Card';
@@ -9,7 +9,6 @@ import PageLayout from '../components/layouts/PageLayout';
 import ProjectFormSections from '../features/admin/ProjectFormSections';
 import { ArrowLeft, FolderTree, CheckCircle } from 'lucide-react';
 import { useToast } from '../components/ui/Toast';
-import { useLanguage } from '../context/LanguageContext';
 
 const defaultFormData = {
   project_id: '',
@@ -77,7 +76,6 @@ const ProjectFormPage = ({
   const [error, setError] = useState(null);
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
-  const { language } = useLanguage();
 
   // Determine mode based on params, authentication, and URL query
   const urlParams = new URLSearchParams(location.search);

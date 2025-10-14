@@ -84,10 +84,6 @@ const ProjectFormSections = ({
   };
 
 
-  const handleAddFocalArea = () => {
-    localStorage.setItem('projectFormData', JSON.stringify(formData));
-    navigate('/admin/focal-areas/new');
-  };
 
 
   return (

@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 import { getChartTranslation } from "../utils/chartTranslations";
 import { useLanguage } from '../context/LanguageContext';
-import { getAdaptationTransliteration } from '../utils/transliteration';
 
 const AdminDashboard = () => {
     const { user, logout } = useAuth();
