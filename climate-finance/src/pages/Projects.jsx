@@ -199,7 +199,6 @@ const Projects = () => {
     const statuses = Array.from(new Set(projectsList.map(p => p.status).filter(Boolean))).sort();
     const approvalYears = Array.from(new Set(projectsList.map(p => p.approval_fy).filter(Boolean))).sort();
     const geographicDivisions = Array.from(new Set(projectsList.map(p => p.geographic_division).filter(Boolean))).sort();
-    const vulnerabilityTypes = Array.from(new Set(projectsList.map(p => p.hotspot_vulnerability_type).filter(Boolean))).sort();
     const equityMarkers = Array.from(new Set(projectsList.map(p => p.equity_marker).filter(Boolean))).sort();
 
     const filters = [
@@ -243,14 +242,6 @@ const Projects = () => {
           ...fundingSources.map(f => ({ value: f.funding_source_id, label: f.name }))
         ]
       },
-      ...(vulnerabilityTypes.length > 0 ? [{
-        key: 'hotspot_vulnerability_type',
-        label: 'Vulnerability Type',
-        options: [
-          { value: 'All', label: 'All Vulnerability Types' },
-          ...vulnerabilityTypes.map(type => ({ value: type, label: type }))
-        ]
-      }] : []),
       ...(equityMarkers.length > 0 ? [{
         key: 'equity_marker',
         label: 'Equity Marker',
