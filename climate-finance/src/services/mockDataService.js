@@ -68,8 +68,6 @@ export const projectService = {
     const stats = calculateStats(mockProjects);
     
     // Add current_year and previous_year structure for LandingPage compatibility
-    const currentYear = new Date().getFullYear();
-    const previousYear = currentYear - 1;
     
     const response = {
       ...stats,
@@ -283,7 +281,6 @@ export const fundingSourceService = {
     const totalDisbursement = mockFundingSources.reduce((sum, fs) => sum + (fs.disbursement || 0), 0);
     const totalClimateFinance = totalGrant + totalLoan;
     
-    const currentYear = new Date().getFullYear();
     
     return createResponse({
       total_climate_finance: totalClimateFinance,
@@ -425,7 +422,6 @@ export const getOverviewStats = async () => {
     totalDisbursement: mockFundingSources.reduce((sum, fs) => sum + (fs.disbursement || 0), 0)
   };
   
-  const currentYear = new Date().getFullYear();
   const totalClimateFinance = fundingStats.totalGrant + fundingStats.totalLoan;
   
   return createResponse({

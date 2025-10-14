@@ -25,7 +25,7 @@ import { projectApi } from "../services/api";
 import ExportButton from "../components/ui/ExportButton";
 import PageHeader from "../components/layouts/PageHeader";
 import { useLanguage } from '../context/LanguageContext';
-import { translateChartData, getChartTitle, getChartTranslation } from '../utils/chartTranslations';
+import { translateChartData, getChartTitle } from '../utils/chartTranslations';
 
 
 
@@ -164,7 +164,7 @@ const LandingPage = () => {
                 setRegionalData(
                     regionalResponse.data.map((item) => ({
                         region: item.location_name
-                            .replace(" Division", "")
+                            .replace(" Division", " Div.")
                             .replace("Chittagong", "Chattogram")
                             .replace("Barishal", "Barisal"),
                         active: Number(item.active_projects) || 0,
@@ -346,12 +346,18 @@ const LandingPage = () => {
                 </div>
             )}
 
+            {/* Map Section - Full Width */}
+            <div className="mb-8">
+                <div className="animate-fade-in-up" style={{ animationDelay: "500ms" }}>
+                    {regionalData.length > 0 && <BangladeshMapComponent data={regionalData} />}
+                </div>
+            </div>
 
             {/* Charts Section - Pie Chart and Bar Chart Side by Side */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div
                     className="animate-fade-in-up"
-                    style={{ animationDelay: "500ms" }}
+                    style={{ animationDelay: "600ms" }}
                 >
                     {projectsByStatus.length > 0 ? (
                         <PieChartComponent
@@ -368,7 +374,7 @@ const LandingPage = () => {
                         </Card>
                     )}
                 </div>
-                <div className="animate-fade-in-up" style={{ animationDelay: "600ms" }}>
+                <div className="animate-fade-in-up" style={{ animationDelay: "700ms" }}>
                     {regionalData.length > 0 ? (
                         <BarChartComponent
                             title="Regional Distribution"
@@ -386,13 +392,6 @@ const LandingPage = () => {
                             </div>
                         </Card>
                     )}
-                </div>
-            </div>
-
-            {/* Map Section - Full Width */}
-            <div className="mb-8">
-                <div className="animate-fade-in-up" style={{ animationDelay: "700ms" }}>
-                    {regionalData.length > 0 && <BangladeshMapComponent data={regionalData} />}
                 </div>
             </div>
 

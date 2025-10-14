@@ -149,7 +149,6 @@ const FundingSourceDetails = () => {
     }
   };
 
-  const committedNum = Number(source.total_committed || source.grant_amount || 0);
 
   const exportData = {
     source: source?.name,

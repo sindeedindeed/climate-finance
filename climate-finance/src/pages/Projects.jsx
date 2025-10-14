@@ -198,7 +198,6 @@ const Projects = () => {
     const divisions = Array.from(new Set(projectsList.map(p => p.geographic_division).filter(Boolean))).sort();
     const statuses = Array.from(new Set(projectsList.map(p => p.status).filter(Boolean))).sort();
     const approvalYears = Array.from(new Set(projectsList.map(p => p.approval_fy).filter(Boolean))).sort();
-    const geographicDivisions = Array.from(new Set(projectsList.map(p => p.geographic_division).filter(Boolean))).sort();
     const equityMarkers = Array.from(new Set(projectsList.map(p => p.equity_marker).filter(Boolean))).sort();
 
     const filters = [

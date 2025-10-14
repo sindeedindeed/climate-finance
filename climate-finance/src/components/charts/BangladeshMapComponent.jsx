@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { formatCurrency } from "../../utils/formatters";
 
 // Normalize division names for data lookup
 const REGION_NAME_MAP = {
