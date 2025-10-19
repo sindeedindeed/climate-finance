@@ -30,7 +30,7 @@ export const mockProjectApi = {
     }
     
     return {
-      success: true,
+      status: true,
       data: filteredProjects,
       total: filteredProjects.length
     };
@@ -43,7 +43,7 @@ export const mockProjectApi = {
       throw new Error('Project not found');
     }
     return {
-      success: true,
+      status: true,
       data: project
     };
   },
@@ -54,24 +54,37 @@ export const mockProjectApi = {
       acc[project.status] = (acc[project.status] || 0) + 1;
       return acc;
     }, {});
+    
+    // Convert to array format expected by charts
+    const statusArray = Object.entries(statusCounts).map(([name, value]) => ({
+      name,
+      value
+    }));
+    
     return {
-      success: true,
-      data: statusCounts
+      status: true,
+      data: statusArray
     };
   },
 
   getBySector: async () => {
     await delay(200);
+    // Convert sector distribution to array format expected by charts
+    const sectorArray = mockSectorDistribution.map(item => ({
+      name: item.sector,
+      value: item.count
+    }));
+    
     return {
-      success: true,
-      data: mockSectorDistribution
+      status: true,
+      data: sectorArray
     };
   },
 
   getTrend: async () => {
     await delay(200);
     return {
-      success: true,
+      status: true,
       data: mockTrends
     };
   },
@@ -82,32 +95,76 @@ export const mockProjectApi = {
       acc[project.focalArea] = (acc[project.focalArea] || 0) + 1;
       return acc;
     }, {});
+    
+    // Convert to array format expected by charts
+    const typeArray = Object.entries(typeCounts).map(([name, value]) => ({
+      name,
+      value
+    }));
+    
     return {
-      success: true,
-      data: typeCounts
+      status: true,
+      data: typeArray
     };
   },
 
   getOverviewStats: async () => {
     await delay(200);
     return {
-      success: true,
-      data: mockStats
+      status: true,
+      data: {
+        current_year: {
+          total_projects: mockStats.totalProjects,
+          total_budget: mockStats.totalBudget,
+          active_projects: mockStats.activeProjects,
+          completed_projects: mockStats.completedProjects,
+          total_climate_finance: 22550000,
+          adaptation_finance: 12000000,
+          mitigation_finance: 10550000
+        },
+        previous_year: {
+          total_projects: 8,
+          total_budget: 15000000,
+          active_projects: 5,
+          completed_projects: 2,
+          total_climate_finance: 15000000,
+          adaptation_finance: 8000000,
+          mitigation_finance: 7000000
+        },
+        total_projects: mockStats.totalProjects,
+        active_projects: mockStats.activeProjects,
+        completed_projects: mockStats.completedProjects,
+        total_climate_finance: 22550000,
+        adaptation_finance: 12000000,
+        mitigation_finance: 10550000,
+        total_beneficiaries: mockStats.totalBeneficiaries
+      }
     };
   },
 
   getProjectsOverviewStats: async () => {
     await delay(200);
     return {
-      success: true,
-      data: mockStats
+      status: true,
+      data: {
+        current_year: {
+          total_projects: mockStats.totalProjects,
+          active_projects: mockStats.activeProjects,
+          completed_projects: mockStats.completedProjects,
+          total_investment: mockStats.totalBudget
+        },
+        total_projects: mockStats.totalProjects,
+        active_projects: mockStats.activeProjects,
+        completed_projects: mockStats.completedProjects,
+        total_investment: mockStats.totalBudget
+      }
     };
   },
 
   getDashboardOverviewStats: async () => {
     await delay(200);
     return {
-      success: true,
+      status: true,
       data: mockStats
     };
   },
@@ -117,15 +174,33 @@ export const mockProjectApi = {
     const regionalData = mockProjects.reduce((acc, project) => {
       const region = project.location;
       if (!acc[region]) {
-        acc[region] = { count: 0, budget: 0 };
+        acc[region] = { 
+          location_name: region,
+          count: 0, 
+          budget: 0,
+          adaptation_total: 0,
+          mitigation_total: 0
+        };
       }
       acc[region].count += 1;
       acc[region].budget += project.budget;
+      
+      // Add adaptation/mitigation based on focal area
+      if (project.focalArea === 'Climate Adaptation') {
+        acc[region].adaptation_total += project.budget;
+      } else if (project.focalArea === 'Climate Mitigation') {
+        acc[region].mitigation_total += project.budget;
+      }
+      
       return acc;
     }, {});
+    
+    // Convert to array format expected by the component
+    const regionalArray = Object.values(regionalData);
+    
     return {
-      success: true,
-      data: regionalData
+      status: true,
+      data: regionalArray
     };
   }
 };
@@ -134,7 +209,7 @@ export const mockAgencyApi = {
   getAll: async () => {
     await delay(200);
     return {
-      success: true,
+      status: true,
       data: mockAgencies
     };
   },
@@ -146,7 +221,7 @@ export const mockAgencyApi = {
       throw new Error('Agency not found');
     }
     return {
-      success: true,
+      status: true,
       data: agency
     };
   }
@@ -156,7 +231,7 @@ export const mockFundingSourceApi = {
   getAll: async () => {
     await delay(200);
     return {
-      success: true,
+      status: true,
       data: mockFundingSources
     };
   },
@@ -168,7 +243,7 @@ export const mockFundingSourceApi = {
       throw new Error('Funding source not found');
     }
     return {
-      success: true,
+      status: true,
       data: source
     };
   },
@@ -179,47 +254,67 @@ export const mockFundingSourceApi = {
       acc[project.fundingSource] = (acc[project.fundingSource] || 0) + 1;
       return acc;
     }, {});
+    
+    // Convert to array format expected by charts
+    const typeArray = Object.entries(typeCounts).map(([name, value]) => ({
+      name,
+      value
+    }));
+    
     return {
-      success: true,
-      data: typeCounts
+      status: true,
+      data: typeArray
     };
   },
 
   getFundingSourceOverview: async () => {
     await delay(200);
-    const overview = mockFundingSources.map(source => ({
-      ...source,
-      projectCount: mockProjects.filter(p => p.fundingSource === source.name).length,
-      totalBudget: mockProjects
-        .filter(p => p.fundingSource === source.name)
-        .reduce((sum, p) => sum + p.budget, 0)
-    }));
+    const totalFinance = mockProjects.reduce((sum, p) => sum + p.budget, 0);
+    const activeSources = new Set(mockProjects.map(p => p.fundingSource)).size;
+    
     return {
-      success: true,
-      data: overview
+      status: true,
+      data: {
+        current_year: {
+          total_finance: totalFinance,
+          active_funding_source: activeSources,
+          committed_funds: totalFinance,
+          disbursed_funds: totalFinance * 0.75 // Assume 75% disbursed
+        },
+        total_climate_finance: totalFinance,
+        active_funding_source: activeSources,
+        committed_funds: totalFinance,
+        disbursed_funds: totalFinance * 0.75
+      }
     };
   },
 
   getFundingSourceTrend: async () => {
     await delay(200);
     return {
-      success: true,
+      status: true,
       data: mockTrends
     };
   },
 
   getFundingSourceSectorAllocation: async () => {
     await delay(200);
+    // Convert to format expected by Funding Sources page
+    const sectorAllocation = mockSectorDistribution.map(item => ({
+      sector: item.sector,
+      gef_grant: item.budget
+    }));
+    
     return {
-      success: true,
-      data: mockSectorDistribution
+      status: true,
+      data: sectorAllocation
     };
   },
 
   getFundingSource: async () => {
     await delay(200);
     return {
-      success: true,
+      status: true,
       data: mockFundingSources
     };
   }
@@ -229,7 +324,7 @@ export const mockLocationApi = {
   getAll: async () => {
     await delay(200);
     return {
-      success: true,
+      status: true,
       data: mockLocations
     };
   },
@@ -241,7 +336,7 @@ export const mockLocationApi = {
       throw new Error('Location not found');
     }
     return {
-      success: true,
+      status: true,
       data: location
     };
   }
@@ -251,7 +346,7 @@ export const mockFocalAreaApi = {
   getAll: async () => {
     await delay(200);
     return {
-      success: true,
+      status: true,
       data: mockFocalAreas
     };
   },
@@ -263,7 +358,7 @@ export const mockFocalAreaApi = {
       throw new Error('Focal area not found');
     }
     return {
-      success: true,
+      status: true,
       data: area
     };
   }
@@ -275,7 +370,7 @@ export const mockAuthApi = {
     // Mock authentication - accept any credentials for demo
     if (credentials.email && credentials.password) {
       return {
-        success: true,
+        status: true,
         data: {
           token: 'mock-jwt-token',
           user: {
@@ -293,7 +388,7 @@ export const mockAuthApi = {
   register: async (userData) => {
     await delay(500);
     return {
-      success: true,
+      status: true,
       data: {
         id: Date.now(),
         ...userData,
@@ -305,7 +400,7 @@ export const mockAuthApi = {
   getAllUsers: async () => {
     await delay(200);
     return {
-      success: true,
+      status: true,
       data: [
         { id: 1, email: 'admin@example.com', role: 'admin', name: 'Admin User' },
         { id: 2, email: 'user@example.com', role: 'user', name: 'Regular User' }
@@ -324,7 +419,7 @@ export const mockAuthApi = {
       throw new Error('User not found');
     }
     return {
-      success: true,
+      status: true,
       data: user
     };
   }
@@ -334,7 +429,7 @@ export const mockPendingProjectApi = {
   getAll: async () => {
     await delay(200);
     return {
-      success: true,
+      status: true,
       data: []
     };
   },
@@ -342,7 +437,7 @@ export const mockPendingProjectApi = {
   submit: async (projectData) => {
     await delay(500);
     return {
-      success: true,
+      status: true,
       data: {
         id: Date.now(),
         ...projectData,

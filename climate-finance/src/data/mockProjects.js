@@ -2,8 +2,10 @@
 export const mockProjects = [
   {
     id: 1,
+    project_id: 1,
     title: "Climate Resilience in Coastal Areas",
     description: "Building climate resilience in coastal communities through infrastructure development and community capacity building.",
+    objectives: "Enhance coastal community resilience through infrastructure development, early warning systems, and capacity building programs to mitigate climate change impacts.",
     sector: "Infrastructure",
     status: "Active",
     startDate: "2023-01-15",
@@ -11,16 +13,22 @@ export const mockProjects = [
     budget: 2500000,
     location: "Cox's Bazar",
     agency: "UNDP",
+    agency_id: 1,
     fundingSource: "Green Climate Fund",
+    funding_source_id: 1,
     focalArea: "Climate Adaptation",
     sdgGoals: [13, 14, 15],
     beneficiaries: 15000,
-    progress: 65
+    progress: 65,
+    vulnerabilityType: "Coastal Flooding",
+    implementationStatus: "In Progress"
   },
   {
     id: 2,
+    project_id: 2,
     title: "Renewable Energy for Rural Communities",
     description: "Installing solar panels and wind turbines in rural areas to provide clean energy access.",
+    objectives: "Provide clean energy access to rural communities through renewable energy infrastructure and reduce dependence on fossil fuels.",
     sector: "Energy",
     status: "Completed",
     startDate: "2022-06-01",
@@ -28,16 +36,22 @@ export const mockProjects = [
     budget: 1800000,
     location: "Sylhet",
     agency: "World Bank",
+    agency_id: 2,
     fundingSource: "Climate Investment Funds",
+    funding_source_id: 2,
     focalArea: "Climate Mitigation",
     sdgGoals: [7, 13],
     beneficiaries: 8500,
-    progress: 100
+    progress: 100,
+    vulnerabilityType: "Energy Access",
+    implementationStatus: "Completed"
   },
   {
     id: 3,
+    project_id: 3,
     title: "Sustainable Agriculture Practices",
     description: "Promoting climate-smart agriculture techniques among smallholder farmers.",
+    objectives: "Promote climate-smart agriculture practices to improve food security and build resilience to climate change impacts.",
     sector: "Agriculture",
     status: "Active",
     startDate: "2023-03-01",
@@ -45,16 +59,22 @@ export const mockProjects = [
     budget: 1200000,
     location: "Rajshahi",
     agency: "FAO",
+    agency_id: 3,
     fundingSource: "Adaptation Fund",
+    funding_source_id: 3,
     focalArea: "Climate Adaptation",
     sdgGoals: [2, 13, 15],
     beneficiaries: 12000,
-    progress: 40
+    progress: 40,
+    vulnerabilityType: "Drought",
+    implementationStatus: "In Progress"
   },
   {
     id: 4,
+    project_id: 4,
     title: "Urban Climate Action Plan",
     description: "Developing comprehensive climate action plans for major urban centers.",
+    objectives: "Develop and implement comprehensive climate action plans for urban areas to reduce emissions and enhance climate resilience.",
     sector: "Urban Planning",
     status: "Planning",
     startDate: "2024-01-01",
@@ -62,16 +82,22 @@ export const mockProjects = [
     budget: 800000,
     location: "Dhaka",
     agency: "UN-Habitat",
+    agency_id: 4,
     fundingSource: "Global Environment Facility",
+    funding_source_id: 4,
     focalArea: "Climate Mitigation",
     sdgGoals: [11, 13],
     beneficiaries: 500000,
-    progress: 15
+    progress: 15,
+    vulnerabilityType: "Urban Heat Island",
+    implementationStatus: "Planning"
   },
   {
     id: 5,
+    project_id: 5,
     title: "Forest Conservation and Restoration",
     description: "Protecting existing forests and restoring degraded forest areas for carbon sequestration.",
+    objectives: "Protect and restore forest ecosystems to enhance carbon sequestration and biodiversity conservation.",
     sector: "Forestry",
     status: "Active",
     startDate: "2023-08-15",
@@ -79,11 +105,176 @@ export const mockProjects = [
     budget: 3200000,
     location: "Chittagong Hill Tracts",
     agency: "IUCN",
+    agency_id: 5,
     fundingSource: "REDD+",
+    funding_source_id: 5,
     focalArea: "Climate Mitigation",
     sdgGoals: [13, 15],
     beneficiaries: 25000,
-    progress: 30
+    progress: 30,
+    vulnerabilityType: "Deforestation",
+    implementationStatus: "In Progress"
+  },
+  {
+    id: 6,
+    project_id: 6,
+    title: "Water Management and Flood Control",
+    description: "Implementing advanced water management systems and flood control infrastructure in vulnerable regions.",
+    objectives: "Implement comprehensive water management and flood control systems to protect vulnerable communities from climate-related water risks.",
+    sector: "Water Management",
+    status: "Active",
+    startDate: "2023-05-01",
+    endDate: "2026-04-30",
+    budget: 4200000,
+    location: "Barisal",
+    agency: "ADB",
+    agency_id: 6,
+    fundingSource: "Green Climate Fund",
+    funding_source_id: 1,
+    focalArea: "Climate Adaptation",
+    sdgGoals: [6, 13, 14],
+    beneficiaries: 35000,
+    progress: 55,
+    vulnerabilityType: "Flooding",
+    implementationStatus: "In Progress"
+  },
+  {
+    id: 7,
+    project_id: 7,
+    title: "Green Building Initiative",
+    description: "Promoting energy-efficient and climate-resilient building practices in urban areas.",
+    objectives: "Promote sustainable building practices and energy-efficient construction to reduce urban carbon footprint.",
+    sector: "Construction",
+    status: "Active",
+    startDate: "2023-09-01",
+    endDate: "2025-08-31",
+    budget: 1500000,
+    location: "Chittagong",
+    agency: "GIZ",
+    agency_id: 7,
+    fundingSource: "Global Environment Facility",
+    funding_source_id: 4,
+    focalArea: "Climate Mitigation",
+    sdgGoals: [7, 11, 13],
+    beneficiaries: 18000,
+    progress: 25,
+    vulnerabilityType: "Heat Stress",
+    implementationStatus: "In Progress"
+  },
+  {
+    id: 8,
+    project_id: 8,
+    title: "Community-Based Disaster Risk Reduction",
+    description: "Building community resilience through early warning systems and disaster preparedness training.",
+    objectives: "Strengthen community resilience through early warning systems, disaster preparedness training, and risk reduction measures.",
+    sector: "Disaster Management",
+    status: "Completed",
+    startDate: "2022-01-01",
+    endDate: "2024-12-31",
+    budget: 950000,
+    location: "Khulna",
+    agency: "UNDP",
+    agency_id: 1,
+    fundingSource: "Adaptation Fund",
+    funding_source_id: 3,
+    focalArea: "Climate Adaptation",
+    sdgGoals: [1, 11, 13],
+    beneficiaries: 22000,
+    progress: 100,
+    vulnerabilityType: "Cyclones",
+    implementationStatus: "Completed"
+  },
+  {
+    id: 9,
+    project_id: 9,
+    title: "Sustainable Transport System",
+    description: "Developing electric vehicle infrastructure and promoting public transportation in major cities.",
+    objectives: "Develop sustainable transport infrastructure including electric vehicles and improved public transit to reduce urban emissions.",
+    sector: "Transportation",
+    status: "Planning",
+    startDate: "2024-03-01",
+    endDate: "2027-02-28",
+    budget: 2800000,
+    location: "Dhaka",
+    agency: "World Bank",
+    agency_id: 2,
+    fundingSource: "Climate Investment Funds",
+    funding_source_id: 2,
+    focalArea: "Climate Mitigation",
+    sdgGoals: [7, 11, 13],
+    beneficiaries: 800000,
+    progress: 5,
+    vulnerabilityType: "Air Pollution",
+    implementationStatus: "Planning"
+  },
+  {
+    id: 10,
+    project_id: 10,
+    title: "Mangrove Restoration Project",
+    description: "Restoring mangrove ecosystems to protect coastal areas from storm surges and sea-level rise.",
+    objectives: "Restore and protect mangrove ecosystems to provide natural coastal protection and enhance biodiversity.",
+    sector: "Ecosystem Restoration",
+    status: "Active",
+    startDate: "2023-11-01",
+    endDate: "2026-10-31",
+    budget: 1900000,
+    location: "Sundarbans",
+    agency: "IUCN",
+    agency_id: 5,
+    fundingSource: "Green Climate Fund",
+    funding_source_id: 1,
+    focalArea: "Climate Adaptation",
+    sdgGoals: [13, 14, 15],
+    beneficiaries: 12000,
+    progress: 20,
+    vulnerabilityType: "Sea Level Rise",
+    implementationStatus: "In Progress"
+  },
+  {
+    id: 11,
+    project_id: 11,
+    title: "Climate-Smart Fisheries",
+    description: "Supporting fishing communities with climate-resilient practices and sustainable fishing methods.",
+    objectives: "Support fishing communities with climate-resilient practices and sustainable fishing methods to ensure food security.",
+    sector: "Fisheries",
+    status: "Active",
+    startDate: "2023-07-01",
+    endDate: "2025-06-30",
+    budget: 750000,
+    location: "Cox's Bazar",
+    agency: "FAO",
+    agency_id: 3,
+    fundingSource: "Adaptation Fund",
+    funding_source_id: 3,
+    focalArea: "Climate Adaptation",
+    sdgGoals: [2, 8, 13, 14],
+    beneficiaries: 8000,
+    progress: 45,
+    vulnerabilityType: "Ocean Acidification",
+    implementationStatus: "In Progress"
+  },
+  {
+    id: 12,
+    project_id: 12,
+    title: "Waste-to-Energy Initiative",
+    description: "Converting organic waste into renewable energy while reducing methane emissions.",
+    objectives: "Convert organic waste into renewable energy to reduce methane emissions and provide clean energy.",
+    sector: "Waste Management",
+    status: "Planning",
+    startDate: "2024-06-01",
+    endDate: "2027-05-31",
+    budget: 2200000,
+    location: "Dhaka",
+    agency: "ADB",
+    agency_id: 6,
+    fundingSource: "Global Environment Facility",
+    funding_source_id: 4,
+    focalArea: "Climate Mitigation",
+    sdgGoals: [7, 11, 13],
+    beneficiaries: 150000,
+    progress: 10,
+    vulnerabilityType: "Waste Management",
+    implementationStatus: "Planning"
   }
 ];
 
@@ -92,7 +283,12 @@ export const mockAgencies = [
   { id: 2, name: "World Bank", description: "International Bank for Reconstruction and Development" },
   { id: 3, name: "FAO", description: "Food and Agriculture Organization" },
   { id: 4, name: "UN-Habitat", description: "United Nations Human Settlements Programme" },
-  { id: 5, name: "IUCN", description: "International Union for Conservation of Nature" }
+  { id: 5, name: "IUCN", description: "International Union for Conservation of Nature" },
+  { id: 6, name: "ADB", description: "Asian Development Bank" },
+  { id: 7, name: "GIZ", description: "Deutsche Gesellschaft für Internationale Zusammenarbeit" },
+  { id: 8, name: "USAID", description: "United States Agency for International Development" },
+  { id: 9, name: "DFID", description: "Department for International Development" },
+  { id: 10, name: "JICA", description: "Japan International Cooperation Agency" }
 ];
 
 export const mockFundingSources = [
@@ -100,7 +296,12 @@ export const mockFundingSources = [
   { id: 2, name: "Climate Investment Funds", description: "Multi-donor climate finance platform" },
   { id: 3, name: "Adaptation Fund", description: "Financing adaptation projects in developing countries" },
   { id: 4, name: "Global Environment Facility", description: "International environmental funding" },
-  { id: 5, name: "REDD+", description: "Reducing Emissions from Deforestation and Forest Degradation" }
+  { id: 5, name: "REDD+", description: "Reducing Emissions from Deforestation and Forest Degradation" },
+  { id: 6, name: "World Bank Climate Finance", description: "World Bank climate and disaster risk financing" },
+  { id: 7, name: "EU Climate Finance", description: "European Union climate action funding" },
+  { id: 8, name: "Bilateral Climate Funds", description: "Country-to-country climate finance agreements" },
+  { id: 9, name: "Private Climate Finance", description: "Private sector climate investment" },
+  { id: 10, name: "Multilateral Development Banks", description: "MDB climate finance initiatives" }
 ];
 
 export const mockLocations = [
@@ -108,7 +309,13 @@ export const mockLocations = [
   { id: 2, name: "Sylhet", region: "Sylhet", type: "Division" },
   { id: 3, name: "Rajshahi", region: "Rajshahi", type: "Division" },
   { id: 4, name: "Dhaka", region: "Dhaka", type: "Division" },
-  { id: 5, name: "Chittagong Hill Tracts", region: "Chittagong", type: "Region" }
+  { id: 5, name: "Chittagong Hill Tracts", region: "Chittagong", type: "Region" },
+  { id: 6, name: "Barisal", region: "Barisal", type: "Division" },
+  { id: 7, name: "Chittagong", region: "Chittagong", type: "Division" },
+  { id: 8, name: "Khulna", region: "Khulna", type: "Division" },
+  { id: 9, name: "Sundarbans", region: "Khulna", type: "Forest" },
+  { id: 10, name: "Rangpur", region: "Rangpur", type: "Division" },
+  { id: 11, name: "Mymensingh", region: "Mymensingh", type: "Division" }
 ];
 
 export const mockFocalAreas = [
@@ -118,19 +325,19 @@ export const mockFocalAreas = [
 ];
 
 export const mockStats = {
-  totalProjects: 5,
-  totalBudget: 9500000,
-  activeProjects: 3,
-  completedProjects: 1,
-  planningProjects: 1,
-  totalBeneficiaries: 602500,
-  averageProgress: 50
+  totalProjects: 12,
+  totalBudget: 22550000,
+  activeProjects: 7,
+  completedProjects: 2,
+  planningProjects: 3,
+  totalBeneficiaries: 1559500,
+  averageProgress: 45
 };
 
 export const mockTrends = [
   { year: 2022, projects: 1, budget: 1800000 },
-  { year: 2023, projects: 3, budget: 5700000 },
-  { year: 2024, projects: 1, budget: 2000000 }
+  { year: 2023, projects: 7, budget: 12750000 },
+  { year: 2024, projects: 4, budget: 8000000 }
 ];
 
 export const mockSectorDistribution = [
