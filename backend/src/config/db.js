@@ -6,12 +6,7 @@ const path = require("path");
 
 const pool = new Pool({
     connectionString: process.env.PG_URI,
-    ssl:
-        process.env.NODE_ENV === "production"
-            ? {
-                  rejectUnauthorized: false,
-              }
-            : false,
+    ssl: false,
 });
 
 const connectDB = async () => {
